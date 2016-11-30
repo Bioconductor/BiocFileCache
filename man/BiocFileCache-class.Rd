@@ -4,6 +4,7 @@
 \name{BiocFileCache-class}
 \alias{BiocFileCache}
 \alias{BiocFileCache-class}
+\alias{bfcCache}
 \alias{bfcCache,BiocFileCache-method}
 \alias{length,BiocFileCache-method}
 \alias{show,BiocFileCache-method}
