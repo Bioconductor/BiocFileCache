@@ -1,0 +1,19 @@
+Package: BiocFileCache
+Title: Manage Files Across Sessions
+Version: 0.0.1
+Authors@R: 
+    c(person("Lori", "Shepherd", 
+      email = "lori.shepherd@roswellpark.org", 
+      role = c("aut", "cre")), 
+    person("Martin", "Morgan", 
+      email = "martin.morgain@roswellpark.org", 
+      role = "aut"))
+Description: This package creates a persistent on-disk cache of files that the
+    user can add, update, and retrieve. It is useful for managing resources
+    (such as custom Txdb objects) that are costly or difficult to create, or for
+    data files used across sessions.
+Depends: R (>= 3.4.0)
+Imports: methods
+License: Artistic-2.0
+Encoding: UTF-8
+LazyData: true
