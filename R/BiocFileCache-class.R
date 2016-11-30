@@ -31,6 +31,7 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 #' @return character(1) location of the directory containing the cache.
 #' @examples
 #' bfcCache(bfc)
+#' @aliases bfcCache
 #' @exportMethod bfcCache
 setMethod("bfcCache", "BiocFileCache",
    function(x)
