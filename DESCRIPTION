@@ -1,6 +1,6 @@
 Package: BiocFileCache
 Title: Manage Files Across Sessions
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: c(person("Lori", "Shepherd", 
       email = "lori.shepherd@roswellpark.org", 
       role = c("aut", "cre")), 
@@ -14,7 +14,7 @@ Description: This package creates a persistent on-disk cache of files that the
 Depends:
     R (>= 3.4.0)
 Imports:
-    methods
+    methods, RSQLite, dplyr
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true

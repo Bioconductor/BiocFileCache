@@ -11,3 +11,5 @@ INSERT INTO resource (
 ) VALUES (
     '%s', '%s'
 );
+-- REMOVE
+DELETE FROM resource where rid = '%d' AND rname = '%s';

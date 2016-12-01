@@ -1,4 +1,6 @@
 #' @import methods
+#' @import RSQLite
+#' @import dplyr
 .BiocFileCache = setClass("BiocFileCache",
     slots=c(cache="character"))
 
@@ -62,3 +64,86 @@ setMethod("show", "BiocFileCache",
       sep="")
 })
 
+#' @export
+setGeneric("createDb", function(x) standardGeneric("createDb"))
+
+#' @describeIn BiocFileCache Create the sqlite database to keep track of files
+#' @return character(1) The path to the sqlite file
+#' @examples
+#' createDb(bfc)
+#' @aliases createDb
+#' @exportMethod createDb
+setMethod("createDb", "BiocFileCache",
+    function(x)
+{
+    if (!file.exists(.sql_dbfile(x)))
+        .sql_create_db(x)
+    else
+        .sql_dbfile(x)
+})
+
+#' @export
+setGeneric("addResource", function(x, rname) standardGeneric("addResource"))
+
+#' @describeIn BiocFileCache Add a resource to the database
+#' @param rname Resource name
+#' @return character(1) The path to the sqlite file resource was added to
+#' @examples
+#' addResource(bfc, "TestName")
+#' addResource(bfc, "TestName2")
+#' addResource(bfc, "TestName")
+#' @aliases addResource
+#' @exportMethod addResource
+setMethod("addResource", "BiocFileCache",
+    function(x, rname)
+{
+    .sql_add_resource(x, rname)
+})
+
+#' @export
+setGeneric("listResources", function(x) standardGeneric("listResources"))
+
+#' @describeIn BiocFileCache list resources in database
+#' @return A list of current resources in the database
+#' @examples
+#' listResources(bfc)
+#' @aliases listResources
+#' @exportMethod listResources
+setMethod("listResources", "BiocFileCache",
+    function(x)
+{
+    .sql_get_resource_table(x)
+})
+
+#' @export
+setGeneric("removeResource", function(x, rid, rname) standardGeneric("removeResource"))
+
+#' @describeIn BiocFileCache Add a resource to the database
+#' @param rid Unique resource id (see rid of ouput from listResource)
+#' @return character(1) The path to the sqlite file resource was removed from
+#' @examples
+#' removeResource(bfc, 1, "TestName")
+#' listResources(bfc)
+#' @aliases removeResource
+#' @exportMethod removeResource
+setMethod("removeResource", "BiocFileCache",
+    function(x, rid, rname)
+{
+    .sql_remove_resource(x, rid, rname)
+})
+
+#' @export
+setGeneric("destroyDb", function(x) standardGeneric("destroyDb"))
+
+#' @describeIn BiocFileCache Destroy the sqlite database
+#' @return TRUE if successfully deleted
+#' @examples
+#' destroyDb(bfc)
+#' @aliases destroyDb
+#' @exportMethod destroyDb
+setMethod("destroyDb", "BiocFileCache",
+    function(x)
+{
+    if (file.exists(.sql_dbfile(x)))
+        .sql_destroy_db(x)
+})

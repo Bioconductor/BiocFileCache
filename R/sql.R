@@ -1,4 +1,3 @@
-#' @import RSQLite
 .sql_dbfile <-
     function(bfc)
 {
@@ -50,8 +49,16 @@
     .sql_do(bfc, sql)
 }
 
+.sql_remove_resource <-
+    function(bfc, rid, rname)
+{
+    tmpl <- .sql_get_cmd("-- REMOVE")
+    sql <- sprintf(tmpl, rid, rname, basename(tempfile("", bfcCache(bfc))))
+    .sql_do(bfc, sql)
+}
+
 .sql_get_resource_table <-
-   function(bfc)
+    function(bfc)
 {
     src <- src_sqlite("~/.BiocFileCache/BiocFileCache.sqlite")
     tbl(src, "resource")
