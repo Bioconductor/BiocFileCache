@@ -22,7 +22,9 @@ BiocFileCache <-
 {
     if (!file.exists(cache))
         dir.create(cache)
-    .BiocFileCache(cache=cache)
+    bfc <- .BiocFileCache(cache=cache)
+    .sql_create_db(bfc)
+    bfc
 }
 
 #' @export
@@ -33,6 +35,7 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 #' @return character(1) location of the directory containing the cache.
 #' @examples
 #' bfcCache(bfc)
+#' bfc
 #' @aliases bfcCache
 #' @exportMethod bfcCache
 setMethod("bfcCache", "BiocFileCache",
@@ -49,55 +52,33 @@ setMethod("bfcCache", "BiocFileCache",
 setMethod("length", "BiocFileCache",
     function(x)
 {
-    length(dir(bfcCache(x)))
+    ## FIXME: query listResources() for summarize(n=n())
+    ## listResources(bfc) %>% summarize(n=n()) %>% .[[n]]
+    length(dir(bfcCache(x))) - 1L
 })    
 
-#' @describeIn BiocFileCache Display a \code{BiocFileCache} instance.
-#' @param object A \code{BiocFileCache} instance.
-#' @exportMethod show
-setMethod("show", "BiocFileCache",
-    function(object)
-{
-  cat("class: ", class(object), "\n",
-      "bfcCache: ", bfcCache(object), "\n",
-      "length: ", length(object), "\n",
-      sep="")
-})
-
 #' @export
-setGeneric("createDb", function(x) standardGeneric("createDb"))
-
-#' @describeIn BiocFileCache Create the sqlite database to keep track of files
-#' @return character(1) The path to the sqlite file
-#' @examples
-#' createDb(bfc)
-#' @aliases createDb
-#' @exportMethod createDb
-setMethod("createDb", "BiocFileCache",
-    function(x)
-{
-    if (!file.exists(.sql_dbfile(x)))
-        .sql_create_db(x)
-    else
-        .sql_dbfile(x)
-})
-
-#' @export
-setGeneric("addResource", function(x, rname) standardGeneric("addResource"))
+setGeneric("addResource",
+    function(x, rname, resource) standardGeneric("addResource"),
+    signature="x")
 
 #' @describeIn BiocFileCache Add a resource to the database
-#' @param rname Resource name
+#'
+#' @param resource Any R object.
 #' @return character(1) The path to the sqlite file resource was added to
 #' @examples
-#' addResource(bfc, "TestName")
-#' addResource(bfc, "TestName2")
-#' addResource(bfc, "TestName")
+#' rid1 <- addResource(bfc, "TestName")
+#' rid2 <- addResource(bfc, "TestName2")
+#' rid3 <- addResource(bfc, "TestName")
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
-    function(x, rname)
+    function(x, rname, resource)
 {
-    .sql_add_resource(x, rname)
+    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    fname <- .sql_add_resource(x, rname)
+    saveRDS(resource, fname)
+    ## FIXME: return rid
 })
 
 #' @export
@@ -116,34 +97,64 @@ setMethod("listResources", "BiocFileCache",
 })
 
 #' @export
-setGeneric("removeResource", function(x, rid, rname) standardGeneric("removeResource"))
+setGeneric("removeResource",
+    function(x, rids) standardGeneric("removeResource"))
 
-#' @describeIn BiocFileCache Add a resource to the database
-#' @param rid Unique resource id (see rid of ouput from listResource)
-#' @return character(1) The path to the sqlite file resource was removed from
+#' @describeIn BiocFileCache Add a resource to the database.
+#' @param rids character() Unique resource ids (see rid of ouput from
+#'     listResource).
+#' @return character(1) The path to the sqlite file resource was
+#'     removed from.
 #' @examples
 #' removeResource(bfc, 1, "TestName")
 #' listResources(bfc)
 #' @aliases removeResource
 #' @exportMethod removeResource
 setMethod("removeResource", "BiocFileCache",
-    function(x, rid, rname)
+    function(x, rids)
 {
-    .sql_remove_resource(x, rid, rname)
+    .sql_remove_resource(x, rids)
 })
 
 #' @export
-setGeneric("destroyDb", function(x) standardGeneric("destroyDb"))
+setGeneric("removeCache",
+    function(x, ask = TRUE) standardGeneric("removeCache"),
+    signature="x")
 
-#' @describeIn BiocFileCache Destroy the sqlite database
-#' @return TRUE if successfully deleted
+#' @describeIn BiocFileCache Completely remove the BiocFileCache
+#' @return TRUE if successfully removed.
 #' @examples
-#' destroyDb(bfc)
-#' @aliases destroyDb
-#' @exportMethod destroyDb
-setMethod("destroyDb", "BiocFileCache",
-    function(x)
+#' \dontrun{removeCache(bfc, ask=FALSE)}
+#' @aliases removeCache
+#' @exportMethod removeCache
+setMethod("removeCache", "BiocFileCache",
+    function(x, ask=TRUE)
 {
-    if (file.exists(.sql_dbfile(x)))
-        .sql_destroy_db(x)
+    doit <- FALSE
+    if (ask) {
+        txt <- sprintf("remove cache and %d resource (y/N): ", length(x))
+        repeat {
+            repsonse <- readline(txt)
+            doit <- switch(substr(tolower(answer), 1, 1),
+                           y = TRUE, n = FALSE, NA)
+            if (!is.na(doit))
+                break
+        }
+    }
+
+    if (doit)
+        doit <- unlink(bfcCache(x), recursive=TRUE, force=TRUE) == 0
+    doit
+})
+
+#' @describeIn BiocFileCache Display a \code{BiocFileCache} instance.
+#' @param object A \code{BiocFileCache} instance.
+#' @exportMethod show
+setMethod("show", "BiocFileCache",
+    function(object)
+{
+  cat("class: ", class(object), "\n",
+      "bfcCache: ", bfcCache(object), "\n",
+      "length: ", length(object), "\n",
+      sep="")
 })

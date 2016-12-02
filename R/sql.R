@@ -31,29 +31,30 @@
 .sql_create_db <-
     function(bfc)
 {
-    sql <- .sql_get_cmd("-- TABLE")
-    .sql_do(bfc, sql)
-}
-
-.sql_destroy_db <-
-    function(bfc)
-{
-    file.remove(.sql_dbfile(bfc))
+    fl <- .sql_dbfile(bfc)
+    if (!file.exists(fl)) {
+        sql <- .sql_get_cmd("-- TABLE")
+        .sql_do(bfc, sql)
+    }
+    fl
 }
 
 .sql_add_resource <-
     function(bfc, rname)
 {
     tmpl <- .sql_get_cmd("-- INSERT")
-    sql <- sprintf(tmpl, rname, basename(tempfile("", bfcCache(bfc))))
+    fname <- tempfile("", bfcCache(bfc))
+    sql <- sprintf(tmpl, rname, basename(fname))
     .sql_do(bfc, sql)
+    ## FIXME: return newly created resource id
+    fname
 }
 
 .sql_remove_resource <-
-    function(bfc, rid, rname)
+    function(bfc, rids)
 {
     tmpl <- .sql_get_cmd("-- REMOVE")
-    sql <- sprintf(tmpl, rid, rname, basename(tempfile("", bfcCache(bfc))))
+    sql <- sprintf(tmpl, paste0("'", rids, ".", collapse=", "))
     .sql_do(bfc, sql)
 }
 
