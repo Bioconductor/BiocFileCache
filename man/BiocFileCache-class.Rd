@@ -2,21 +2,19 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache}
 \alias{BiocFileCache-class}
-\alias{addResource}
-\alias{addResource,BiocFileCache-method}
-\alias{bfcCache}
+\alias{BiocFileCache}
 \alias{bfcCache,BiocFileCache-method}
-\alias{createDb}
-\alias{createDb,BiocFileCache-method}
-\alias{destroyDb}
-\alias{destroyDb,BiocFileCache-method}
+\alias{bfcCache}
 \alias{length,BiocFileCache-method}
-\alias{listResources}
+\alias{addResource,BiocFileCache-method}
+\alias{addResource}
 \alias{listResources,BiocFileCache-method}
-\alias{removeResource}
+\alias{listResources}
 \alias{removeResource,BiocFileCache-method}
+\alias{removeResource}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeCache}
 \alias{show,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
@@ -26,28 +24,25 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{length}{BiocFileCache}(x)
 
-\S4method{show}{BiocFileCache}(object)
-
-\S4method{createDb}{BiocFileCache}(x)
-
 \S4method{addResource}{BiocFileCache}(x, rname)
 
 \S4method{listResources}{BiocFileCache}(x)
 
-\S4method{removeResource}{BiocFileCache}(x, rid, rname)
+\S4method{removeResource}{BiocFileCache}(x, rids)
 
-\S4method{destroyDb}{BiocFileCache}(x)
+\S4method{removeCache}{BiocFileCache}(x, ask = TRUE)
+
+\S4method{show}{BiocFileCache}(object)
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of cache.}
 
 \item{x}{\code{BiocFileCache} instance.}
 
+\item{rids}{character() Unique resource ids (see rid of ouput from
+listResource).}
+
 \item{object}{A \code{BiocFileCache} instance.}
-
-\item{rname}{Resource name}
-
-\item{rid}{Unique resource id (see rid of ouput from listResource)}
 }
 \value{
 A \code{BiocFileCache} instance.
@@ -56,15 +51,14 @@ character(1) location of the directory containing the cache.
 
 integer(1) Number of objects in the file cache.
 
-character(1) The path to the sqlite file
-
 character(1) The path to the sqlite file resource was added to
 
 A list of current resources in the database
 
-character(1) The path to the sqlite file resource was removed from
+character(1) The path to the sqlite file resource was
+    removed from.
 
-TRUE if successfully deleted
+TRUE if successfully removed.
 }
 \description{
 This class represents the location of files stored on disk. Use the return
@@ -76,30 +70,29 @@ value to add and retrieve files that persist across sessions.
 
 \item \code{length}: Get the number of object in the file cache.
 
-\item \code{show}: Display a \code{BiocFileCache} instance.
-
-\item \code{createDb}: Create the sqlite database to keep track of files
-
 \item \code{addResource}: Add a resource to the database
 
 \item \code{listResources}: list resources in database
 
-\item \code{removeResource}: Add a resource to the database
+\item \code{removeResource}: Add a resource to the database.
 
-\item \code{destroyDb}: Destroy the sqlite database
+\item \code{removeCache}: Completely remove the BiocFileCache
+
+\item \code{show}: Display a \code{BiocFileCache} instance.
 }}
 \examples{
 bfc <- BiocFileCache()
 bfc
+bfc <- BiocFileCache(tempfile())
 bfcCache(bfc)
+bfc
 length(bfc)
-createDb(bfc)
 addResource(bfc, "TestName")
 addResource(bfc, "TestName2")
 addResource(bfc, "TestName")
 listResources(bfc)
 removeResource(bfc, 1, "TestName")
 listResources(bfc)
-# destroyDb(bfc)
+removeCache(bfc, ask=FALSE)
 }
 

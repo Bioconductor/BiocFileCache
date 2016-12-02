@@ -11,5 +11,6 @@ INSERT INTO resource (
 ) VALUES (
     '%s', '%s'
 );
+SELECT last_insert_rowid()
 -- REMOVE
-DELETE FROM resource where rid = '%d' AND rname = '%s';
+DELETE FROM resource WHERE rids IN (%s);
