@@ -4,6 +4,7 @@ CREATE TABLE resource (
     rname text,
     filepath text,
     create_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_accessed DATETIME DEFAULT CURRENT_TIMESTAMP,
     cache_file_name text
 );
 -- INSERT
@@ -15,3 +16,11 @@ INSERT INTO resource (
 SELECT last_insert_rowid();
 -- REMOVE
 DELETE FROM resource WHERE rid IN (%s);
+-- UPDATEPATH
+UPDATE resource 
+SET filepath = '%s', last_accessed = CURRENT_TIMESTAMP
+WHERE rid = '%d';
+-- UPDATETIME
+UPDATE resource 
+SET last_accessed = CURRENT_TIMESTAMP
+WHERE rid = '%d';

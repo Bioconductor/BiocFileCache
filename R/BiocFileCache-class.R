@@ -126,9 +126,44 @@ setGeneric("loadResource",
 setMethod("loadResource", "BiocFileCache",
     function(x, rid)
 {
+    sqlfile <- .sql_update_time(x, rid)
     .sql_load_resource(x, rid)
 })
 
+
+#' @export
+setGeneric("updateResource",
+    function(x, rid, resource, save=TRUE, ...) standardGeneric("updateResource"),
+    signature="x")
+
+#' @describeIn BiocFileCache Update a resource in the cache
+#'
+#' @return numeric(1) The unique id of the resource in the cache
+#' @examples
+#' obj$two = 3
+#' updateResource(bfc, rid3, obj)
+#' updateResource(bfc, rid1, "updated/Path/to/File")
+#' @aliases updateResource
+#' @exportMethod updateResource
+setMethod("updateResource", "BiocFileCache",
+    function(x, rid, resource, save=TRUE, ...)
+{
+    path <- as.character(.sql_get_entry(x, rid, "filepath"))
+    # is resource a path to existing file
+    check <- length(resource) == 1L && is.character(resource) && !is.na(resource)
+    if (check){
+        path <- resource
+        save <- FALSE
+    # resource is an object to save    
+    } else {
+        # else resource is an object to save
+        if (save)
+            saveRDS(resource, file = path, ...)
+    }
+    # update the path and last_access
+    sqlfile <- .sql_update_path(x, rid, path)
+        
+})
 
 #' @export
 setGeneric("removeResource",
