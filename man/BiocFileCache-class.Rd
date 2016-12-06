@@ -2,19 +2,21 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache-class}
 \alias{BiocFileCache}
-\alias{bfcCache,BiocFileCache-method}
-\alias{bfcCache}
-\alias{length,BiocFileCache-method}
-\alias{addResource,BiocFileCache-method}
+\alias{BiocFileCache-class}
 \alias{addResource}
-\alias{listResources,BiocFileCache-method}
+\alias{addResource,BiocFileCache-method}
+\alias{bfcCache}
+\alias{bfcCache,BiocFileCache-method}
+\alias{length,BiocFileCache-method}
 \alias{listResources}
-\alias{removeResource,BiocFileCache-method}
-\alias{removeResource}
-\alias{removeCache,BiocFileCache-method}
+\alias{listResources,BiocFileCache-method}
+\alias{loadResource}
+\alias{loadResource,BiocFileCache-method}
 \alias{removeCache}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeResource}
+\alias{removeResource,BiocFileCache-method}
 \alias{show,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
@@ -24,9 +26,11 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{length}{BiocFileCache}(x)
 
-\S4method{addResource}{BiocFileCache}(x, rname)
+\S4method{addResource}{BiocFileCache}(x, rname, resource, save = TRUE, ...)
 
 \S4method{listResources}{BiocFileCache}(x)
+
+\S4method{loadResource}{BiocFileCache}(x, rid)
 
 \S4method{removeResource}{BiocFileCache}(x, rids)
 
@@ -39,8 +43,20 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \item{x}{\code{BiocFileCache} instance.}
 
+\item{rname}{Name of object in file cache}
+
+\item{resource}{Any R object or path to file}
+
+\item{save}{logical if object should be saved as file}
+
+\item{...}{additional parameters to saveRDS}
+
+\item{rid}{numeric(1) Unique resource id}
+
 \item{rids}{character() Unique resource ids (see rid of ouput from
 listResource).}
+
+\item{ask}{check if really want to remove cache and files}
 
 \item{object}{A \code{BiocFileCache} instance.}
 }
@@ -51,9 +67,11 @@ character(1) location of the directory containing the cache.
 
 integer(1) Number of objects in the file cache.
 
-character(1) The path to the sqlite file resource was added to
+numeric(1) The unique id of the resource in the cache
 
 A list of current resources in the database
+
+A loaded R object
 
 character(1) The path to the sqlite file resource was
     removed from.
@@ -74,7 +92,9 @@ value to add and retrieve files that persist across sessions.
 
 \item \code{listResources}: list resources in database
 
-\item \code{removeResource}: Add a resource to the database.
+\item \code{loadResource}: load resource
+
+\item \code{removeResource}: Remove a resource to the database.
 
 \item \code{removeCache}: Completely remove the BiocFileCache
 
@@ -83,16 +103,17 @@ value to add and retrieve files that persist across sessions.
 \examples{
 bfc <- BiocFileCache()
 bfc
-bfc <- BiocFileCache(tempfile())
 bfcCache(bfc)
 bfc
 length(bfc)
-addResource(bfc, "TestName")
-addResource(bfc, "TestName2")
-addResource(bfc, "TestName")
+rid1 <- addResource(bfc, "TestName", "path/to/File")
+rid2 <- addResource(bfc, "TestName2", "path/to/File")
+obj <- list(one = 1, two = 2)
+rid3 <- addResource(bfc, "TestName", obj)
 listResources(bfc)
-removeResource(bfc, 1, "TestName")
+loadResource(bfc, rid3)
+removeResource(bfc, rid2)
 listResources(bfc)
-removeCache(bfc, ask=FALSE)
+\dontrun{removeCache(bfc, ask=FALSE)}
 }
 
