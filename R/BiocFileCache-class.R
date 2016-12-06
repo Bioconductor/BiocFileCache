@@ -126,7 +126,7 @@ setGeneric("loadResource",
 setMethod("loadResource", "BiocFileCache",
     function(x, rid)
 {
-    .sql_get_resource(x, rid, "filepath")
+    .sql_load_resource(x, rid)
 })
 
 

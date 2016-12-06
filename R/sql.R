@@ -82,10 +82,10 @@
     df %>% select(dx) %>% as.data.frame()     
 }
 
-.sql_get_resource <-
-    function(bfc, rid, field)
+.sql_load_resource <-
+    function(bfc, rid)
 {
-    path <- as.character(.sql_get_entry(bfc, rid, field))
+    path <- as.character(.sql_get_entry(bfc, rid, "filepath"))
     if (file.exists(path))
         readRDS(path)
     else
