@@ -52,33 +52,48 @@ setMethod("bfcCache", "BiocFileCache",
 setMethod("length", "BiocFileCache",
     function(x)
 {
-    ## FIXME: query listResources() for summarize(n=n())
-    ## listResources(bfc) %>% summarize(n=n()) %>% .[[n]]
-    length(dir(bfcCache(x))) - 1L
+    listResources(x) %>% summarize(n=n()) %>% as.data.frame() %>% .$n
 })    
 
 #' @export
 setGeneric("addResource",
-    function(x, rname, resource) standardGeneric("addResource"),
+    function(x, rname, resource, save=TRUE, ...) standardGeneric("addResource"),
     signature="x")
 
 #' @describeIn BiocFileCache Add a resource to the database
 #'
-#' @param resource Any R object.
-#' @return character(1) The path to the sqlite file resource was added to
+#' @param rname Name of object in file cache
+#' @param resource Any R object or path to file
+#' @param save logical if object should be saved as file
+#' @param ... additional parameters to saveRDS 
+#' @return numeric(1) The unique id of the resource in the cache
 #' @examples
-#' rid1 <- addResource(bfc, "TestName")
-#' rid2 <- addResource(bfc, "TestName2")
-#' rid3 <- addResource(bfc, "TestName")
+#' rid1 <- addResource(bfc, "TestName", "path/to/File")
+#' rid2 <- addResource(bfc, "TestName2", "path/to/File")
+#' obj <- list(one = 1, two = 2)
+#' rid3 <- addResource(bfc, "TestName", obj)
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
-    function(x, rname, resource)
+    function(x, rname, resource, save=TRUE, ...)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
-    fname <- .sql_add_resource(x, rname)
-    saveRDS(resource, fname)
-    ## FIXME: return rid
+
+    # is resource a path to existing file
+    check <- length(resource) == 1L && is.character(resource) && !is.na(resource)
+    if (check){
+        path <- resource
+        save <- FALSE
+    # resource is an object to save    
+    } else {
+        path <- file.path(bfcCache(x), rname)
+    }
+    
+    if (save)
+        saveRDS(resource, file = path, ...)
+
+    id <- .sql_add_resource(x, rname, path)
+    id
 })
 
 #' @export
@@ -96,17 +111,36 @@ setMethod("listResources", "BiocFileCache",
     .sql_get_resource_table(x)
 })
 
+
+#' @export
+setGeneric("loadResource",
+    function(x, rid) standardGeneric("loadResource"))
+
+#' @describeIn BiocFileCache load resource
+#' @param rid numeric(1) Unique resource id 
+#' @return A loaded R object
+#' @examples
+#' loadResource(bfc, rid3)
+#' @aliases loadResource
+#' @exportMethod loadResource
+setMethod("loadResource", "BiocFileCache",
+    function(x, rid)
+{
+    .sql_get_resource(x, rid, "filepath")
+})
+
+
 #' @export
 setGeneric("removeResource",
     function(x, rids) standardGeneric("removeResource"))
 
-#' @describeIn BiocFileCache Add a resource to the database.
+#' @describeIn BiocFileCache Remove a resource to the database.
 #' @param rids character() Unique resource ids (see rid of ouput from
 #'     listResource).
 #' @return character(1) The path to the sqlite file resource was
 #'     removed from.
 #' @examples
-#' removeResource(bfc, 1, "TestName")
+#' removeResource(bfc, rid2)
 #' listResources(bfc)
 #' @aliases removeResource
 #' @exportMethod removeResource
@@ -122,6 +156,8 @@ setGeneric("removeCache",
     signature="x")
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
+#'
+#' @param ask check if really want to remove cache and files
 #' @return TRUE if successfully removed.
 #' @examples
 #' \dontrun{removeCache(bfc, ask=FALSE)}
@@ -134,12 +170,14 @@ setMethod("removeCache", "BiocFileCache",
     if (ask) {
         txt <- sprintf("remove cache and %d resource (y/N): ", length(x))
         repeat {
-            repsonse <- readline(txt)
-            doit <- switch(substr(tolower(answer), 1, 1),
+            response <- readline(txt)
+            doit <- switch(substr(tolower(response), 1, 1),
                            y = TRUE, n = FALSE, NA)
             if (!is.na(doit))
                 break
         }
+    }else{
+        doit <- TRUE
     }
 
     if (doit)

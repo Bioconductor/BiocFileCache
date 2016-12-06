@@ -9,10 +9,19 @@
 {
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
-    df <- dbGetQuery(con, sql)
+    if (startsWith(sql, "-- INSERT")){
+        calls <- strsplit(sql, ";")
+        df <- dbGetQuery(con, calls[[1]][1])
+        id <- dbGetQuery(con, calls[[1]][2])
+    }else{
+        dbGetQuery(con,sql)
+    }
     dbDisconnect(con)
-
-    sqlfile
+    
+    if (startsWith(sql, "-- INSERT"))
+        as.numeric(id)
+    else
+        sqlfile
 }      
 
 .sql_get_cmd <-
@@ -40,27 +49,45 @@
 }
 
 .sql_add_resource <-
-    function(bfc, rname)
+    function(bfc, rname, path)
 {
     tmpl <- .sql_get_cmd("-- INSERT")
     fname <- tempfile("", bfcCache(bfc))
-    sql <- sprintf(tmpl, rname, basename(fname))
+    sql <- sprintf(tmpl, rname, path, basename(fname))
     .sql_do(bfc, sql)
-    ## FIXME: return newly created resource id
-    fname
+    
 }
 
 .sql_remove_resource <-
     function(bfc, rids)
 {
     tmpl <- .sql_get_cmd("-- REMOVE")
-    sql <- sprintf(tmpl, paste0("'", rids, ".", collapse=", "))
+    sql <- sprintf(tmpl, paste0("'", rids, "'", collapse=", "))
     .sql_do(bfc, sql)
 }
 
 .sql_get_resource_table <-
     function(bfc)
 {
-    src <- src_sqlite("~/.BiocFileCache/BiocFileCache.sqlite")
+    src <- src_sqlite(.sql_dbfile(bfc))
     tbl(src, "resource")
+}
+
+.sql_get_entry <-
+    function(bfc, id, field)
+{
+    mytbl <- .sql_get_resource_table(bfc)
+    df <-  mytbl %>% filter(rid == id)
+    dx <- which(colnames(df) == field)
+    df %>% select(dx) %>% as.data.frame()     
+}
+
+.sql_get_resource <-
+    function(bfc, rid, field)
+{
+    path <- as.character(.sql_get_entry(bfc, rid, field))
+    if (file.exists(path))
+        readRDS(path)
+    else
+        message(paste0("ERROR: '", path, "' does Not Exist"))
 }
