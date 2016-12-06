@@ -18,6 +18,8 @@
 \alias{removeResource}
 \alias{removeResource,BiocFileCache-method}
 \alias{show,BiocFileCache-method}
+\alias{updateResource}
+\alias{updateResource,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
@@ -31,6 +33,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{listResources}{BiocFileCache}(x)
 
 \S4method{loadResource}{BiocFileCache}(x, rid)
+
+\S4method{updateResource}{BiocFileCache}(x, rid, resource, save = TRUE, ...)
 
 \S4method{removeResource}{BiocFileCache}(x, rids)
 
@@ -73,6 +77,8 @@ A list of current resources in the database
 
 A loaded R object
 
+numeric(1) The unique id of the resource in the cache
+
 character(1) The path to the sqlite file resource was
     removed from.
 
@@ -94,6 +100,8 @@ value to add and retrieve files that persist across sessions.
 
 \item \code{loadResource}: load resource
 
+\item \code{updateResource}: Update a resource in the cache
+
 \item \code{removeResource}: Remove a resource to the database.
 
 \item \code{removeCache}: Completely remove the BiocFileCache
@@ -112,6 +120,9 @@ obj <- list(one = 1, two = 2)
 rid3 <- addResource(bfc, "TestName", obj)
 listResources(bfc)
 loadResource(bfc, rid3)
+obj$two = 3
+updateResource(bfc, rid3, obj)
+updateResource(bfc, rid1, "updated/Path/to/File")
 removeResource(bfc, rid2)
 listResources(bfc)
 \dontrun{removeCache(bfc, ask=FALSE)}

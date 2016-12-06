@@ -91,3 +91,15 @@
     else
         message(paste0("ERROR: '", path, "' does Not Exist"))
 }
+
+.sql_update_path <- function(bfc, rid, path){
+    tmpl <- .sql_get_cmd("-- UPDATEPATH")
+    sql <- sprintf(tmpl, path, rid)
+    .sql_do(bfc, sql)
+}
+
+.sql_update_time <- function(bfc, rid){
+    tmpl <- .sql_get_cmd("-- UPDATETIME")
+    sql <- sprintf(tmpl, rid)
+    .sql_do(bfc, sql)
+}
