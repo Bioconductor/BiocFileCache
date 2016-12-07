@@ -1,3 +1,4 @@
+globalVariables(c("rid","last_accessed"))
 .sql_dbfile <-
     function(bfc)
 {
@@ -92,14 +93,36 @@
         message(paste0("ERROR: '", path, "' does Not Exist"))
 }
 
-.sql_update_path <- function(bfc, rid, path){
+.sql_update_path <-
+    function(bfc, rid, path)
+{
     tmpl <- .sql_get_cmd("-- UPDATEPATH")
     sql <- sprintf(tmpl, path, rid)
     .sql_do(bfc, sql)
 }
 
-.sql_update_time <- function(bfc, rid){
+.sql_update_time <-
+    function(bfc, rid)
+{
     tmpl <- .sql_get_cmd("-- UPDATETIME")
     sql <- sprintf(tmpl, rid)
     .sql_do(bfc, sql)
+}
+
+.sql_clean_cache <-
+    function(bfc, days)
+{
+    mytbl <- .sql_get_resource_table(bfc) %>%
+        select(rid, last_accessed) %>% as.data.frame()
+    currentDate <- Sys.Date()
+    accessDate <- as.Date(sapply(strsplit(mytbl[,2], split=" "), `[`, 1))
+    diffTime <- currentDate - accessDate
+    mytbl[diffTime > days,1]
+}
+
+.sql_get_resource <-
+    function(bfc, id)
+{
+    mytbl <- .sql_get_resource_table(bfc)
+    as.data.frame(mytbl %>% filter(rid == id))
 }
