@@ -8,6 +8,8 @@
 \alias{addResource,BiocFileCache-method}
 \alias{bfcCache}
 \alias{bfcCache,BiocFileCache-method}
+\alias{cleanCache}
+\alias{cleanCache,BiocFileCache-method}
 \alias{length,BiocFileCache-method}
 \alias{listResources}
 \alias{listResources,BiocFileCache-method}
@@ -38,6 +40,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{removeResource}{BiocFileCache}(x, rids)
 
+\S4method{cleanCache}{BiocFileCache}(x, days = 120, ask = TRUE)
+
 \S4method{removeCache}{BiocFileCache}(x, ask = TRUE)
 
 \S4method{show}{BiocFileCache}(object)
@@ -59,6 +63,9 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \item{rids}{character() Unique resource ids (see rid of ouput from
 listResource).}
+
+\item{days}{Number of days between accessDate and currentDate; if exceeded
+entry will be deleted}
 
 \item{ask}{check if really want to remove cache and files}
 
@@ -83,6 +90,8 @@ character(1) The path to the sqlite file resource was
     removed from.
 
 TRUE if successfully removed.
+
+TRUE if successfully removed.
 }
 \description{
 This class represents the location of files stored on disk. Use the return
@@ -103,6 +112,8 @@ value to add and retrieve files that persist across sessions.
 \item \code{updateResource}: Update a resource in the cache
 
 \item \code{removeResource}: Remove a resource to the database.
+
+\item \code{cleanCache}: Remove old/unused files in BiocFileCache
 
 \item \code{removeCache}: Completely remove the BiocFileCache
 
@@ -125,6 +136,7 @@ updateResource(bfc, rid3, obj)
 updateResource(bfc, rid1, "updated/Path/to/File")
 removeResource(bfc, rid2)
 listResources(bfc)
+\dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }
 

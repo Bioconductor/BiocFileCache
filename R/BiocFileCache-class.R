@@ -44,6 +44,7 @@ setMethod("bfcCache", "BiocFileCache",
     x@cache
 })
 
+globalVariables(".")
 #' @describeIn BiocFileCache Get the number of object in the file cache.
 #' @return integer(1) Number of objects in the file cache.
 #' @examples
@@ -186,13 +187,59 @@ setMethod("removeResource", "BiocFileCache",
 })
 
 #' @export
+setGeneric("cleanCache",
+    function(x, days = 120, ask = TRUE) standardGeneric("cleanCache"),
+    signature="x")
+
+#' @describeIn BiocFileCache Remove old/unused files in BiocFileCache
+#'
+#' @param days Number of days between accessDate and currentDate; if exceeded
+#' entry will be deleted
+#' @param ask check if really want to remove cache and files
+#' @return TRUE if successfully removed.
+#' @examples
+#' \dontrun{cleanCache(bfc, ask=FALSE)}
+#' @aliases cleanCache
+#' @exportMethod cleanCache
+setMethod("cleanCache", "BiocFileCache",
+    function(x, days = 120, ask=TRUE)
+{
+    idsToDel <- .sql_clean_cache(x, days)
+    if(ask){
+        for (id in idsToDel){
+            doit <- FALSE
+            entry <- .sql_get_resource(x, id)
+            txt <-
+               sprintf("Remove from cache id: '%d' and delete file '%s' (y/N): ",
+                       entry$rid, entry$filepath)
+            repeat {
+                response <- readline(txt)
+                doit <- switch(substr(tolower(response), 1, 1),
+                               y = TRUE, n = FALSE, NA)
+                if (!is.na(doit))
+                    break
+            }
+            if (doit){
+                file <- unlink(entry$filepath, force=TRUE)
+                file <- .sql_remove_resource(x, id)
+            }                
+        }    
+    }else{
+        
+        paths <- unname(unlist(lapply(idsToDel,
+                                 .sql_get_entry, bfc=x, field="filepath")))
+        file <- unlink(paths, force=TRUE)
+        file <- .sql_remove_resource(x, idsToDel)        
+    }
+})
+
+#' @export
 setGeneric("removeCache",
     function(x, ask = TRUE) standardGeneric("removeCache"),
     signature="x")
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
 #'
-#' @param ask check if really want to remove cache and files
 #' @return TRUE if successfully removed.
 #' @examples
 #' \dontrun{removeCache(bfc, ask=FALSE)}
