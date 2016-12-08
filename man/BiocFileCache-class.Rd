@@ -2,26 +2,26 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache}
 \alias{BiocFileCache-class}
-\alias{addResource}
-\alias{addResource,BiocFileCache-method}
-\alias{bfcCache}
+\alias{BiocFileCache}
 \alias{bfcCache,BiocFileCache-method}
-\alias{cleanCache}
-\alias{cleanCache,BiocFileCache-method}
+\alias{bfcCache}
 \alias{length,BiocFileCache-method}
-\alias{listResources}
+\alias{addResource,BiocFileCache-method}
+\alias{addResource}
 \alias{listResources,BiocFileCache-method}
-\alias{loadResource}
+\alias{listResources}
 \alias{loadResource,BiocFileCache-method}
-\alias{removeCache}
-\alias{removeCache,BiocFileCache-method}
-\alias{removeResource}
-\alias{removeResource,BiocFileCache-method}
-\alias{show,BiocFileCache-method}
-\alias{updateResource}
+\alias{loadResource}
 \alias{updateResource,BiocFileCache-method}
+\alias{updateResource}
+\alias{removeResource,BiocFileCache-method}
+\alias{removeResource}
+\alias{cleanCache,BiocFileCache-method}
+\alias{cleanCache}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeCache}
+\alias{show,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
