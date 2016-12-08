@@ -44,16 +44,17 @@ setMethod("bfcCache", "BiocFileCache",
     x@cache
 })
 
-globalVariables(".")
 #' @describeIn BiocFileCache Get the number of object in the file cache.
 #' @return integer(1) Number of objects in the file cache.
 #' @examples
 #' length(bfc)
+#' @importFrom stats setNames
 #' @exportMethod length
 setMethod("length", "BiocFileCache",
     function(x)
 {
-    listResources(x) %>% summarize(n=n()) %>% as.data.frame() %>% .$n
+    listResources(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
+        collect %>% `[[`("n")
 })    
 
 #' @export

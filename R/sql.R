@@ -1,4 +1,3 @@
-globalVariables(c("rid","last_accessed"))
 .sql_dbfile <-
     function(bfc)
 {
@@ -78,7 +77,7 @@ globalVariables(c("rid","last_accessed"))
     function(bfc, id, field)
 {
     mytbl <- .sql_get_resource_table(bfc)
-    df <-  mytbl %>% filter(rid == id)
+    df <-  mytbl %>% filter_(~ rid == id)
     dx <- which(colnames(df) == field)
     df %>% select(dx) %>% as.data.frame()     
 }
@@ -113,7 +112,7 @@ globalVariables(c("rid","last_accessed"))
     function(bfc, days)
 {
     mytbl <- .sql_get_resource_table(bfc) %>%
-        select(rid, last_accessed) %>% as.data.frame()
+        select_(~ rid, ~ last_accessed) %>% as.data.frame()
     currentDate <- Sys.Date()
     accessDate <- as.Date(sapply(strsplit(mytbl[,2], split=" "), `[`, 1))
     diffTime <- currentDate - accessDate
@@ -124,5 +123,5 @@ globalVariables(c("rid","last_accessed"))
     function(bfc, id)
 {
     mytbl <- .sql_get_resource_table(bfc)
-    as.data.frame(mytbl %>% filter(rid == id))
+    mytbl %>% filter_(~ rid == id)) %>% collect(Inf)
 }
