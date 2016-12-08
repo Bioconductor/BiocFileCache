@@ -155,7 +155,7 @@ setGeneric("updateResource",
 setMethod("updateResource", "BiocFileCache",
     function(x, rid, resource, save=TRUE, ...)
 {
-    path <- as.character(.sql_get_entry(x, rid, "filepath"))
+    path <- as.character(.sql_get_entry(x, rid, "cache_file_path"))
     # is resource a path to existing file
     check <- length(resource) == 1L && is.character(resource) &&
         !is.na(resource)
@@ -218,7 +218,7 @@ setMethod("cleanCache", "BiocFileCache",
             entry <- .sql_get_resource(x, id)
             txt <- sprintf(
                 "Remove from cache id: '%d' and delete file '%s' (y/N): ",
-                entry$rid, entry$filepath)
+                entry$rid, entry$cache_file_path)
             repeat {
                 response <- readline(txt)
                 doit <- switch(substr(tolower(response), 1, 1),
@@ -227,14 +227,14 @@ setMethod("cleanCache", "BiocFileCache",
                     break
             }
             if (doit){
-                file <- unlink(entry$filepath, force=TRUE)
+                file <- unlink(entry$cache_file_path, force=TRUE)
                 file <- .sql_remove_resource(x, id)
             }
         }
     }else{
 
         paths <- unname(unlist(lapply(idsToDel,
-                                 .sql_get_entry, bfc=x, field="filepath")))
+                                 .sql_get_entry, bfc=x, field="cache_file_path")))
         file <- unlink(paths, force=TRUE)
         file <- .sql_remove_resource(x, idsToDel)
     }

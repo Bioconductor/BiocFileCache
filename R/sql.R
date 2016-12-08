@@ -84,7 +84,7 @@
 .sql_load_resource <-
     function(bfc, rid)
 {
-    path <- as.character(.sql_get_entry(bfc, rid, "filepath"))
+    path <- as.character(.sql_get_entry(bfc, rid, "cache_file_path"))
     if (file.exists(path))
         readRDS(path)
     else
@@ -94,14 +94,14 @@
 .sql_update_path <-
     function(bfc, rid, path)
 {
-    sql <- .sql_sprintf("-- UPDATEPATH", path, rid)
+    sql <- .sql_sprintf("-- UPDATE_PATH", path, rid)
     .sql_do(bfc, sql)
 }
 
 .sql_update_time <-
     function(bfc, rid)
 {
-    sql <- .sql_sprintf("-- UPDATETIME", rid)
+    sql <- .sql_sprintf("-- UPDATE_TIME", rid)
     .sql_do(bfc, sql)
 }
 
