@@ -47,7 +47,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{show}{BiocFileCache}(object)
 }
 \arguments{
-\item{cache}{character(1) On-disk location (directory path) of cache.}
+\item{cache}{character(1) On-disk location (directory path) of
+cache.}
 
 \item{x}{\code{BiocFileCache} instance.}
 
@@ -94,14 +95,16 @@ TRUE if successfully removed.
 TRUE if successfully removed.
 }
 \description{
-This class represents the location of files stored on disk. Use the return
-value to add and retrieve files that persist across sessions.
+This class represents the location of files stored on disk. Use the
+return value to add and retrieve files that persist across
+sessions.
 }
 \section{Methods (by generic)}{
 \itemize{
 \item \code{bfcCache}: Get the location of the on-disk cache.
 
-\item \code{length}: Get the number of object in the file cache.
+\item \code{length}: Get the number of object in the file
+cache.
 
 \item \code{addResource}: Add a resource to the database
 
