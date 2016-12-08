@@ -12,8 +12,9 @@
 #' @param cache character(1) On-disk location (directory path) of cache.
 #' @return A \code{BiocFileCache} instance.
 #' @examples
-#' bfc <- BiocFileCache()
+#' bfc <- BiocFileCache()            # global cache
 #' bfc
+#' bfc <- BiocFileCache(tempfile())  # temporary cache, for examples
 #' @name BiocFileCache-class
 #' @aliases BiocFileCache
 #' @export BiocFileCache
@@ -35,7 +36,6 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 #' @return character(1) location of the directory containing the cache.
 #' @examples
 #' bfcCache(bfc)
-#' bfc
 #' @aliases bfcCache
 #' @exportMethod bfcCache
 setMethod("bfcCache", "BiocFileCache",

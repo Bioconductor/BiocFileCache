@@ -120,10 +120,10 @@ value to add and retrieve files that persist across sessions.
 \item \code{show}: Display a \code{BiocFileCache} instance.
 }}
 \examples{
-bfc <- BiocFileCache()
+bfc <- BiocFileCache()            # global cache
 bfc
+bfc <- BiocFileCache(tempfile())  # temporary cache, for examples
 bfcCache(bfc)
-bfc
 length(bfc)
 rid1 <- addResource(bfc, "TestName", "path/to/File")
 rid2 <- addResource(bfc, "TestName2", "path/to/File")
