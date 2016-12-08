@@ -24,8 +24,8 @@
         sqlfile
 }      
 
-.sql_get_cmd <-
-    function(cmd_name)
+.sql_sprintf <-
+    function(cmd_name, ...)
         ## e.g., "-- INSERT"
 {
     sql_cmd_file <- system.file(
@@ -34,7 +34,8 @@
     grps <- cumsum(grepl("^--", sql_cmds))
     cmds <- split(sql_cmds, grps)
     names <- vapply(cmds, "[[", character(1), 1)
-    paste(cmds[[which(names == cmd_name)]], collapse="\n")
+    cmds <- paste(cmds[[which(names == cmd_name)]], collapse="\n")
+    sprintf(cmds, ...)
 }
 
 .sql_create_db <-
@@ -42,7 +43,7 @@
 {
     fl <- .sql_dbfile(bfc)
     if (!file.exists(fl)) {
-        sql <- .sql_get_cmd("-- TABLE")
+        sql <- .sql_sprintf("-- TABLE")
         .sql_do(bfc, sql)
     }
     fl
@@ -51,9 +52,8 @@
 .sql_add_resource <-
     function(bfc, rname, path)
 {
-    tmpl <- .sql_get_cmd("-- INSERT")
     fname <- tempfile("", bfcCache(bfc))
-    sql <- sprintf(tmpl, rname, path, basename(fname))
+    sql <- .sql_sprintf("-- INSERT", rname, path, basename(fname))
     .sql_do(bfc, sql)
     
 }
@@ -61,8 +61,7 @@
 .sql_remove_resource <-
     function(bfc, rids)
 {
-    tmpl <- .sql_get_cmd("-- REMOVE")
-    sql <- sprintf(tmpl, paste0("'", rids, "'", collapse=", "))
+    sql <- .sql_sprintf("-- REMOVE", paste0("'", rids, "'", collapse=", "))
     .sql_do(bfc, sql)
 }
 
@@ -95,16 +94,14 @@
 .sql_update_path <-
     function(bfc, rid, path)
 {
-    tmpl <- .sql_get_cmd("-- UPDATEPATH")
-    sql <- sprintf(tmpl, path, rid)
+    sql <- .sql_sprintf("-- UPDATEPATH", path, rid)
     .sql_do(bfc, sql)
 }
 
 .sql_update_time <-
     function(bfc, rid)
 {
-    tmpl <- .sql_get_cmd("-- UPDATETIME")
-    sql <- sprintf(tmpl, rid)
+    sql <- .sql_sprintf("-- UPDATETIME", rid)
     .sql_do(bfc, sql)
 }
 
