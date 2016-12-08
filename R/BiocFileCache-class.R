@@ -6,10 +6,12 @@
 
 #' BiocFileCache class
 #'
-#' This class represents the location of files stored on disk. Use the return
-#' value to add and retrieve files that persist across sessions.
+#' This class represents the location of files stored on disk. Use the
+#' return value to add and retrieve files that persist across
+#' sessions.
 #'
-#' @param cache character(1) On-disk location (directory path) of cache.
+#' @param cache character(1) On-disk location (directory path) of
+#'     cache.
 #' @return A \code{BiocFileCache} instance.
 #' @examples
 #' bfc <- BiocFileCache()            # global cache
@@ -44,7 +46,8 @@ setMethod("bfcCache", "BiocFileCache",
     x@cache
 })
 
-#' @describeIn BiocFileCache Get the number of object in the file cache.
+#' @describeIn BiocFileCache Get the number of object in the file
+#'     cache.
 #' @return integer(1) Number of objects in the file cache.
 #' @examples
 #' length(bfc)
@@ -55,7 +58,7 @@ setMethod("length", "BiocFileCache",
 {
     listResources(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
         collect %>% `[[`("n")
-})    
+})
 
 #' @export
 setGeneric("addResource",
@@ -67,7 +70,7 @@ setGeneric("addResource",
 #' @param rname Name of object in file cache
 #' @param resource Any R object or path to file
 #' @param save logical if object should be saved as file
-#' @param ... additional parameters to saveRDS 
+#' @param ... additional parameters to saveRDS
 #' @return numeric(1) The unique id of the resource in the cache
 #' @examples
 #' rid1 <- addResource(bfc, "TestName", "path/to/File")
@@ -82,15 +85,16 @@ setMethod("addResource", "BiocFileCache",
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
 
     # is resource a path to existing file
-    check <- length(resource) == 1L && is.character(resource) && !is.na(resource)
+    check <- length(resource) == 1L && is.character(resource) &&
+        !is.na(resource)
     if (check){
         path <- resource
         save <- FALSE
-    # resource is an object to save    
+    # resource is an object to save
     } else {
         path <- file.path(bfcCache(x), rname)
     }
-    
+
     if (save)
         saveRDS(resource, file = path, ...)
 
@@ -119,7 +123,7 @@ setGeneric("loadResource",
     function(x, rid) standardGeneric("loadResource"))
 
 #' @describeIn BiocFileCache load resource
-#' @param rid numeric(1) Unique resource id 
+#' @param rid numeric(1) Unique resource id
 #' @return A loaded R object
 #' @examples
 #' loadResource(bfc, rid3)
@@ -135,7 +139,8 @@ setMethod("loadResource", "BiocFileCache",
 
 #' @export
 setGeneric("updateResource",
-    function(x, rid, resource, save=TRUE, ...) standardGeneric("updateResource"),
+    function(x, rid, resource, save=TRUE, ...)
+    standardGeneric("updateResource"),
     signature="x")
 
 #' @describeIn BiocFileCache Update a resource in the cache
@@ -152,11 +157,12 @@ setMethod("updateResource", "BiocFileCache",
 {
     path <- as.character(.sql_get_entry(x, rid, "filepath"))
     # is resource a path to existing file
-    check <- length(resource) == 1L && is.character(resource) && !is.na(resource)
+    check <- length(resource) == 1L && is.character(resource) &&
+        !is.na(resource)
     if (check){
         path <- resource
         save <- FALSE
-    # resource is an object to save    
+    # resource is an object to save
     } else {
         # else resource is an object to save
         if (save)
@@ -164,7 +170,7 @@ setMethod("updateResource", "BiocFileCache",
     }
     # update the path and last_access
     sqlfile <- .sql_update_path(x, rid, path)
-        
+
 })
 
 #' @export
@@ -210,9 +216,9 @@ setMethod("cleanCache", "BiocFileCache",
         for (id in idsToDel){
             doit <- FALSE
             entry <- .sql_get_resource(x, id)
-            txt <-
-               sprintf("Remove from cache id: '%d' and delete file '%s' (y/N): ",
-                       entry$rid, entry$filepath)
+            txt <- sprintf(
+                "Remove from cache id: '%d' and delete file '%s' (y/N): ",
+                entry$rid, entry$filepath)
             repeat {
                 response <- readline(txt)
                 doit <- switch(substr(tolower(response), 1, 1),
@@ -223,14 +229,14 @@ setMethod("cleanCache", "BiocFileCache",
             if (doit){
                 file <- unlink(entry$filepath, force=TRUE)
                 file <- .sql_remove_resource(x, id)
-            }                
-        }    
+            }
+        }
     }else{
-        
+
         paths <- unname(unlist(lapply(idsToDel,
                                  .sql_get_entry, bfc=x, field="filepath")))
         file <- unlink(paths, force=TRUE)
-        file <- .sql_remove_resource(x, idsToDel)        
+        file <- .sql_remove_resource(x, idsToDel)
     }
 })
 
