@@ -2,7 +2,7 @@
     function(bfc)
 {
     file.path(bfcCache(bfc), "BiocFileCache.sqlite")
-}        
+}
 
 .sql_do <-
     function(bfc, sql)
@@ -17,12 +17,12 @@
         dbGetQuery(con,sql)
     }
     dbDisconnect(con)
-    
+
     if (startsWith(sql, "-- INSERT"))
         as.numeric(id)
     else
         sqlfile
-}      
+}
 
 .sql_sprintf <-
     function(cmd_name, ...)
@@ -55,7 +55,7 @@
     fname <- tempfile("", bfcCache(bfc))
     sql <- .sql_sprintf("-- INSERT", rname, path, basename(fname))
     .sql_do(bfc, sql)
-    
+
 }
 
 .sql_remove_resource <-
@@ -78,7 +78,7 @@
     mytbl <- .sql_get_resource_table(bfc)
     df <-  mytbl %>% filter_(~ rid == id)
     dx <- which(colnames(df) == field)
-    df %>% select(dx) %>% as.data.frame()     
+    df %>% select(dx) %>% as.data.frame()
 }
 
 .sql_load_resource <-
