@@ -120,5 +120,5 @@
     function(bfc, id)
 {
     mytbl <- .sql_get_resource_table(bfc)
-    mytbl %>% filter_(~ rid == id)) %>% collect(Inf)
+    mytbl %>% filter_(~ rid == id) %>% collect(Inf)
 }
