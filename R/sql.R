@@ -1,32 +1,29 @@
+.sql_file <-
+    function(bfc, file)
+{
+    file.path(bfcCache(bfc), file)
+}
+
 .sql_dbfile <-
     function(bfc)
 {
-    file.path(bfcCache(bfc), "BiocFileCache.sqlite")
+    .sql_file(bfc, "BiocFileCache.sqlite")
 }
 
-.sql_do <-
+.sql_get_query <-
     function(bfc, sql)
 {
+    sqls <- strsplit(sql, ";", fixed=TRUE)[[1]]
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
-    if (startsWith(sql, "-- INSERT")){
-        calls <- strsplit(sql, ";")
-        df <- dbGetQuery(con, calls[[1]][1])
-        id <- dbGetQuery(con, calls[[1]][2])
-    }else{
-        dbGetQuery(con,sql)
-    }
+    for (sql in sqls)
+        result <- dbGetQuery(con, sql)
     dbDisconnect(con)
-
-    if (startsWith(sql, "-- INSERT"))
-        as.numeric(id)
-    else
-        sqlfile
+    result
 }
 
 .sql_sprintf <-
     function(cmd_name, ...)
-        ## e.g., "-- INSERT"
 {
     sql_cmd_file <- system.file(
         package="BiocFileCache", "schema", "BiocFileCache.sql")
@@ -44,25 +41,24 @@
     fl <- .sql_dbfile(bfc)
     if (!file.exists(fl)) {
         sql <- .sql_sprintf("-- TABLE")
-        .sql_do(bfc, sql)
+        .sql_get_query(bfc, sql)
     }
     fl
 }
 
-.sql_add_resource <-
+.sql_new_resource <-
     function(bfc, rname, path)
 {
     fname <- tempfile("", bfcCache(bfc))
     sql <- .sql_sprintf("-- INSERT", rname, path, basename(fname))
-    .sql_do(bfc, sql)
-
+    .sql_get_query(bfc, sql)[[1]]
 }
 
 .sql_remove_resource <-
     function(bfc, rids)
 {
     sql <- .sql_sprintf("-- REMOVE", paste0("'", rids, "'", collapse=", "))
-    .sql_do(bfc, sql)
+    .sql_get_query(bfc, sql)
 }
 
 .sql_get_resource_table <-
@@ -72,44 +68,39 @@
     tbl(src, "resource")
 }
 
-.sql_get_entry <-
+.sql_get_field <-
     function(bfc, id, field)
 {
-    mytbl <- .sql_get_resource_table(bfc)
-    df <-  mytbl %>% filter_(~ rid == id)
-    dx <- which(colnames(df) == field)
-    df %>% select(dx) %>% as.data.frame()
+    .sql_get_resource_table(bfc) %>% filter_(~ rid == id) %>%
+        select_(field) %>% collect(Inf) %>% `[[`(field)
 }
 
-.sql_load_resource <-
+.sql_get_cache_file_path <-
     function(bfc, rid)
 {
-    path <- as.character(.sql_get_entry(bfc, rid, "cache_file_path"))
-    if (file.exists(path))
-        readRDS(path)
-    else
-        message(paste0("ERROR: '", path, "' does Not Exist"))
+    fname <- .sql_get_field(bfc, rid, "cache_file_path")
+    .sql_file(bfc, fname)
 }
 
 .sql_update_path <-
     function(bfc, rid, path)
 {
     sql <- .sql_sprintf("-- UPDATE_PATH", path, rid)
-    .sql_do(bfc, sql)
+    .sql_get_query(bfc, sql)
 }
 
 .sql_update_time <-
     function(bfc, rid)
 {
     sql <- .sql_sprintf("-- UPDATE_TIME", rid)
-    .sql_do(bfc, sql)
+    .sql_get_query(bfc, sql)
 }
 
 .sql_clean_cache <-
     function(bfc, days)
 {
     mytbl <- .sql_get_resource_table(bfc) %>%
-        select_(~ rid, ~ last_accessed) %>% as.data.frame()
+        select_(~ rid, ~ last_accessed) %>% collect(Inf)
     currentDate <- Sys.Date()
     accessDate <- as.Date(sapply(strsplit(mytbl[,2], split=" "), `[`, 1))
     diffTime <- currentDate - accessDate
