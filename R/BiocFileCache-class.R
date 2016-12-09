@@ -84,22 +84,17 @@ setMethod("addResource", "BiocFileCache",
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
 
-    # is resource a path to existing file
+    ## is resource a path to existing file
     check <- length(resource) == 1L && is.character(resource) &&
         !is.na(resource)
-    if (check){
-        path <- resource
-        save <- FALSE
-    # resource is an object to save
-    } else {
-        path <- file.path(bfcCache(x), rname)
+    rid <- .sql_new_resource(x, rname, "")
+
+    if (!check) {
+        path <- .sql_get_cache_file_path(x, rid)
+        saveRDS(resource, file = path, ...)
     }
 
-    if (save)
-        saveRDS(resource, file = path, ...)
-
-    id <- .sql_add_resource(x, rname, path)
-    id
+    rid
 })
 
 #' @export
@@ -133,9 +128,11 @@ setMethod("loadResource", "BiocFileCache",
     function(x, rid)
 {
     sqlfile <- .sql_update_time(x, rid)
-    .sql_load_resource(x, rid)
+    path <- .sql_get_cache_file_path(x, rid)
+    if (!file.exists(path))
+        stop("'", path, "' does not exist")
+    readRDS(path)
 })
-
 
 #' @export
 setGeneric("updateResource",
@@ -155,11 +152,11 @@ setGeneric("updateResource",
 setMethod("updateResource", "BiocFileCache",
     function(x, rid, resource, save=TRUE, ...)
 {
-    path <- as.character(.sql_get_entry(x, rid, "cache_file_path"))
+    path <- as.character(.sql_get_cache_file_path(x, rid))
     # is resource a path to existing file
     check <- length(resource) == 1L && is.character(resource) &&
         !is.na(resource)
-    if (check){
+    if (check) {
         path <- resource
         save <- FALSE
     # resource is an object to save
@@ -212,8 +209,8 @@ setMethod("cleanCache", "BiocFileCache",
     function(x, days = 120, ask=TRUE)
 {
     idsToDel <- .sql_clean_cache(x, days)
-    if(ask){
-        for (id in idsToDel){
+    if (ask) {
+        for (id in idsToDel) {
             doit <- FALSE
             entry <- .sql_get_resource(x, id)
             txt <- sprintf(
@@ -226,15 +223,15 @@ setMethod("cleanCache", "BiocFileCache",
                 if (!is.na(doit))
                     break
             }
-            if (doit){
+            if (doit) {
                 file <- unlink(entry$cache_file_path, force=TRUE)
                 file <- .sql_remove_resource(x, id)
             }
         }
-    }else{
+    } else {
 
         paths <- unname(unlist(lapply(idsToDel,
-                                 .sql_get_entry, bfc=x, field="cache_file_path")))
+                                 .sql_get_cache_file_path, bfc=x)))
         file <- unlink(paths, force=TRUE)
         file <- .sql_remove_resource(x, idsToDel)
     }
@@ -265,7 +262,7 @@ setMethod("removeCache", "BiocFileCache",
             if (!is.na(doit))
                 break
         }
-    }else{
+    } else {
         doit <- TRUE
     }
 
@@ -280,8 +277,8 @@ setMethod("removeCache", "BiocFileCache",
 setMethod("show", "BiocFileCache",
     function(object)
 {
-  cat("class: ", class(object), "\n",
-      "bfcCache: ", bfcCache(object), "\n",
-      "length: ", length(object), "\n",
-      sep="")
+    cat("class: ", class(object), "\n",
+        "bfcCache: ", bfcCache(object), "\n",
+        "length: ", length(object), "\n",
+        sep="")
 })
