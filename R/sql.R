@@ -47,10 +47,10 @@
 }
 
 .sql_new_resource <-
-    function(bfc, rname, path)
+    function(bfc, rname)
 {
     fname <- tempfile("", bfcCache(bfc))
-    sql <- .sql_sprintf("-- INSERT", rname, path, basename(fname))
+    sql <- .sql_sprintf("-- INSERT", rname, fname)
     .sql_get_query(bfc, sql)[[1]]
 }
 
@@ -82,7 +82,7 @@
     .sql_file(bfc, fname)
 }
 
-.sql_update_path <-
+.sql_set_cache_file_path <-
     function(bfc, rid, path)
 {
     sql <- .sql_sprintf("-- UPDATE_PATH", path, rid)
@@ -93,6 +93,13 @@
     function(bfc, rid)
 {
     sql <- .sql_sprintf("-- UPDATE_TIME", rid)
+    .sql_get_query(bfc, sql)
+}
+
+.sql_set_rname <-
+    function(bfc, rid, value)
+{
+    sql <- .sql_sprintf("-- UPDATE_RNAME", value, rid)
     .sql_get_query(bfc, sql)
 }
 
@@ -112,4 +119,17 @@
 {
     mytbl <- .sql_get_resource_table(bfc)
     mytbl %>% filter_(~ rid == id) %>% collect(Inf)
+}
+
+.sql_subset_resources <-
+    function(bfc, i)
+{
+    if (length(i) == 1L){
+        if (is.na(i))
+            .sql_get_resource_table(bfc) %>% collect(Inf)
+        else
+            .sql_get_resource(bfc, i)
+    } else {
+        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf)
+    }
 }

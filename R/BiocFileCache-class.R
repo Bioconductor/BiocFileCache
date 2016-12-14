@@ -60,40 +60,100 @@ setMethod("length", "BiocFileCache",
         collect %>% `[[`("n")
 })
 
-#' @export
-setGeneric("addResource",
-    function(x, rname, resource, save=TRUE, ...) standardGeneric("addResource"),
-    signature="x")
+#' @describeIn BiocFileCache Get a subset of resources from the cache.
+#' 
+#' @param i Rid numbers
+#' @param j Not applicable
+#' @param drop Not applicable
+#' @return List of resources
+#' @exportMethod [
+setMethod("[", c("BiocFileCache", "ANY", "missing", "ANY"),
+     function(x, i, j, ..., drop=TRUE)
+{
+    if (missing(i))
+        i <- NA_integer_
+    stopifnot(is.numeric(i) || anyNA(i))
+    .sql_subset_resources(x, i)    
+})
 
-#' @describeIn BiocFileCache Add a resource to the database
+#' @describeIn BiocFileCache Get a select resources from the cache.
+#' 
+#' @return Entry for the resource in the cache
+#' @exportMethod [[
+setMethod("[[", c("BiocFileCache", "numeric", "missing"),
+     function(x, i, j)
+{
+     stopifnot(length(i) == 1L)
+     .sql_get_resource(x, i)
+})
+
+#' @export
+setGeneric("newResource",
+    function(x, rname)
+    standardGeneric("newResource"),
+    signature="x")
+#' @describeIn BiocFileCache Add a resource to the database 
 #'
 #' @param rname Name of object in file cache
-#' @param resource Any R object or path to file
-#' @param save logical if object should be saved as file
-#' @param ... additional parameters to saveRDS
+#' @return named character(1) The path to save your object/file.
+#' The name of the character is the unique rid for the resource 
+#' @examples
+#' path <- newResource(bfc, "NewResource")
+#' @aliases newResource
+#' @exportMethod newResource
+setMethod("newResource", "BiocFileCache",
+    function(x, rname)
+{
+    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    rid <- .sql_new_resource(x, rname)
+    rpath  = .sql_get_cache_file_path(x, rid)
+    setNames(rpath, rid)
+})
+
+#' @export
+setGeneric("addResource",
+    function(x, fpath, rname, action=c("copy", "move", "asis"), ...)
+    standardGeneric("addResource"),
+    signature="x")
+
+#' @describeIn BiocFileCache Add an existing resource to the database
+#'
+#' @param fpath character(1) Path to current file location
+#' @param action How to handle the file: Copy to the cache directory, move the
+#' file to the cache directory, or leave the file in current location but save
+#' the path in the cache
+#' @param ... Aditional Arguments to file.copy
 #' @return numeric(1) The unique id of the resource in the cache
 #' @examples
-#' rid1 <- addResource(bfc, "TestName", "path/to/File")
-#' rid2 <- addResource(bfc, "TestName2", "path/to/File")
-#' obj <- list(one = 1, two = 2)
-#' rid3 <- addResource(bfc, "TestName", obj)
+#' rid1 <- addResource(bfc, "path/to/File", "Test1", "asis")
+#' rid2 <- addResource(bfc, "tomy/File", "Test2", "asis")
+#' rid3 <- addResource(bfc, "another/path", "Test3", "asis")
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
-    function(x, rname, resource, save=TRUE, ...)
+    function(x, fpath, rname, action=c("copy", "move", "asis"), ...)
 {
-    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname),
+              length(fpath) == 1L, is.character(fpath), !is.na(fpath))
 
-    ## is resource a path to existing file
-    check <- length(resource) == 1L && is.character(resource) &&
-        !is.na(resource)
-    rid <- .sql_new_resource(x, rname, "")
-
-    if (!check) {
-        path <- .sql_get_cache_file_path(x, rid)
-        saveRDS(resource, file = path, ...)
-    }
-
+    rid <- .sql_new_resource(x, rname)
+    switch(match.arg(action),
+       asis = {
+           .sql_set_cache_file_path(x, rid, fpath)
+       },
+       copy = {
+           if (file.exists(fpath))
+               file.copy(fpath, .sql_get_cache_file_path(x, rid), ...)
+           else
+               message(paste0("File Does Not Exists: ", fpath))
+       },
+       move = {
+           if (file.exists(fpath))
+               system(paste0("mv ", fpath, " ",
+                             .sql_get_cache_file_path(x, rid)))
+           else
+               message(paste0("File Does Not Exists: ", fpath))
+       })
     rid
 })
 
@@ -112,16 +172,15 @@ setMethod("listResources", "BiocFileCache",
     .sql_get_resource_table(x)
 })
 
-
 #' @export
 setGeneric("loadResource",
     function(x, rid) standardGeneric("loadResource"))
 
 #' @describeIn BiocFileCache load resource
 #' @param rid numeric(1) Unique resource id
-#' @return A loaded R object
+#' @return The file path location to load
 #' @examples
-#' loadResource(bfc, rid3)
+#' loadResource(bfc, rid2)
 #' @aliases loadResource
 #' @exportMethod loadResource
 setMethod("loadResource", "BiocFileCache",
@@ -129,45 +188,39 @@ setMethod("loadResource", "BiocFileCache",
 {
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_cache_file_path(x, rid)
-    if (!file.exists(path))
-        stop("'", path, "' does not exist")
-    readRDS(path)
+    path
 })
 
 #' @export
 setGeneric("updateResource",
-    function(x, rid, resource, save=TRUE, ...)
+    function(x, rid, value, colID, ...)
     standardGeneric("updateResource"),
     signature="x")
 
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
-#' @return numeric(1) The unique id of the resource in the cache
+#' @param value character(1) replacement value
+#' @param colID character(1) either "cache_file_path" or "rname" indicating
+#' which parameter to change. Defaults to "cache_file_path"
 #' @examples
-#' obj$two = 3
-#' updateResource(bfc, rid3, obj)
-#' updateResource(bfc, rid1, "updated/Path/to/File")
+#' updateResource(bfc, rid3, "updated/Path/to/File")
+#' updateResource(bfc, rid3, "newRname", "rname")
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
-    function(x, rid, resource, save=TRUE, ...)
+    function(x, rid, value, colID)
 {
-    path <- as.character(.sql_get_cache_file_path(x, rid))
-    # is resource a path to existing file
-    check <- length(resource) == 1L && is.character(resource) &&
-        !is.na(resource)
-    if (check) {
-        path <- resource
-        save <- FALSE
-    # resource is an object to save
-    } else {
-        # else resource is an object to save
-        if (save)
-            saveRDS(resource, file = path, ...)
+    stopifnot(!missing(rid), length(rid) == 1L,
+              !missing(value),  length(rid) == 1L)
+    if (missing(colID))
+        colID = "cache_file_path"
+    stopifnot(colID == "cache_file_path" || colID == "rname")
+    sqlfile <- .sql_update_time(x, rid)
+    if (colID == "cache_file_path"){
+        sqlfile <- .sql_set_cache_file_path(x, rid, value)
+    } else{
+        sqlfile <- .sql_set_rname(x, rid, value)
     }
-    # update the path and last_access
-    sqlfile <- .sql_update_path(x, rid, path)
-
 })
 
 #' @export
@@ -281,4 +334,5 @@ setMethod("show", "BiocFileCache",
         "bfcCache: ", bfcCache(object), "\n",
         "length: ", length(object), "\n",
         sep="")
+    print(listResources(object))
 })
