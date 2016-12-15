@@ -6,6 +6,8 @@
 \alias{BiocFileCache-class}
 \alias{[,BiocFileCache,ANY,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
+\alias{[[<-,BiocFileCache,numeric,character,character-method}
+\alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{addResource}
 \alias{addResource,BiocFileCache-method}
 \alias{bfcCache}
@@ -37,6 +39,10 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{[}{BiocFileCache,ANY,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{BiocFileCache,numeric,missing}(x, i, j)
+
+\S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
+
+\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j, ...) <- value
 
 \S4method{newResource}{BiocFileCache}(x, rname)
 
@@ -71,6 +77,8 @@ cache.}
 
 \item{drop}{Not applicable}
 
+\item{value}{character(1) replacement value}
+
 \item{rname}{Name of object in file cache}
 
 \item{fpath}{character(1) Path to current file location}
@@ -81,10 +89,9 @@ the path in the cache}
 
 \item{rid}{numeric(1) Unique resource id}
 
-\item{value}{character(1) replacement value}
-
-\item{colID}{character(1) either "cache_file_path" or "rname" indicating
-which parameter to change. Defaults to "cache_file_path"}
+\item{colID}{character(1) either "cache_file_path", "path"
+or "rname" indicating which parameter to change. "cache_file_path"
+and "path" are equivalent. If not specified, defaults to "cache_file_path"}
 
 \item{rids}{character() Unique resource ids (see rid of ouput from
 listResource).}
@@ -107,6 +114,10 @@ List of resources
 
 Entry for the resource in the cache
 
+Updated BiocFileCache object
+
+Updated BiocFileCache object
+
 named character(1) The path to save your object/file.
 The name of the character is the unique rid for the resource
 
@@ -115,9 +126,6 @@ numeric(1) The unique id of the resource in the cache
 A list of current resources in the database
 
 The file path location to load
-
-character(1) The path to the sqlite file resource was
-    removed from.
 
 TRUE if successfully removed.
 
@@ -138,6 +146,12 @@ cache.
 \item \code{[}: Get a subset of resources from the cache.
 
 \item \code{[[}: Get a select resources from the cache.
+
+\item \code{[[<-}: Set the rname and file path of a
+select resources from the cache.
+
+\item \code{[[<-}: Set either the rname or the file path of a
+select resources from the cache.
 
 \item \code{newResource}: Add a resource to the database
 
@@ -168,9 +182,15 @@ rid1 <- addResource(bfc, "path/to/File", "Test1", "asis")
 rid2 <- addResource(bfc, "tomy/File", "Test2", "asis")
 rid3 <- addResource(bfc, "another/path", "Test3", "asis")
 listResources(bfc)
-loadResource(bfc, rid2)
+bfc[]
+loadResource(bfc, rid3)
 updateResource(bfc, rid3, "updated/Path/to/File")
 updateResource(bfc, rid3, "newRname", "rname")
+bfc[[rid3]]
+bfc[[rid3]] = c("newName", "different/path")
+bfc[[rid3]]
+bfc[[rid3, "path"]] = "changed/Again"
+bfc[[rid3]]
 removeResource(bfc, rid2)
 listResources(bfc)
 \dontrun{cleanCache(bfc, ask=FALSE)}

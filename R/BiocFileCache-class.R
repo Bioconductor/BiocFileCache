@@ -87,6 +87,44 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
      .sql_get_resource(x, i)
 })
 
+#' @describeIn BiocFileCache Set the rname and file path of a
+#' select resources from the cache.
+#' 
+#' @return Updated BiocFileCache object
+#' @exportMethod [[<-
+setReplaceMethod("[[", 
+c("BiocFileCache", "numeric", "missing", "character"),
+     function(x, i, j, ..., value)
+{
+     stopifnot(length(i) == 1L, is.character(value), length(value) == 2L)
+     
+     sqlfile <- .sql_update_time(x, i)
+     sqlfile <- .sql_set_rname(x, i, value[1])
+     sqlfile <- .sql_set_cache_file_path(x, i, value[2])
+     x
+})
+
+#' @describeIn BiocFileCache Set either the rname or the file path of a
+#' select resources from the cache.
+#' 
+#' @return Updated BiocFileCache object
+#' @exportMethod [[<-
+setReplaceMethod("[[", 
+c("BiocFileCache", "numeric", "character", "character"),
+     function(x, i, j, ..., value)
+{
+    stopifnot(length(i) == 1L, is.character(value), length(value) == 1L,
+              (j == "path" || j == "rname" || j == "cache_file_path"))
+    if (j == "path" || j == "cache_file_path"){
+        sqlfile <- .sql_update_time(x, i)
+        sqlfile <- .sql_set_cache_file_path(x, i, value)       
+    } else{
+        sqlfile <- .sql_update_time(x, i)
+        sqlfile <- .sql_set_rname(x, i, value)
+    }
+    x
+})
+
 #' @export
 setGeneric("newResource",
     function(x, rname)
@@ -164,6 +202,7 @@ setGeneric("listResources", function(x) standardGeneric("listResources"))
 #' @return A list of current resources in the database
 #' @examples
 #' listResources(bfc)
+#' bfc[]
 #' @aliases listResources
 #' @exportMethod listResources
 setMethod("listResources", "BiocFileCache",
@@ -180,7 +219,7 @@ setGeneric("loadResource",
 #' @param rid numeric(1) Unique resource id
 #' @return The file path location to load
 #' @examples
-#' loadResource(bfc, rid2)
+#' loadResource(bfc, rid3)
 #' @aliases loadResource
 #' @exportMethod loadResource
 setMethod("loadResource", "BiocFileCache",
@@ -200,11 +239,17 @@ setGeneric("updateResource",
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
 #' @param value character(1) replacement value
-#' @param colID character(1) either "cache_file_path" or "rname" indicating
-#' which parameter to change. Defaults to "cache_file_path"
+#' @param colID character(1) either "cache_file_path", "path"
+#' or "rname" indicating which parameter to change. "cache_file_path"
+#' and "path" are equivalent. If not specified, defaults to "cache_file_path" 
 #' @examples
 #' updateResource(bfc, rid3, "updated/Path/to/File")
 #' updateResource(bfc, rid3, "newRname", "rname")
+#' bfc[[rid3]]
+#' bfc[[rid3]] = c("newName", "different/path")
+#' bfc[[rid3]]
+#' bfc[[rid3, "path"]] = "changed/Again"
+#' bfc[[rid3]]
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
@@ -214,12 +259,13 @@ setMethod("updateResource", "BiocFileCache",
               !missing(value),  length(rid) == 1L)
     if (missing(colID))
         colID = "cache_file_path"
-    stopifnot(colID == "cache_file_path" || colID == "rname")
+    stopifnot(colID == "cache_file_path" || colID == "rname"
+              || colID == "path")
     sqlfile <- .sql_update_time(x, rid)
-    if (colID == "cache_file_path"){
-        sqlfile <- .sql_set_cache_file_path(x, rid, value)
-    } else{
+    if (colID == "rname"){
         sqlfile <- .sql_set_rname(x, rid, value)
+    } else{
+        sqlfile <- .sql_set_cache_file_path(x, rid, value)
     }
 })
 
@@ -230,8 +276,6 @@ setGeneric("removeResource",
 #' @describeIn BiocFileCache Remove a resource to the database.
 #' @param rids character() Unique resource ids (see rid of ouput from
 #'     listResource).
-#' @return character(1) The path to the sqlite file resource was
-#'     removed from.
 #' @examples
 #' removeResource(bfc, rid2)
 #' listResources(bfc)
@@ -240,7 +284,7 @@ setGeneric("removeResource",
 setMethod("removeResource", "BiocFileCache",
     function(x, rids)
 {
-    .sql_remove_resource(x, rids)
+    sqlfile <- .sql_remove_resource(x, rids)
 })
 
 #' @export
