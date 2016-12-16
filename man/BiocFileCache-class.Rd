@@ -2,32 +2,32 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache-class}
 \alias{BiocFileCache}
-\alias{bfcCache,BiocFileCache-method}
-\alias{bfcCache}
-\alias{length,BiocFileCache-method}
+\alias{BiocFileCache-class}
 \alias{[,BiocFileCache,ANY,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
-\alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{[[<-,BiocFileCache,numeric,character,character-method}
-\alias{newResource,BiocFileCache-method}
-\alias{newResource}
-\alias{addResource,BiocFileCache-method}
+\alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{addResource}
-\alias{listResources,BiocFileCache-method}
-\alias{listResources}
-\alias{loadResource,BiocFileCache-method}
-\alias{loadResource}
-\alias{updateResource,BiocFileCache-method}
-\alias{updateResource}
-\alias{removeResource,BiocFileCache-method}
-\alias{removeResource}
-\alias{cleanCache,BiocFileCache-method}
+\alias{addResource,BiocFileCache-method}
+\alias{bfcCache}
+\alias{bfcCache,BiocFileCache-method}
 \alias{cleanCache}
-\alias{removeCache,BiocFileCache-method}
+\alias{cleanCache,BiocFileCache-method}
+\alias{length,BiocFileCache-method}
+\alias{listResources}
+\alias{listResources,BiocFileCache-method}
+\alias{loadResource}
+\alias{loadResource,BiocFileCache-method}
+\alias{newResource}
+\alias{newResource,BiocFileCache-method}
 \alias{removeCache}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeResource}
+\alias{removeResource,BiocFileCache-method}
 \alias{show,BiocFileCache-method}
+\alias{updateResource}
+\alias{updateResource,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
@@ -42,8 +42,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j,
-  ...) <- value
+\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j, ...) <- value
 
 \S4method{newResource}{BiocFileCache}(x, rname)
 
@@ -177,34 +176,34 @@ select resources from the cache.
 \examples{
 bfc <- BiocFileCache()            # global cache
 bfc
-bfc <- BiocFileCache(tempfile())  # temporary cache, for examples
 bfcCache(bfc)
 length(bfc)
 path <- newResource(bfc, "NewResource")
-bfc0 <- BiocFileCache(tempfile())
+path
+bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 fl1 <- tempfile(); file.create(fl1)
 addResource(bfc0, fl1, "Test1")                 # copy
 fl2 <- tempfile(); file.create(fl2)
 addResource(bfc0, fl2, "Test2", "move")         # move
 fl3 <- tempfile(); file.create(fl3)
-addResource(bfc0, fl3, "Test3", "asis")         # reference
+rid3 <- addResource(bfc0, fl3, "Test3", "asis")         # reference
 
 bfc0
 file.exists(fl1)                                # TRUE
 file.exists(fl2)                                # FALSE
 file.exists(fl3)                                # TRUE
-listResources(bfc)
-bfc[]
-loadResource(bfc, rid3)
-updateResource(bfc, rid3, "updated/Path/to/File")
-updateResource(bfc, rid3, "newRname", "rname")
-bfc[[rid3]]
-bfc[[rid3]] = c("newName", "different/path")
-bfc[[rid3]]
-bfc[[rid3, "path"]] = "changed/Again"
-bfc[[rid3]]
-removeResource(bfc, rid2)
-listResources(bfc)
+listResources(bfc0)
+bfc0[]
+loadResource(bfc0, rid3)
+updateResource(bfc0, rid3, fl2)
+updateResource(bfc0, rid3, "newRname", "rname")
+bfc0[[rid3]]
+bfc0[[rid3]] = c("newName", fl1)
+bfc0[[rid3]]
+bfc0[[rid3, "path"]] = fl3
+bfc0[[rid3]]
+removeResource(bfc0, rid3)
+listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }

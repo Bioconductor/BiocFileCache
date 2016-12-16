@@ -16,7 +16,6 @@
 #' @examples
 #' bfc <- BiocFileCache()            # global cache
 #' bfc
-#' bfc <- BiocFileCache(tempfile())  # temporary cache, for examples
 #' @name BiocFileCache-class
 #' @aliases BiocFileCache
 #' @export BiocFileCache
@@ -137,6 +136,7 @@ setGeneric("newResource",
 #' The name of the character is the unique rid for the resource 
 #' @examples
 #' path <- newResource(bfc, "NewResource")
+#' path
 #' @aliases newResource
 #' @exportMethod newResource
 setMethod("newResource", "BiocFileCache",
@@ -165,13 +165,13 @@ setGeneric("addResource",
 #'     \code{file.copy}.
 #' @return numeric(1) The unique id of the resource in the cache.
 #' @examples
-#' bfc0 <- BiocFileCache(tempfile())
+#' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 #' fl1 <- tempfile(); file.create(fl1)
 #' addResource(bfc0, fl1, "Test1")                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
 #' addResource(bfc0, fl2, "Test2", "move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' addResource(bfc0, fl3, "Test3", "asis")         # reference
+#' rid3 <- addResource(bfc0, fl3, "Test3", "asis")         # reference
 #' 
 #' bfc0
 #' file.exists(fl1)                                # TRUE
@@ -202,8 +202,8 @@ setGeneric("listResources", function(x) standardGeneric("listResources"))
 #' @describeIn BiocFileCache list resources in database
 #' @return A list of current resources in the database
 #' @examples
-#' listResources(bfc)
-#' bfc[]
+#' listResources(bfc0)
+#' bfc0[]
 #' @aliases listResources
 #' @exportMethod listResources
 setMethod("listResources", "BiocFileCache",
@@ -220,7 +220,7 @@ setGeneric("loadResource",
 #' @param rid numeric(1) Unique resource id
 #' @return The file path location to load
 #' @examples
-#' loadResource(bfc, rid3)
+#' loadResource(bfc0, rid3)
 #' @aliases loadResource
 #' @exportMethod loadResource
 setMethod("loadResource", "BiocFileCache",
@@ -244,13 +244,13 @@ setGeneric("updateResource",
 #' or "rname" indicating which parameter to change. "cache_file_path"
 #' and "path" are equivalent. If not specified, defaults to "cache_file_path" 
 #' @examples
-#' updateResource(bfc, rid3, "updated/Path/to/File")
-#' updateResource(bfc, rid3, "newRname", "rname")
-#' bfc[[rid3]]
-#' bfc[[rid3]] = c("newName", "different/path")
-#' bfc[[rid3]]
-#' bfc[[rid3, "path"]] = "changed/Again"
-#' bfc[[rid3]]
+#' updateResource(bfc0, rid3, fl2)
+#' updateResource(bfc0, rid3, "newRname", "rname")
+#' bfc0[[rid3]]
+#' bfc0[[rid3]] = c("newName", fl1)
+#' bfc0[[rid3]]
+#' bfc0[[rid3, "path"]] = fl3
+#' bfc0[[rid3]]
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
@@ -278,8 +278,8 @@ setGeneric("removeResource",
 #' @param rids character() Unique resource ids (see rid of ouput from
 #'     listResource).
 #' @examples
-#' removeResource(bfc, rid2)
-#' listResources(bfc)
+#' removeResource(bfc0, rid3)
+#' listResources(bfc0)
 #' @aliases removeResource
 #' @exportMethod removeResource
 setMethod("removeResource", "BiocFileCache",
