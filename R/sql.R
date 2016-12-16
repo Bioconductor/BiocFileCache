@@ -78,8 +78,7 @@
 .sql_get_cache_file_path <-
     function(bfc, rid)
 {
-    fname <- .sql_get_field(bfc, rid, "cache_file_path")
-    .sql_file(bfc, fname)
+    .sql_get_field(bfc, rid, "cache_file_path")
 }
 
 .sql_set_cache_file_path <-

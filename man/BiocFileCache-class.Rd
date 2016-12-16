@@ -2,32 +2,32 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache}
 \alias{BiocFileCache-class}
+\alias{BiocFileCache}
+\alias{bfcCache,BiocFileCache-method}
+\alias{bfcCache}
+\alias{length,BiocFileCache-method}
 \alias{[,BiocFileCache,ANY,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
-\alias{[[<-,BiocFileCache,numeric,character,character-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
-\alias{addResource}
-\alias{addResource,BiocFileCache-method}
-\alias{bfcCache}
-\alias{bfcCache,BiocFileCache-method}
-\alias{cleanCache}
-\alias{cleanCache,BiocFileCache-method}
-\alias{length,BiocFileCache-method}
-\alias{listResources}
-\alias{listResources,BiocFileCache-method}
-\alias{loadResource}
-\alias{loadResource,BiocFileCache-method}
-\alias{newResource}
+\alias{[[<-,BiocFileCache,numeric,character,character-method}
 \alias{newResource,BiocFileCache-method}
-\alias{removeCache}
-\alias{removeCache,BiocFileCache-method}
-\alias{removeResource}
-\alias{removeResource,BiocFileCache-method}
-\alias{show,BiocFileCache-method}
-\alias{updateResource}
+\alias{newResource}
+\alias{addResource,BiocFileCache-method}
+\alias{addResource}
+\alias{listResources,BiocFileCache-method}
+\alias{listResources}
+\alias{loadResource,BiocFileCache-method}
+\alias{loadResource}
 \alias{updateResource,BiocFileCache-method}
+\alias{updateResource}
+\alias{removeResource,BiocFileCache-method}
+\alias{removeResource}
+\alias{cleanCache,BiocFileCache-method}
+\alias{cleanCache}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeCache}
+\alias{show,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
@@ -42,7 +42,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j, ...) <- value
+\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j,
+  ...) <- value
 
 \S4method{newResource}{BiocFileCache}(x, rname)
 
@@ -73,7 +74,8 @@ cache.}
 
 \item{j}{Not applicable}
 
-\item{...}{Aditional Arguments to file.copy}
+\item{...}{For \code{action="copy"}, additional arguments passed to
+\code{file.copy}.}
 
 \item{drop}{Not applicable}
 
@@ -83,9 +85,10 @@ cache.}
 
 \item{fpath}{character(1) Path to current file location}
 
-\item{action}{How to handle the file: Copy to the cache directory, move the
-file to the cache directory, or leave the file in current location but save
-the path in the cache}
+\item{action}{How to handle the file: create a \code{copy} of
+\code{fpath} in the cache directory; \code{move} the file to
+the cache directory; or \code{asis} leave the file in current
+location but save the path in the cache.}
 
 \item{rid}{numeric(1) Unique resource id}
 
@@ -121,7 +124,7 @@ Updated BiocFileCache object
 named character(1) The path to save your object/file.
 The name of the character is the unique rid for the resource
 
-numeric(1) The unique id of the resource in the cache
+numeric(1) The unique id of the resource in the cache.
 
 A list of current resources in the database
 
@@ -178,9 +181,18 @@ bfc <- BiocFileCache(tempfile())  # temporary cache, for examples
 bfcCache(bfc)
 length(bfc)
 path <- newResource(bfc, "NewResource")
-rid1 <- addResource(bfc, "path/to/File", "Test1", "asis")
-rid2 <- addResource(bfc, "tomy/File", "Test2", "asis")
-rid3 <- addResource(bfc, "another/path", "Test3", "asis")
+bfc0 <- BiocFileCache(tempfile())
+fl1 <- tempfile(); file.create(fl1)
+addResource(bfc0, fl1, "Test1")                 # copy
+fl2 <- tempfile(); file.create(fl2)
+addResource(bfc0, fl2, "Test2", "move")         # move
+fl3 <- tempfile(); file.create(fl3)
+addResource(bfc0, fl3, "Test3", "asis")         # reference
+
+bfc0
+file.exists(fl1)                                # TRUE
+file.exists(fl2)                                # FALSE
+file.exists(fl3)                                # TRUE
 listResources(bfc)
 bfc[]
 loadResource(bfc, rid3)

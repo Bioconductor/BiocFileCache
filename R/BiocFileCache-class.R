@@ -157,15 +157,26 @@ setGeneric("addResource",
 #' @describeIn BiocFileCache Add an existing resource to the database
 #'
 #' @param fpath character(1) Path to current file location
-#' @param action How to handle the file: Copy to the cache directory, move the
-#' file to the cache directory, or leave the file in current location but save
-#' the path in the cache
-#' @param ... Aditional Arguments to file.copy
-#' @return numeric(1) The unique id of the resource in the cache
+#' @param action How to handle the file: create a \code{copy} of
+#'     \code{fpath} in the cache directory; \code{move} the file to
+#'     the cache directory; or \code{asis} leave the file in current
+#'     location but save the path in the cache.
+#' @param ... For \code{action="copy"}, additional arguments passed to
+#'     \code{file.copy}.
+#' @return numeric(1) The unique id of the resource in the cache.
 #' @examples
-#' rid1 <- addResource(bfc, "path/to/File", "Test1", "asis")
-#' rid2 <- addResource(bfc, "tomy/File", "Test2", "asis")
-#' rid3 <- addResource(bfc, "another/path", "Test3", "asis")
+#' bfc0 <- BiocFileCache(tempfile())
+#' fl1 <- tempfile(); file.create(fl1)
+#' addResource(bfc0, fl1, "Test1")                 # copy
+#' fl2 <- tempfile(); file.create(fl2)
+#' addResource(bfc0, fl2, "Test2", "move")         # move
+#' fl3 <- tempfile(); file.create(fl3)
+#' addResource(bfc0, fl3, "Test3", "asis")         # reference
+#' 
+#' bfc0
+#' file.exists(fl1)                                # TRUE
+#' file.exists(fl2)                                # FALSE
+#' file.exists(fl3)                                # TRUE
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
@@ -173,25 +184,15 @@ setMethod("addResource", "BiocFileCache",
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname),
               length(fpath) == 1L, is.character(fpath), !is.na(fpath))
+    stopifnot(file.exists(fpath))
 
     rid <- .sql_new_resource(x, rname)
-    switch(match.arg(action),
-       asis = {
-           .sql_set_cache_file_path(x, rid, fpath)
-       },
-       copy = {
-           if (file.exists(fpath))
-               file.copy(fpath, .sql_get_cache_file_path(x, rid), ...)
-           else
-               message(paste0("File Does Not Exists: ", fpath))
-       },
-       move = {
-           if (file.exists(fpath))
-               system(paste0("mv ", fpath, " ",
-                             .sql_get_cache_file_path(x, rid)))
-           else
-               message(paste0("File Does Not Exists: ", fpath))
-       })
+    switch(
+        match.arg(action),
+        copy = file.copy(fpath, .sql_get_cache_file_path(x, rid), ...),
+        move = file.rename(fpath, .sql_get_cache_file_path(x, rid)),
+        asis = .sql_set_cache_file_path(x, rid, fpath))
+
     rid
 })
 
