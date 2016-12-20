@@ -60,7 +60,7 @@ setMethod("length", "BiocFileCache",
 })
 
 #' @describeIn BiocFileCache Get a subset of resources from the cache.
-#' 
+#'
 #' @param i Rid numbers
 #' @param j Not applicable
 #' @param drop Not applicable
@@ -69,11 +69,11 @@ setMethod("length", "BiocFileCache",
 setMethod("[", c("BiocFileCache", "numeric", "missing", "ANY"),
      function(x, i, j, ..., drop=TRUE)
 {
-    .sql_subset_resources(x, i)    
+    .sql_subset_resources(x, i)
 })
 
 #' @describeIn BiocFileCache Get a subset of resources from the cache.
-#' 
+#'
 #' @return List of resources
 #' @exportMethod [
 setMethod("[", c("BiocFileCache", "missing", "missing", "ANY"),
@@ -81,57 +81,35 @@ setMethod("[", c("BiocFileCache", "missing", "missing", "ANY"),
 {
     if (missing(i))
         i <- .get_all_rids(x)
-    .sql_subset_resources(x, i)    
+    .sql_subset_resources(x, i)
 })
 
 
-#' @describeIn BiocFileCache Get a select resources from the cache.
-#' 
-#' @return Entry for the resource in the cache
+#' @describeIn BiocFileCache Get a file path for select resources from the cache.
+#'
+#' @return rpath for the given resource in the cache
 #' @exportMethod [[
 setMethod("[[", c("BiocFileCache", "numeric", "missing"),
      function(x, i, j)
 {
      stopifnot(length(i) == 1L)
-     .sql_get_resource(x, i)
+     .sql_get_rpath(x, i)
 })
 
-#' @describeIn BiocFileCache Set the rname and file path of a
+#' @describeIn BiocFileCache Set the file path of a
 #' select resources from the cache.
-#' 
+#'
 #' @return Updated BiocFileCache object
 #' @exportMethod [[<-
-setReplaceMethod("[[", 
+setReplaceMethod("[[",
 c("BiocFileCache", "numeric", "missing", "character"),
      function(x, i, j, ..., value)
 {
-     stopifnot(length(i) == 1L, is.character(value), length(value) == 2L)
-     
-     sqlfile <- .sql_update_time(x, i)
-     sqlfile <- .sql_set_rname(x, i, value[1])
-     sqlfile <- .sql_set_rpath(x, i, value[2])
-     x
-})
+     stopifnot(length(i) == 1L, is.character(value), length(value) == 1L)
 
-#' @describeIn BiocFileCache Set either the rname or the file path (rpath) of a
-#' select resources from the cache.
-#' 
-#' @return Updated BiocFileCache object
-#' @exportMethod [[<-
-setReplaceMethod("[[", 
-c("BiocFileCache", "numeric", "character", "character"),
-     function(x, i, j, ..., value)
-{
-    stopifnot(length(i) == 1L, is.character(value), length(value) == 1L,
-              (j == "rname" || j == "rpath"))
-    if (j == "rpath"){
-        sqlfile <- .sql_update_time(x, i)
-        sqlfile <- .sql_set_rpath(x, i, value)       
-    } else{
-        sqlfile <- .sql_update_time(x, i)
-        sqlfile <- .sql_set_rname(x, i, value)
-    }
-    x
+     sqlfile <- .sql_update_time(x, i)
+     sqlfile <- .sql_set_rpath(x, i, value)
+     x
 })
 
 #' @export
@@ -139,11 +117,11 @@ setGeneric("newResource",
     function(x, rname)
     standardGeneric("newResource"),
     signature="x")
-#' @describeIn BiocFileCache Add a resource to the database 
+#' @describeIn BiocFileCache Add a resource to the database
 #'
 #' @param rname Name of object in file cache
 #' @return named character(1) The path to save your object/file.
-#' The name of the character is the unique rid for the resource 
+#' The name of the character is the unique rid for the resource
 #' @examples
 #' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 #' path <- newResource(bfc0, "NewResource")
@@ -182,7 +160,7 @@ setGeneric("addResource",
 #' addResource(bfc0, fl2, "Test2", "move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
 #' rid3 <- addResource(bfc0, fl3, "Test3", "asis")         # reference
-#' 
+#'
 #' bfc0
 #' file.exists(fl1)                                # TRUE
 #' file.exists(fl2)                                # FALSE
@@ -249,32 +227,27 @@ setGeneric("updateResource",
 
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
-#' @param value character(1) replacement value
-#' @param colID character(1) either "rpath" or "rname" indicating which
-#' parameter to change. If not specified, defaults to "rpath" 
+#' @param rname character(1) replacement value for rname
+#' @param rpath character(1) replacement value for rpath
 #' @examples
-#' updateResource(bfc0, rid3, fl2)
-#' updateResource(bfc0, rid3, "newRname", "rname")
-#' bfc0[[rid3]]
-#' bfc0[[rid3]] = c("newName", fl1)
-#' bfc0[[rid3]]
-#' bfc0[[rid3, "rpath"]] = fl3
-#' bfc0[[rid3]]
+#' updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
+#' bfc0[rid3]
+#' bfc0[[rid3]] = fl1
+#' bfc0[rid3]
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
-    function(x, rid, value, colID)
+    function(x, rid, rname=NULL, rpath=NULL)
 {
-    stopifnot(!missing(rid), length(rid) == 1L,
-              !missing(value),  length(rid) == 1L)
-    if (missing(colID))
-        colID = "rpath"
-    stopifnot(colID == "rpath" || colID == "rname")
+    stopifnot(!missing(rid), length(rid) == 1L)
     sqlfile <- .sql_update_time(x, rid)
-    if (colID == "rname"){
-        sqlfile <- .sql_set_rname(x, rid, value)
-    } else{
-        sqlfile <- .sql_set_rpath(x, rid, value)
+    if (!is.null(rname)){
+        stopifnot(is.character(rname))
+        sqlfile <- .sql_set_rname(x, rid, rname)
+    }
+    if (!is.null(rpath)){
+        stopifnot(is.character(rpath))
+        sqlfile <- .sql_set_rpath(x, rid, rpath)
     }
 })
 
