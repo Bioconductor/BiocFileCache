@@ -7,7 +7,6 @@
 \alias{[,BiocFileCache,missing,missing-method}
 \alias{[,BiocFileCache,numeric,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
-\alias{[[<-,BiocFileCache,numeric,character,character-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{addResource}
 \alias{addResource,BiocFileCache-method}
@@ -45,8 +44,6 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{[[}{BiocFileCache,numeric,character,character}(x, i, j, ...) <- value
-
 \S4method{newResource}{BiocFileCache}(x, rname)
 
 \S4method{addResource}{BiocFileCache}(x, fpath, rname, action = c("copy",
@@ -56,7 +53,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{loadResource}{BiocFileCache}(x, rid)
 
-\S4method{updateResource}{BiocFileCache}(x, rid, value, colID)
+\S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL)
 
 \S4method{removeResource}{BiocFileCache}(x, rids)
 
@@ -81,8 +78,6 @@ cache.}
 
 \item{drop}{Not applicable}
 
-\item{value}{character(1) replacement value}
-
 \item{rname}{Name of object in file cache}
 
 \item{fpath}{character(1) Path to current file location}
@@ -94,8 +89,7 @@ location but save the path in the cache.}
 
 \item{rid}{numeric(1) Unique resource id}
 
-\item{colID}{character(1) either "rpath" or "rname" indicating which
-parameter to change. If not specified, defaults to "rpath"}
+\item{rpath}{character(1) replacement value for rpath}
 
 \item{rids}{character() Unique resource ids (see rid of ouput from
 listResource).}
@@ -106,6 +100,8 @@ entry will be deleted}
 \item{ask}{check if really want to remove cache and files}
 
 \item{object}{A \code{BiocFileCache} instance.}
+
+\item{rname}{character(1) replacement value for rname}
 }
 \value{
 A \code{BiocFileCache} instance.
@@ -118,9 +114,7 @@ List of resources
 
 List of resources
 
-Entry for the resource in the cache
-
-Updated BiocFileCache object
+rpath for the given resource in the cache
 
 Updated BiocFileCache object
 
@@ -153,12 +147,9 @@ cache.
 
 \item \code{[}: Get a subset of resources from the cache.
 
-\item \code{[[}: Get a select resources from the cache.
+\item \code{[[}: Get a file path for select resources from the cache.
 
-\item \code{[[<-}: Set the rname and file path of a
-select resources from the cache.
-
-\item \code{[[<-}: Set either the rname or the file path (rpath) of a
+\item \code{[[<-}: Set the file path of a
 select resources from the cache.
 
 \item \code{newResource}: Add a resource to the database
@@ -201,13 +192,10 @@ file.exists(fl3)                                # TRUE
 listResources(bfc0)
 bfc0[]
 loadResource(bfc0, rid3)
-updateResource(bfc0, rid3, fl2)
-updateResource(bfc0, rid3, "newRname", "rname")
-bfc0[[rid3]]
-bfc0[[rid3]] = c("newName", fl1)
-bfc0[[rid3]]
-bfc0[[rid3, "rpath"]] = fl3
-bfc0[[rid3]]
+updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
+bfc0[rid3]
+bfc0[[rid3]] = fl1
+bfc0[rid3]
 removeResource(bfc0, rid3)
 listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}

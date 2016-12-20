@@ -52,16 +52,12 @@ the path??
 ## Make changes
 ##
 
-
-2.  change scheme to rpath rather than cache_file_path - make change globally
-
-3.  updateResource have rname=NULL rpath=NULL and update accordingly
-
-4.  [[  only export path / [[<-  only set path 
-
 5. [ should return a new BiocFileCache??
     - update EVERYTHING  - new slot integer listing active rid 
     - rid(bfc) 
+    - new method listResource(s) - to give certain entries?? 
+      different implementation of .sql_subset_resources
+
  
 ##
 ## FUTURE

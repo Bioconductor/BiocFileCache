@@ -125,8 +125,8 @@
 {
     if (length(i) == 1L)
         .sql_get_resource(bfc, i)
-    else 
-        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf) 
+    else
+        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf)
 }
 
 .get_all_rids <-
@@ -134,5 +134,5 @@
 {
     .sql_get_resource_table(bfc) %>% select_("rid") %>%
         collect(Inf) %>% `[[`("rid")
-    
+
 }
