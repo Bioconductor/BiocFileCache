@@ -66,14 +66,24 @@ setMethod("length", "BiocFileCache",
 #' @param drop Not applicable
 #' @return List of resources
 #' @exportMethod [
-setMethod("[", c("BiocFileCache", "ANY", "missing", "ANY"),
+setMethod("[", c("BiocFileCache", "numeric", "missing", "ANY"),
+     function(x, i, j, ..., drop=TRUE)
+{
+    .sql_subset_resources(x, i)    
+})
+
+#' @describeIn BiocFileCache Get a subset of resources from the cache.
+#' 
+#' @return List of resources
+#' @exportMethod [
+setMethod("[", c("BiocFileCache", "missing", "missing", "ANY"),
      function(x, i, j, ..., drop=TRUE)
 {
     if (missing(i))
-        i <- NA_integer_
-    stopifnot(is.numeric(i) || anyNA(i))
+        i <- .get_all_rids(x)
     .sql_subset_resources(x, i)    
 })
+
 
 #' @describeIn BiocFileCache Get a select resources from the cache.
 #' 

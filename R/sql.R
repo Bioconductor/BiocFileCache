@@ -123,12 +123,16 @@
 .sql_subset_resources <-
     function(bfc, i)
 {
-    if (length(i) == 1L){
-        if (is.na(i))
-            .sql_get_resource_table(bfc) %>% collect(Inf)
-        else
-            .sql_get_resource(bfc, i)
-    } else {
-        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf)
-    }
+    if (length(i) == 1L)
+        .sql_get_resource(bfc, i)
+    else 
+        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf) 
+}
+
+.get_all_rids <-
+    function(bfc)
+{
+    .sql_get_resource_table(bfc) %>% select_("rid") %>%
+        collect(Inf) %>% `[[`("rid")
+    
 }

@@ -4,7 +4,8 @@
 \name{BiocFileCache-class}
 \alias{BiocFileCache}
 \alias{BiocFileCache-class}
-\alias{[,BiocFileCache,ANY,missing-method}
+\alias{[,BiocFileCache,missing,missing-method}
+\alias{[,BiocFileCache,numeric,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,character,character-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
@@ -36,7 +37,9 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{length}{BiocFileCache}(x)
 
-\S4method{[}{BiocFileCache,ANY,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCache,numeric,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{BiocFileCache,numeric,missing}(x, i, j)
 
@@ -114,6 +117,8 @@ integer(1) Number of objects in the file cache.
 
 List of resources
 
+List of resources
+
 Entry for the resource in the cache
 
 Updated BiocFileCache object
@@ -144,6 +149,8 @@ sessions.
 
 \item \code{length}: Get the number of object in the file
 cache.
+
+\item \code{[}: Get a subset of resources from the cache.
 
 \item \code{[}: Get a subset of resources from the cache.
 

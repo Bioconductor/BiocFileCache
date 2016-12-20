@@ -46,3 +46,27 @@ the path??
 1. listResources(bfc)
 2. updateResource(bfc, rid, object=NULL, rpath=NULL) 
    this is how user would update:  bfc[[rid]] = myNewObjectOrPath
+
+
+##
+## Make changes
+##
+
+
+2.  change scheme to rpath rather than cache_file_path - make change globally
+
+3.  updateResource have rname=NULL rpath=NULL and update accordingly
+
+4.  [[  only export path / [[<-  only set path 
+
+5. [ should return a new BiocFileCache??
+    - update EVERYTHING  - new slot integer listing active rid 
+    - rid(bfc) 
+ 
+##
+## FUTURE
+## 
+
+add local or remote
+if remote  - additional table with addtional information to see if need to be
+updated (package httr - creation time and etags - get header of resource and parse) 
