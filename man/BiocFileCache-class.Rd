@@ -94,9 +94,8 @@ location but save the path in the cache.}
 
 \item{rid}{numeric(1) Unique resource id}
 
-\item{colID}{character(1) either "cache_file_path", "path"
-or "rname" indicating which parameter to change. "cache_file_path"
-and "path" are equivalent. If not specified, defaults to "cache_file_path"}
+\item{colID}{character(1) either "rpath" or "rname" indicating which
+parameter to change. If not specified, defaults to "rpath"}
 
 \item{rids}{character() Unique resource ids (see rid of ouput from
 listResource).}
@@ -159,7 +158,7 @@ cache.
 \item \code{[[<-}: Set the rname and file path of a
 select resources from the cache.
 
-\item \code{[[<-}: Set either the rname or the file path of a
+\item \code{[[<-}: Set either the rname or the file path (rpath) of a
 select resources from the cache.
 
 \item \code{newResource}: Add a resource to the database
@@ -185,9 +184,9 @@ bfc <- BiocFileCache()            # global cache
 bfc
 bfcCache(bfc)
 length(bfc)
-path <- newResource(bfc, "NewResource")
-path
 bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
+path <- newResource(bfc0, "NewResource")
+path
 fl1 <- tempfile(); file.create(fl1)
 addResource(bfc0, fl1, "Test1")                 # copy
 fl2 <- tempfile(); file.create(fl2)
@@ -207,7 +206,7 @@ updateResource(bfc0, rid3, "newRname", "rname")
 bfc0[[rid3]]
 bfc0[[rid3]] = c("newName", fl1)
 bfc0[[rid3]]
-bfc0[[rid3, "path"]] = fl3
+bfc0[[rid3, "rpath"]] = fl3
 bfc0[[rid3]]
 removeResource(bfc0, rid3)
 listResources(bfc0)

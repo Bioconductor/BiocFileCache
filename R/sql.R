@@ -75,13 +75,13 @@
         select_(field) %>% collect(Inf) %>% `[[`(field)
 }
 
-.sql_get_cache_file_path <-
+.sql_get_rpath <-
     function(bfc, rid)
 {
-    .sql_get_field(bfc, rid, "cache_file_path")
+    .sql_get_field(bfc, rid, "rpath")
 }
 
-.sql_set_cache_file_path <-
+.sql_set_rpath <-
     function(bfc, rid, path)
 {
     sql <- .sql_sprintf("-- UPDATE_PATH", path, rid)
