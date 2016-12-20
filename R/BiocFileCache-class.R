@@ -109,11 +109,11 @@ c("BiocFileCache", "numeric", "missing", "character"),
      
      sqlfile <- .sql_update_time(x, i)
      sqlfile <- .sql_set_rname(x, i, value[1])
-     sqlfile <- .sql_set_cache_file_path(x, i, value[2])
+     sqlfile <- .sql_set_rpath(x, i, value[2])
      x
 })
 
-#' @describeIn BiocFileCache Set either the rname or the file path of a
+#' @describeIn BiocFileCache Set either the rname or the file path (rpath) of a
 #' select resources from the cache.
 #' 
 #' @return Updated BiocFileCache object
@@ -123,10 +123,10 @@ c("BiocFileCache", "numeric", "character", "character"),
      function(x, i, j, ..., value)
 {
     stopifnot(length(i) == 1L, is.character(value), length(value) == 1L,
-              (j == "path" || j == "rname" || j == "cache_file_path"))
-    if (j == "path" || j == "cache_file_path"){
+              (j == "rname" || j == "rpath"))
+    if (j == "rpath"){
         sqlfile <- .sql_update_time(x, i)
-        sqlfile <- .sql_set_cache_file_path(x, i, value)       
+        sqlfile <- .sql_set_rpath(x, i, value)       
     } else{
         sqlfile <- .sql_update_time(x, i)
         sqlfile <- .sql_set_rname(x, i, value)
@@ -145,7 +145,8 @@ setGeneric("newResource",
 #' @return named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource 
 #' @examples
-#' path <- newResource(bfc, "NewResource")
+#' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
+#' path <- newResource(bfc0, "NewResource")
 #' path
 #' @aliases newResource
 #' @exportMethod newResource
@@ -154,7 +155,7 @@ setMethod("newResource", "BiocFileCache",
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
     rid <- .sql_new_resource(x, rname)
-    rpath  = .sql_get_cache_file_path(x, rid)
+    rpath  = .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
 
@@ -175,7 +176,6 @@ setGeneric("addResource",
 #'     \code{file.copy}.
 #' @return numeric(1) The unique id of the resource in the cache.
 #' @examples
-#' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 #' fl1 <- tempfile(); file.create(fl1)
 #' addResource(bfc0, fl1, "Test1")                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
@@ -199,9 +199,9 @@ setMethod("addResource", "BiocFileCache",
     rid <- .sql_new_resource(x, rname)
     switch(
         match.arg(action),
-        copy = file.copy(fpath, .sql_get_cache_file_path(x, rid), ...),
-        move = file.rename(fpath, .sql_get_cache_file_path(x, rid)),
-        asis = .sql_set_cache_file_path(x, rid, fpath))
+        copy = file.copy(fpath, .sql_get_rpath(x, rid), ...),
+        move = file.rename(fpath, .sql_get_rpath(x, rid)),
+        asis = .sql_set_rpath(x, rid, fpath))
 
     rid
 })
@@ -237,7 +237,7 @@ setMethod("loadResource", "BiocFileCache",
     function(x, rid)
 {
     sqlfile <- .sql_update_time(x, rid)
-    path <- .sql_get_cache_file_path(x, rid)
+    path <- .sql_get_rpath(x, rid)
     path
 })
 
@@ -250,16 +250,15 @@ setGeneric("updateResource",
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
 #' @param value character(1) replacement value
-#' @param colID character(1) either "cache_file_path", "path"
-#' or "rname" indicating which parameter to change. "cache_file_path"
-#' and "path" are equivalent. If not specified, defaults to "cache_file_path" 
+#' @param colID character(1) either "rpath" or "rname" indicating which
+#' parameter to change. If not specified, defaults to "rpath" 
 #' @examples
 #' updateResource(bfc0, rid3, fl2)
 #' updateResource(bfc0, rid3, "newRname", "rname")
 #' bfc0[[rid3]]
 #' bfc0[[rid3]] = c("newName", fl1)
 #' bfc0[[rid3]]
-#' bfc0[[rid3, "path"]] = fl3
+#' bfc0[[rid3, "rpath"]] = fl3
 #' bfc0[[rid3]]
 #' @aliases updateResource
 #' @exportMethod updateResource
@@ -269,14 +268,13 @@ setMethod("updateResource", "BiocFileCache",
     stopifnot(!missing(rid), length(rid) == 1L,
               !missing(value),  length(rid) == 1L)
     if (missing(colID))
-        colID = "cache_file_path"
-    stopifnot(colID == "cache_file_path" || colID == "rname"
-              || colID == "path")
+        colID = "rpath"
+    stopifnot(colID == "rpath" || colID == "rname")
     sqlfile <- .sql_update_time(x, rid)
     if (colID == "rname"){
         sqlfile <- .sql_set_rname(x, rid, value)
     } else{
-        sqlfile <- .sql_set_cache_file_path(x, rid, value)
+        sqlfile <- .sql_set_rpath(x, rid, value)
     }
 })
 
@@ -323,7 +321,7 @@ setMethod("cleanCache", "BiocFileCache",
             entry <- .sql_get_resource(x, id)
             txt <- sprintf(
                 "Remove from cache id: '%d' and delete file '%s' (y/N): ",
-                entry$rid, entry$cache_file_path)
+                entry$rid, entry$rpath)
             repeat {
                 response <- readline(txt)
                 doit <- switch(substr(tolower(response), 1, 1),
@@ -332,14 +330,14 @@ setMethod("cleanCache", "BiocFileCache",
                     break
             }
             if (doit) {
-                file <- unlink(entry$cache_file_path, force=TRUE)
+                file <- unlink(entry$rpath, force=TRUE)
                 file <- .sql_remove_resource(x, id)
             }
         }
     } else {
 
         paths <- unname(unlist(lapply(idsToDel,
-                                 .sql_get_cache_file_path, bfc=x)))
+                                 .sql_get_rpath, bfc=x)))
         file <- unlink(paths, force=TRUE)
         file <- .sql_remove_resource(x, idsToDel)
     }
