@@ -4,8 +4,6 @@
 \name{BiocFileCache-class}
 \alias{BiocFileCache}
 \alias{BiocFileCache-class}
-\alias{[,BiocFileCache,missing,missing-method}
-\alias{[,BiocFileCache,numeric,missing-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{addResource}
@@ -35,10 +33,6 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{bfcCache}{BiocFileCache}(x)
 
 \S4method{length}{BiocFileCache}(x)
-
-\S4method{[}{BiocFileCache,numeric,missing}(x, i, j, ..., drop = TRUE)
-
-\S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{BiocFileCache,numeric,missing}(x, i, j)
 
@@ -76,9 +70,9 @@ cache.}
 \item{...}{For \code{action="copy"}, additional arguments passed to
 \code{file.copy}.}
 
-\item{drop}{Not applicable}
+\item{value}{character(1) Replace file path}
 
-\item{rname}{Name of object in file cache}
+\item{rname}{character(1) Name of object in file cache}
 
 \item{fpath}{character(1) Path to current file location}
 
@@ -100,8 +94,6 @@ entry will be deleted}
 \item{ask}{check if really want to remove cache and files}
 
 \item{object}{A \code{BiocFileCache} instance.}
-
-\item{rname}{character(1) replacement value for rname}
 }
 \value{
 A \code{BiocFileCache} instance.
@@ -109,10 +101,6 @@ A \code{BiocFileCache} instance.
 character(1) location of the directory containing the cache.
 
 integer(1) Number of objects in the file cache.
-
-List of resources
-
-List of resources
 
 rpath for the given resource in the cache
 
@@ -142,10 +130,6 @@ sessions.
 
 \item \code{length}: Get the number of object in the file
 cache.
-
-\item \code{[}: Get a subset of resources from the cache.
-
-\item \code{[}: Get a subset of resources from the cache.
 
 \item \code{[[}: Get a file path for select resources from the cache.
 
@@ -190,12 +174,9 @@ file.exists(fl1)                                # TRUE
 file.exists(fl2)                                # FALSE
 file.exists(fl3)                                # TRUE
 listResources(bfc0)
-bfc0[]
 loadResource(bfc0, rid3)
 updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
-bfc0[rid3]
 bfc0[[rid3]] = fl1
-bfc0[rid3]
 removeResource(bfc0, rid3)
 listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
