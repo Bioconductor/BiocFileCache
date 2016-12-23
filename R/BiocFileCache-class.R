@@ -59,34 +59,9 @@ setMethod("length", "BiocFileCache",
         collect %>% `[[`("n")
 })
 
-#' @describeIn BiocFileCache Get a subset of resources from the cache.
-#'
+#' @describeIn BiocFileCache Get a file path for select resources from the cache.
 #' @param i Rid numbers
 #' @param j Not applicable
-#' @param drop Not applicable
-#' @return List of resources
-#' @exportMethod [
-setMethod("[", c("BiocFileCache", "numeric", "missing", "ANY"),
-     function(x, i, j, ..., drop=TRUE)
-{
-    .sql_subset_resources(x, i)
-})
-
-#' @describeIn BiocFileCache Get a subset of resources from the cache.
-#'
-#' @return List of resources
-#' @exportMethod [
-setMethod("[", c("BiocFileCache", "missing", "missing", "ANY"),
-     function(x, i, j, ..., drop=TRUE)
-{
-    if (missing(i))
-        i <- .get_all_rids(x)
-    .sql_subset_resources(x, i)
-})
-
-
-#' @describeIn BiocFileCache Get a file path for select resources from the cache.
-#'
 #' @return rpath for the given resource in the cache
 #' @exportMethod [[
 setMethod("[[", c("BiocFileCache", "numeric", "missing"),
@@ -98,7 +73,7 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
 
 #' @describeIn BiocFileCache Set the file path of a
 #' select resources from the cache.
-#'
+#' @param value character(1) Replace file path 
 #' @return Updated BiocFileCache object
 #' @exportMethod [[<-
 setReplaceMethod("[[",
@@ -119,7 +94,7 @@ setGeneric("newResource",
     signature="x")
 #' @describeIn BiocFileCache Add a resource to the database
 #'
-#' @param rname Name of object in file cache
+#' @param rname character(1) Name of object in file cache
 #' @return named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource
 #' @examples
@@ -191,7 +166,6 @@ setGeneric("listResources", function(x) standardGeneric("listResources"))
 #' @return A list of current resources in the database
 #' @examples
 #' listResources(bfc0)
-#' bfc0[]
 #' @aliases listResources
 #' @exportMethod listResources
 setMethod("listResources", "BiocFileCache",
@@ -227,13 +201,10 @@ setGeneric("updateResource",
 
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
-#' @param rname character(1) replacement value for rname
 #' @param rpath character(1) replacement value for rpath
 #' @examples
 #' updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
-#' bfc0[rid3]
 #' bfc0[[rid3]] = fl1
-#' bfc0[rid3]
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
