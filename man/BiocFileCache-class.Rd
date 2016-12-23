@@ -43,7 +43,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{addResource}{BiocFileCache}(x, fpath, rname, action = c("copy",
   "move", "asis"), ...)
 
-\S4method{listResources}{BiocFileCache}(x)
+\S4method{listResources}{BiocFileCache}(x, rids)
 
 \S4method{loadResource}{BiocFileCache}(x, rid)
 
@@ -81,12 +81,11 @@ cache.}
 the cache directory; or \code{asis} leave the file in current
 location but save the path in the cache.}
 
+\item{rids}{character() List of rids.}
+
 \item{rid}{numeric(1) Unique resource id}
 
 \item{rpath}{character(1) replacement value for rpath}
-
-\item{rids}{character() Unique resource ids (see rid of ouput from
-listResource).}
 
 \item{days}{Number of days between accessDate and currentDate; if exceeded
 entry will be deleted}
@@ -94,6 +93,9 @@ entry will be deleted}
 \item{ask}{check if really want to remove cache and files}
 
 \item{object}{A \code{BiocFileCache} instance.}
+
+\item{rids}{character() Unique resource ids (see rid of ouput from
+listResource).}
 }
 \value{
 A \code{BiocFileCache} instance.
