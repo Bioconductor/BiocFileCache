@@ -160,18 +160,24 @@ setMethod("addResource", "BiocFileCache",
 })
 
 #' @export
-setGeneric("listResources", function(x) standardGeneric("listResources"))
+setGeneric("listResources",
+    function(x, rids)
+    standardGeneric("listResources"),
+    signature="x")
 
 #' @describeIn BiocFileCache list resources in database
+#' @param rids character() List of rids. 
 #' @return A list of current resources in the database
 #' @examples
 #' listResources(bfc0)
 #' @aliases listResources
 #' @exportMethod listResources
 setMethod("listResources", "BiocFileCache",
-    function(x)
+    function(x, rids)
 {
-    .sql_get_resource_table(x)
+    if (missing(rids))
+        rids <- integer(0)
+    .sql_get_resource_table(x, rids)
 })
 
 #' @export

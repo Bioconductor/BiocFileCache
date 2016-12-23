@@ -61,11 +61,25 @@
     .sql_get_query(bfc, sql)
 }
 
-.sql_get_resource_table <-
+.sql_full_resource_table <-
     function(bfc)
 {
     src <- src_sqlite(.sql_dbfile(bfc))
     tbl(src, "resource")
+}
+
+.sql_get_resource_table <-
+    function(bfc, i)
+{
+    if (missing(i))
+        i = integer(0)
+    src <- src_sqlite(.sql_dbfile(bfc))
+    if (length(i) == 0)
+        tbl(src, "resource")
+    else if (length(i) == 1)
+        tbl(src, "resource") %>% filter_(~ rid == i)
+    else
+        tbl(src, "resource") %>% filter_(~ rid %in% i)
 }
 
 .sql_get_field <-
