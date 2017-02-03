@@ -55,5 +55,8 @@ newResource(bfc0, "web", "web", "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_s
 # general utility
 #
 
-- Add a search by rname
-- Add a load by rname
+- should remove resource remove file or just from cache - orphaned files??
+- function to compare untracked files in cache location? (essentially clean
+    /home/user/.BiocFileCache if files are not tracked in sqlite obj) 
+- rname option:  [[, [[<-, listResources, loadResources, ?updateResource,
+     checkResource, removeResource, ?new: searchResources
