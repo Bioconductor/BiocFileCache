@@ -47,10 +47,10 @@
 }
 
 .sql_new_resource <-
-    function(bfc, rname)
+    function(bfc, rname, rtype, weblink)
 {
     fname <- tempfile("", bfcCache(bfc))
-    sql <- .sql_sprintf("-- INSERT", rname, fname)
+    sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, weblink)
     .sql_get_query(bfc, sql)[[1]]
 }
 
@@ -149,4 +149,18 @@
     .sql_get_resource_table(bfc) %>% select_("rid") %>%
         collect(Inf) %>% `[[`("rid")
 
+}
+
+.sql_set_modifiedTime <-
+    function(bfc, rid, value)
+{
+    sql <- .sql_sprintf("-- UPDATE_MODIFIED", value, rid)
+    .sql_get_query(bfc, sql)
+}
+
+.sql_set_weblink <-
+    function(bfc, rid, value)
+{
+    sql <- .sql_sprintf("-- UPDATE_WEBLINK", value, rid)
+    .sql_get_query(bfc, sql)
 }

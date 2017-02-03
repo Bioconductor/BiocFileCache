@@ -14,11 +14,11 @@ test_that("addResource works", {
     expect_identical(length(bfc), 1L)
     expect_true(file.exists(fl))
 
-    rid <- addResource(bfc, fl, 'test-2', 'asis')
+    rid <- addResource(bfc, fl, 'test-2', action='asis')
     expect_identical(length(bfc), 2L)
     expect_true(file.exists(fl))
 
-    rid <- addResource(bfc, fl, 'test-1', 'move')
+    rid <- addResource(bfc, fl, 'test-1', action='move')
     expect_identical(length(bfc), 3L)
     expect_true(!file.exists(fl))
 })

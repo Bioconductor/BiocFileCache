@@ -1,6 +1,7 @@
 #' @import methods
 #' @import RSQLite
 #' @import dplyr
+#' @import httr
 .BiocFileCache = setClass("BiocFileCache",
     slots=c(cache="character"))
 
@@ -73,7 +74,7 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
 
 #' @describeIn BiocFileCache Set the file path of a
 #' select resources from the cache.
-#' @param value character(1) Replace file path 
+#' @param value character(1) Replace file path
 #' @return Updated BiocFileCache object
 #' @exportMethod [[<-
 setReplaceMethod("[[",
@@ -89,12 +90,16 @@ c("BiocFileCache", "numeric", "missing", "character"),
 
 #' @export
 setGeneric("newResource",
-    function(x, rname)
+    function(x, rname, rtype=c("local", "web"), weblink=NA)
     standardGeneric("newResource"),
     signature="x")
 #' @describeIn BiocFileCache Add a resource to the database
 #'
 #' @param rname character(1) Name of object in file cache
+#' @param rtype character(1) local or web indicating if the resource is a local
+#' file or a web resource
+#' @param weblink If the resource is a web resource, the link to the original
+#' source
 #' @return named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource
 #' @examples
@@ -104,17 +109,24 @@ setGeneric("newResource",
 #' @aliases newResource
 #' @exportMethod newResource
 setMethod("newResource", "BiocFileCache",
-    function(x, rname)
+    function(x, rname, rtype=c("local", "web"), weblink=NA)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
-    rid <- .sql_new_resource(x, rname)
+    rtype = match.arg(rtype)
+    if(rtype == "web") stopifnot(!is.na(weblink))
+    rid <- .sql_new_resource(x, rname, rtype, weblink)
+    if(rtype == "web"){
+        web_time <- as.character(.get_web_last_modified(x, rid))
+        if(length(web_time) != 0L) vl <- .sql_set_modifiedTime(x, rid, web_time)
+    }
     rpath  = .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
 
 #' @export
 setGeneric("addResource",
-    function(x, fpath, rname, action=c("copy", "move", "asis"), ...)
+    function(x, fpath, rname, rtype=c("local", "web"), weblink=NA,
+             action=c("copy", "move", "asis"), ...)
     standardGeneric("addResource"),
     signature="x")
 
@@ -132,9 +144,9 @@ setGeneric("addResource",
 #' fl1 <- tempfile(); file.create(fl1)
 #' addResource(bfc0, fl1, "Test1")                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
-#' addResource(bfc0, fl2, "Test2", "move")         # move
+#' addResource(bfc0, fl2, "Test2", action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' rid3 <- addResource(bfc0, fl3, "Test3", "asis")         # reference
+#' rid3 <- addResource(bfc0, fl3, "Test3", action="asis")         # reference
 #'
 #' bfc0
 #' file.exists(fl1)                                # TRUE
@@ -143,15 +155,22 @@ setGeneric("addResource",
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
-    function(x, fpath, rname, action=c("copy", "move", "asis"), ...)
+    function(x, fpath, rname, rtype=c("local", "web"), weblink=NA,
+             action=c("copy", "move", "asis"), ...)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname),
               length(fpath) == 1L, is.character(fpath), !is.na(fpath))
     stopifnot(file.exists(fpath))
-
-    rid <- .sql_new_resource(x, rname)
+    rtype = match.arg(rtype)
+    action = match.arg(action)
+    if(rtype=="web") stopifnot(!is.na(weblink))
+    rid <- .sql_new_resource(x, rname, rtype, weblink)
+    if(rtype == "web"){
+        web_time <- as.character(.get_web_last_modified(x, rid))
+        if(length(web_time) != 0L) vl <- .sql_set_modifiedTime(x, rid, web_time)
+    }
     switch(
-        match.arg(action),
+        action,
         copy = file.copy(fpath, .sql_get_rpath(x, rid), ...),
         move = file.rename(fpath, .sql_get_rpath(x, rid)),
         asis = .sql_set_rpath(x, rid, fpath))
@@ -166,7 +185,7 @@ setGeneric("listResources",
     signature="x")
 
 #' @describeIn BiocFileCache list resources in database
-#' @param rids character() List of rids. 
+#' @param rids character() List of rids.
 #' @return A list of current resources in the database
 #' @examples
 #' listResources(bfc0)
@@ -196,7 +215,12 @@ setMethod("loadResource", "BiocFileCache",
 {
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
-    path
+    if(.sql_get_field(x, rid, "rtype")=="web"){
+        weblink <- .sql_get_field(x, rid, "weblink")
+        c(setNames(path, "localFile"), setNames(weblink, "weblink"))
+    }else{
+        setNames(path, "localFile")
+    }
 })
 
 #' @export
@@ -214,7 +238,7 @@ setGeneric("updateResource",
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
-    function(x, rid, rname=NULL, rpath=NULL)
+    function(x, rid, rname=NULL, rpath=NULL, weblink=NULL)
 {
     stopifnot(!missing(rid), length(rid) == 1L)
     sqlfile <- .sql_update_time(x, rid)
@@ -226,15 +250,47 @@ setMethod("updateResource", "BiocFileCache",
         stopifnot(is.character(rpath))
         sqlfile <- .sql_set_rpath(x, rid, rpath)
     }
+    if (!is.null(weblink)){
+        stopifnot(is.character(weblink))
+        # TODO:
+        #     check for valid url??
+        sqlfile <- .sql_set_weblink(x, rid, weblink)
+    }
+
 })
+
+
+#' @export
+setGeneric("checkResource",
+    function(x, rid) standardGeneric("checkResource"))
+
+#' @describeIn BiocFileCache check if a resource needs to be updated
+#' @return logical if resource needs to be updated
+#' @aliases checkResource
+#' @exportMethod checkResource
+setMethod("checkResource", "BiocFileCache",
+    function(x, rid)
+{
+    stopifnot(!missing(rid), length(rid) == 1L)
+    stopifnot(.sql_get_field(x, rid, "rtype")=="web")
+    stopifnot(rid %in% .get_all_rids(x))
+    file_time <- .sql_get_field(x, rid, "last_modified_time")
+    web_time <- .get_web_last_modified(x, rid)
+    if(is.null(file_time) || is.null(web_time)){
+        toUpdate <- TRUE
+        message("Cannot Determine: Recommend Update.")
+    }else{
+        toUpdate <- as.Date(as.character(web_time)) > as.Date(file_time)
+    }
+    toUpdate
+})
+
 
 #' @export
 setGeneric("removeResource",
     function(x, rids) standardGeneric("removeResource"))
 
 #' @describeIn BiocFileCache Remove a resource to the database.
-#' @param rids character() Unique resource ids (see rid of ouput from
-#'     listResource).
 #' @examples
 #' removeResource(bfc0, rid3)
 #' listResources(bfc0)
