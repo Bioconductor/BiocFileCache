@@ -1,14 +1,26 @@
+#########################
 #
 # quick run 
 #
+#########################
 
 library(devtools)
 library(RSQLite)
 library(dplyr)
+library(httr)
 document()
 install()
 library(BiocFileCache)
 example("BiocFileCache-class")
+
+addResource(bfc0, fl1, "webTestWork", rtype="web", weblink="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
+addResource(bfc0, fl1, "webTestFTP", rtype="web", weblink="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
+addResource(bfc0, fl1, "webTestReDir", rtype="web", weblink="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
+addResource(bfc0, fl1, "webTestNotFound", rtype="web", weblink="https://hehehaf")
+
+checkResource(bfc0, 6)
+
+newResource(bfc0, "web", "web", "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
 
 
 #####################
@@ -18,21 +30,8 @@ example("BiocFileCache-class")
 #####################
 
 #
-# Current make changes
+# How to Update if schema updated  (maybe keep track of version #)
 #
-
-5. [ should return a new BiocFileCache??
-    - update EVERYTHING  - new slot integer listing active rid 
-    - rid(bfc) 
-    - new method listResource(s) - to give certain entries?? 
-      different implementation of .sql_subset_resources
-
-
-#
-# For web resources 
-#
-
-- Add local/remote to original table 
 
 - Create a second table in the BiocFileCache.sqlite to include
   'metadata', in particular a schema version and BiocFileCache version
@@ -41,7 +40,20 @@ example("BiocFileCache-class")
   version of BiocFileCache that supports only the new sqlite schema --
   BiocGenerics::updateObject,BiocFileCache-method at the R level.
 
-(httr - creation time and etags - get header of resource and parse)
+#
+# Web Resource
+#
 
-- summary: if remote, use etags and creation time to see if resource needs to be
-  updated 
+- actually download web resource (when added and on load)
+- when addResource/newResource/checkResource > better handling of bad link
+     add/new will include in cache even tho bad link / more elegant handling in checkResource 
+- when updateResource weblink check for valid url
+- function to check valid url - keep in mind redirects will be valid but fail in checks like url.exists
+
+
+#
+# general utility
+#
+
+- Add a search by rname
+- Add a load by rname

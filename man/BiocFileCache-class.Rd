@@ -2,30 +2,32 @@
 % Please edit documentation in R/BiocFileCache-class.R
 \docType{methods}
 \name{BiocFileCache-class}
-\alias{BiocFileCache}
 \alias{BiocFileCache-class}
+\alias{BiocFileCache}
+\alias{bfcCache,BiocFileCache-method}
+\alias{bfcCache}
+\alias{length,BiocFileCache-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
-\alias{addResource}
-\alias{addResource,BiocFileCache-method}
-\alias{bfcCache}
-\alias{bfcCache,BiocFileCache-method}
-\alias{cleanCache}
-\alias{cleanCache,BiocFileCache-method}
-\alias{length,BiocFileCache-method}
-\alias{listResources}
-\alias{listResources,BiocFileCache-method}
-\alias{loadResource}
-\alias{loadResource,BiocFileCache-method}
-\alias{newResource}
 \alias{newResource,BiocFileCache-method}
-\alias{removeCache}
-\alias{removeCache,BiocFileCache-method}
-\alias{removeResource}
-\alias{removeResource,BiocFileCache-method}
-\alias{show,BiocFileCache-method}
-\alias{updateResource}
+\alias{newResource}
+\alias{addResource,BiocFileCache-method}
+\alias{addResource}
+\alias{listResources,BiocFileCache-method}
+\alias{listResources}
+\alias{loadResource,BiocFileCache-method}
+\alias{loadResource}
 \alias{updateResource,BiocFileCache-method}
+\alias{updateResource}
+\alias{checkResource,BiocFileCache-method}
+\alias{checkResource}
+\alias{removeResource,BiocFileCache-method}
+\alias{removeResource}
+\alias{cleanCache,BiocFileCache-method}
+\alias{cleanCache}
+\alias{removeCache,BiocFileCache-method}
+\alias{removeCache}
+\alias{show,BiocFileCache-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
@@ -38,16 +40,20 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{newResource}{BiocFileCache}(x, rname)
+\S4method{newResource}{BiocFileCache}(x, rname, rtype = c("local", "web"),
+  weblink = NA)
 
-\S4method{addResource}{BiocFileCache}(x, fpath, rname, action = c("copy",
-  "move", "asis"), ...)
+\S4method{addResource}{BiocFileCache}(x, fpath, rname, rtype = c("local",
+  "web"), weblink = NA, action = c("copy", "move", "asis"), ...)
 
 \S4method{listResources}{BiocFileCache}(x, rids)
 
 \S4method{loadResource}{BiocFileCache}(x, rid)
 
-\S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL)
+\S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
+  weblink = NULL)
+
+\S4method{checkResource}{BiocFileCache}(x, rid)
 
 \S4method{removeResource}{BiocFileCache}(x, rids)
 
@@ -74,6 +80,12 @@ cache.}
 
 \item{rname}{character(1) Name of object in file cache}
 
+\item{rtype}{character(1) local or web indicating if the resource is a local
+file or a web resource}
+
+\item{weblink}{If the resource is a web resource, the link to the original
+source}
+
 \item{fpath}{character(1) Path to current file location}
 
 \item{action}{How to handle the file: create a \code{copy} of
@@ -93,9 +105,6 @@ entry will be deleted}
 \item{ask}{check if really want to remove cache and files}
 
 \item{object}{A \code{BiocFileCache} instance.}
-
-\item{rids}{character() Unique resource ids (see rid of ouput from
-listResource).}
 }
 \value{
 A \code{BiocFileCache} instance.
@@ -116,6 +125,8 @@ numeric(1) The unique id of the resource in the cache.
 A list of current resources in the database
 
 The file path location to load
+
+logical if resource needs to be updated
 
 TRUE if successfully removed.
 
@@ -148,6 +159,8 @@ select resources from the cache.
 
 \item \code{updateResource}: Update a resource in the cache
 
+\item \code{checkResource}: check if a resource needs to be updated
+
 \item \code{removeResource}: Remove a resource to the database.
 
 \item \code{cleanCache}: Remove old/unused files in BiocFileCache
@@ -156,6 +169,7 @@ select resources from the cache.
 
 \item \code{show}: Display a \code{BiocFileCache} instance.
 }}
+
 \examples{
 bfc <- BiocFileCache()            # global cache
 bfc
@@ -167,9 +181,9 @@ path
 fl1 <- tempfile(); file.create(fl1)
 addResource(bfc0, fl1, "Test1")                 # copy
 fl2 <- tempfile(); file.create(fl2)
-addResource(bfc0, fl2, "Test2", "move")         # move
+addResource(bfc0, fl2, "Test2", action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-rid3 <- addResource(bfc0, fl3, "Test3", "asis")         # reference
+rid3 <- addResource(bfc0, fl3, "Test3", action="asis")         # reference
 
 bfc0
 file.exists(fl1)                                # TRUE
@@ -184,4 +198,3 @@ listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }
-
