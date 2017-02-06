@@ -40,12 +40,12 @@
         ## Download the resource in a way that supports https
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
             response <- withCallingHandlers(suppressWarnings(
-                GET(websource, progress(), write_disk(localfile), proxy)
+                GET(websource, progress(), write_disk(localfile), proxy=proxy)
                 ))
             cat("\n") ## line break after progress bar
         } else {
             response <- withCallingHandlers(suppressWarnings(
-                GET(websource, write_disk(localfile), proxy)
+                GET(websource, write_disk(localfile), proxy=proxy)
                 ))
         }
         if (length(status_code(response)))  
