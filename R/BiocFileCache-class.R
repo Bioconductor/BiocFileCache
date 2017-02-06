@@ -276,6 +276,27 @@ setMethod("updateResource", "BiocFileCache",
 
 })
 
+#' @export
+setGeneric("queryResources",
+    function(x, queryValue) standardGeneric("queryResources"))
+
+#' @describeIn BiocFileCache query resource
+#' @param queryValue character(1) pattern to match in resource
+#' @return A list of current resources in the database whose rname, rpath, or
+#' weblink contained queryValue. If not found, returns NA.
+#' @examples
+#' queryResources(bfc0, "test")
+#' @aliases queryResources
+#' @exportMethod queryResources
+setMethod("queryResources", "BiocFileCache",
+    function(x, queryValue)
+{
+    rids <- .sql_query_resource(x, queryValue)
+    if (length(rids) == 0L)
+        NA
+    else
+        .sql_get_resource_table(x, rids)    
+})
 
 #' @export
 setGeneric("checkResource",
