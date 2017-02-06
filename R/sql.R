@@ -164,3 +164,11 @@
     sql <- .sql_sprintf("-- UPDATE_WEBLINK", value, rid)
     .sql_get_query(bfc, sql)
 }
+
+.sql_query_resource <-
+    function(bfc, value)
+{    
+    sql <- .sql_sprintf("-- QUERY_NAMES", value)
+    .sql_get_query(bfc, sql) %>% select_("rid") %>%
+        collect(Inf) %>% `[[`("rid")
+}

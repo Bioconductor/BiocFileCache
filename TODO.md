@@ -13,9 +13,9 @@ install()
 library(BiocFileCache)
 example("BiocFileCache-class")
 
-#addResource(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
+addResource(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
 addResource(bfc0, "webTestFTP", rtype="web", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
-addResource(bfc0, "webTestReDir", rtype="web", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
+addResource(bfc0, "webReDir", rtype="web", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
 addResource(bfc0, "webTestNotFound", rtype="web", fpath="https://hehehaf")
 
 checkResource(bfc0, 3)
@@ -51,5 +51,3 @@ checkResource(bfc0, 8)
 
 - should remove resource remove file or just from cache -  if in cache location unlink
 - function to compare untracked files in cache location? - sync function 
-- rname option: instead - helper function query - glbal serarch sqlite for match - return all
-   rows that match

@@ -19,6 +19,8 @@
 \alias{loadResource}
 \alias{updateResource,BiocFileCache-method}
 \alias{updateResource}
+\alias{queryResources,BiocFileCache-method}
+\alias{queryResources}
 \alias{checkResource,BiocFileCache-method}
 \alias{checkResource}
 \alias{removeResource,BiocFileCache-method}
@@ -52,6 +54,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
+
+\S4method{queryResources}{BiocFileCache}(x, queryValue)
 
 \S4method{checkResource}{BiocFileCache}(x, rid)
 
@@ -100,6 +104,8 @@ location but save the path in the cache.}
 
 \item{weblink}{character(1) path to replacement web resource}
 
+\item{queryValue}{character(1) pattern to match in resource}
+
 \item{days}{Number of days between accessDate and currentDate; if exceeded
 entry will be deleted}
 
@@ -126,6 +132,9 @@ numeric(1) The unique id of the resource in the cache.
 A list of current resources in the database
 
 The file path location to load
+
+A list of current resources in the database whose rname, rpath, or
+weblink contained queryValue. If not found, returns NA.
 
 logical if resource needs to be updated
 
@@ -159,6 +168,8 @@ select resources from the cache.
 \item \code{loadResource}: load resource
 
 \item \code{updateResource}: Update a resource in the cache
+
+\item \code{queryResources}: query resource
 
 \item \code{checkResource}: check if a resource needs to be updated
 
@@ -194,6 +205,7 @@ listResources(bfc0)
 loadResource(bfc0, rid3)
 updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
 bfc0[[rid3]] = fl1
+queryResources(bfc0, "test")
 removeResource(bfc0, rid3)
 listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}

@@ -38,3 +38,7 @@ WHERE rid = '%d';
 UPDATE resource 
 SET weblink = '%s', access_time = CURRENT_TIMESTAMP
 WHERE rid = '%d';
+-- QUERY_NAMES
+SELECT rid FROM resource 
+WHERE rname || rpath || weblink 
+LIKE '%%%s%%';
