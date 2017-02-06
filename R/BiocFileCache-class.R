@@ -90,16 +90,12 @@ c("BiocFileCache", "numeric", "missing", "character"),
 
 #' @export
 setGeneric("newResource",
-    function(x, rname, rtype=c("local", "web"), weblink=NA)
+    function(x, rname)
     standardGeneric("newResource"),
     signature="x")
 #' @describeIn BiocFileCache Add a resource to the database
 #'
 #' @param rname character(1) Name of object in file cache
-#' @param rtype character(1) local or web indicating if the resource is a local
-#' file or a web resource
-#' @param weblink If the resource is a web resource, the link to the original
-#' source
 #' @return named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource
 #' @examples
@@ -109,44 +105,41 @@ setGeneric("newResource",
 #' @aliases newResource
 #' @exportMethod newResource
 setMethod("newResource", "BiocFileCache",
-    function(x, rname, rtype=c("local", "web"), weblink=NA)
+    function(x, rname)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
-    rtype = match.arg(rtype)
-    if(rtype == "web") stopifnot(!is.na(weblink))
-    rid <- .sql_new_resource(x, rname, rtype, weblink)
-    if(rtype == "web"){
-        web_time <- as.character(.get_web_last_modified(x, rid))
-        if(length(web_time) != 0L) vl <- .sql_set_modifiedTime(x, rid, web_time)
-    }
-    rpath  = .sql_get_rpath(x, rid)
+    rid <- .sql_new_resource(x, rname, "local", NA_character_)
+    rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
 
 #' @export
 setGeneric("addResource",
-    function(x, fpath, rname, rtype=c("local", "web"), weblink=NA,
-             action=c("copy", "move", "asis"), ...)
+    function(x, rname, fpath=NA_character_, rtype=c("local", "web"),
+             action=c("copy", "move", "asis"), proxy="", ...)
     standardGeneric("addResource"),
     signature="x")
 
 #' @describeIn BiocFileCache Add an existing resource to the database
 #'
-#' @param fpath character(1) Path to current file location
+#' @param fpath character(1) Path to current file location or remote web resource
+#' @param rtype character(1) local or web indicating if the resource is a local
+#' file or a web resource
 #' @param action How to handle the file: create a \code{copy} of
 #'     \code{fpath} in the cache directory; \code{move} the file to
 #'     the cache directory; or \code{asis} leave the file in current
 #'     location but save the path in the cache.
+#' @param proxy proxy server
 #' @param ... For \code{action="copy"}, additional arguments passed to
 #'     \code{file.copy}.
 #' @return numeric(1) The unique id of the resource in the cache.
 #' @examples
 #' fl1 <- tempfile(); file.create(fl1)
-#' addResource(bfc0, fl1, "Test1")                 # copy
+#' addResource(bfc0, "Test1", fl1)                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
-#' addResource(bfc0, fl2, "Test2", action="move")         # move
+#' addResource(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' rid3 <- addResource(bfc0, fl3, "Test3", action="asis")         # reference
+#' rid3 <- addResource(bfc0, "Test3", fl3, action="asis")         # reference
 #'
 #' bfc0
 #' file.exists(fl1)                                # TRUE
@@ -155,19 +148,33 @@ setGeneric("addResource",
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
-    function(x, fpath, rname, rtype=c("local", "web"), weblink=NA,
-             action=c("copy", "move", "asis"), ...)
+    function(x, rname, fpath=NA_character_, rtype=c("local", "web"), 
+             action=c("copy", "move", "asis"), proxy="", ...)
 {
-    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname),
-              length(fpath) == 1L, is.character(fpath), !is.na(fpath))
-    stopifnot(file.exists(fpath))
-    rtype = match.arg(rtype)
-    action = match.arg(action)
-    if(rtype=="web") stopifnot(!is.na(weblink))
-    rid <- .sql_new_resource(x, rname, rtype, weblink)
-    if(rtype == "web"){
-        web_time <- as.character(.get_web_last_modified(x, rid))
-        if(length(web_time) != 0L) vl <- .sql_set_modifiedTime(x, rid, web_time)
+    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    stopifnot(length(fpath) == 1L, is.character(fpath), !is.na(fpath))
+    rtype <- match.arg(rtype)
+    action <- match.arg(action)
+    
+    if (rtype=="local"){
+        stopifnot(file.exists(fpath))
+        rid <- .sql_new_resource(x, rname, rtype, NA_character_)
+    }
+    
+    if (rtype=="web"){
+        temploc <- tempfile()
+        wasSuccess <- .download_resource(fpath, temploc, proxy)
+        if (wasSuccess){
+            rid <- .sql_new_resource(x, rname, rtype, fpath)
+            weblink <- .sql_get_field(x, rid, "weblink")
+            web_time <- .get_web_last_modified(weblink)
+            if (length(web_time) != 0L)
+                vl <- .sql_set_modifiedTime(x, rid, web_time)
+            action <- "move"
+            fpath <- temploc
+        }else{
+            stop(fpath, " could not be downloaded.")
+        }
     }
     switch(
         action,
@@ -215,13 +222,14 @@ setMethod("loadResource", "BiocFileCache",
 {
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
-    if(.sql_get_field(x, rid, "rtype")=="web"){
+    if (.sql_get_field(x, rid, "rtype")=="web"){
         weblink <- .sql_get_field(x, rid, "weblink")
-        c(setNames(path, "localFile"), setNames(weblink, "weblink"))
+        setNames(c(path, weblink), c("localFile", "weblink"))
     }else{
         setNames(path, "localFile")
     }
 })
+
 
 #' @export
 setGeneric("updateResource",
@@ -232,13 +240,14 @@ setGeneric("updateResource",
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
 #' @param rpath character(1) replacement value for rpath
+#' @param weblink character(1) path to replacement web resource
 #' @examples
 #' updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
 #' bfc0[[rid3]] = fl1
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
-    function(x, rid, rname=NULL, rpath=NULL, weblink=NULL)
+    function(x, rid, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
 {
     stopifnot(!missing(rid), length(rid) == 1L)
     sqlfile <- .sql_update_time(x, rid)
@@ -252,9 +261,17 @@ setMethod("updateResource", "BiocFileCache",
     }
     if (!is.null(weblink)){
         stopifnot(is.character(weblink))
-        # TODO:
-        #     check for valid url??
-        sqlfile <- .sql_set_weblink(x, rid, weblink)
+        stopifnot(.sql_get_field(x, rid, "rtype")=="web")
+        localpath <- .sql_get_rpath(x, rid)
+        wasSuccess <- .download_resource(weblink, localpath, proxy)
+        if (wasSuccess){
+            sqlfile <- .sql_set_weblink(x, rid, weblink)
+            web_time <- .get_web_last_modified(weblink)
+            if (length(web_time) != 0L)
+                vl <- .sql_set_modifiedTime(x, rid, web_time)            
+        }else{
+            stop(weblink, "could not be downloaded. \n weblink not updated.")
+        }
     }
 
 })
@@ -275,14 +292,15 @@ setMethod("checkResource", "BiocFileCache",
     stopifnot(.sql_get_field(x, rid, "rtype")=="web")
     stopifnot(rid %in% .get_all_rids(x))
     file_time <- .sql_get_field(x, rid, "last_modified_time")
-    web_time <- .get_web_last_modified(x, rid)
-    if(is.null(file_time) || is.null(web_time)){
-        toUpdate <- TRUE
+    link <- .sql_get_field(x, rid, "weblink")
+    web_time <- .get_web_last_modified(link)
+    if ((length(file_time) == 0L) || (length(web_time) == 0L)){
+        toUpdate <- NA
         message("Cannot Determine: Recommend Update.")
     }else{
-        toUpdate <- as.Date(as.character(web_time)) > as.Date(file_time)
-    }
-    toUpdate
+        toUpdate <- as.Date(web_time) > as.Date(file_time)
+    }    
+    toUpdate    
 })
 
 

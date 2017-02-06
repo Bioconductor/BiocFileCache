@@ -40,18 +40,18 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{newResource}{BiocFileCache}(x, rname, rtype = c("local", "web"),
-  weblink = NA)
+\S4method{newResource}{BiocFileCache}(x, rname)
 
-\S4method{addResource}{BiocFileCache}(x, fpath, rname, rtype = c("local",
-  "web"), weblink = NA, action = c("copy", "move", "asis"), ...)
+\S4method{addResource}{BiocFileCache}(x, rname, fpath = NA_character_,
+  rtype = c("local", "web"), action = c("copy", "move", "asis"),
+  proxy = "", ...)
 
 \S4method{listResources}{BiocFileCache}(x, rids)
 
 \S4method{loadResource}{BiocFileCache}(x, rid)
 
 \S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
-  weblink = NULL)
+  weblink = NULL, proxy = "")
 
 \S4method{checkResource}{BiocFileCache}(x, rid)
 
@@ -80,24 +80,25 @@ cache.}
 
 \item{rname}{character(1) Name of object in file cache}
 
+\item{fpath}{character(1) Path to current file location or remote web resource}
+
 \item{rtype}{character(1) local or web indicating if the resource is a local
 file or a web resource}
-
-\item{weblink}{If the resource is a web resource, the link to the original
-source}
-
-\item{fpath}{character(1) Path to current file location}
 
 \item{action}{How to handle the file: create a \code{copy} of
 \code{fpath} in the cache directory; \code{move} the file to
 the cache directory; or \code{asis} leave the file in current
 location but save the path in the cache.}
 
+\item{proxy}{proxy server}
+
 \item{rids}{character() List of rids.}
 
 \item{rid}{numeric(1) Unique resource id}
 
 \item{rpath}{character(1) replacement value for rpath}
+
+\item{weblink}{character(1) path to replacement web resource}
 
 \item{days}{Number of days between accessDate and currentDate; if exceeded
 entry will be deleted}
@@ -179,11 +180,11 @@ bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 path <- newResource(bfc0, "NewResource")
 path
 fl1 <- tempfile(); file.create(fl1)
-addResource(bfc0, fl1, "Test1")                 # copy
+addResource(bfc0, "Test1", fl1)                 # copy
 fl2 <- tempfile(); file.create(fl2)
-addResource(bfc0, fl2, "Test2", action="move")         # move
+addResource(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-rid3 <- addResource(bfc0, fl3, "Test3", action="asis")         # reference
+rid3 <- addResource(bfc0, "Test3", fl3, action="asis")         # reference
 
 bfc0
 file.exists(fl1)                                # TRUE
