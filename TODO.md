@@ -69,11 +69,4 @@ bfcquery(bfc0, "ftp")
 # general utility
 #
 
-- should remove resource remove file or just from cache -  if in cache location
-  remove file:
-  removeResource can have 1 or multiple rids - loop remove file 
-
-- function to compare untracked files in cache location - sync function
-  do local files exist?  visaversa are files in location being tracked?   
-
 - add unit tests

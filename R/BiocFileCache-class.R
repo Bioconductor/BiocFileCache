@@ -338,7 +338,8 @@ setMethod("bfcneedsupdate", "BiocFileCache",
 setGeneric("bfcremove",
     function(x, rids) standardGeneric("bfcremove"))
 
-#' @describeIn BiocFileCache Remove a resource to the database.
+#' @describeIn BiocFileCache Remove a resource to the database. If the local file is
+#' located in the bcfCache, the file will also be deleted. 
 #' @examples
 #' bfcremove(bfc0, rid3)
 #' bfclist(bfc0)
@@ -347,8 +348,56 @@ setGeneric("bfcremove",
 setMethod("bfcremove", "BiocFileCache",
     function(x, rids)
 {
+    for (i in rids) {
+        if (i %in% .get_all_rids(x)) {
+            rpath <- .sql_get_rpath(x, i)
+            if (startsWith(rpath, bfcCache(x)))  unlink(rpath, force=TRUE)
+        }
+    }
     sqlfile <- .sql_remove_resource(x, rids)
 })
+
+#' @export
+setGeneric("bfcsync",
+    function(x) standardGeneric("bfcsync"))
+
+#' @describeIn BiocFileCache sync cache and resource.
+#' @return message indicating if the resource is in sync
+#' @examples
+#' bfcsync(bfc0)
+#' @aliases bfcsync
+#' @exportMethod bfcsync
+setMethod("bfcsync", "BiocFileCache",
+    function(x)
+{
+    # files not found
+    rids <- .get_rid_filenotfound(x)
+
+    # files untracked in cache location
+    files <- file.path(bfcCache(x),
+                       setdiff(list.files(bfcCache(x)), "BiocFileCache.sqlite")
+                       )
+    untracked <- setdiff(files, .get_all_rpath(x))
+
+    if ( (length(rids) == 0L) && (length(untracked) == 0L) ){
+        message("Cache in sync")
+        TRUE
+    }else{
+        if (length(rids) != 0L) {
+            message("The following entries have local files specified but not found.
+Consider updating or removing:\n\n")
+            print(bfclist(x, rids))
+            cat("\n\n\n")
+        }
+        if (length(untracked) != 0L) {
+            message("The following entries are in the cache but not being tracked.
+Consider adding:\n\n")
+            cat(paste(untracked, "\n"), "\n\n")
+        }
+        FALSE
+    }    
+})
+
 
 #' @export
 setGeneric("cleanCache",
