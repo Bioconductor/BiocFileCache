@@ -201,11 +201,17 @@ bfc0
 file.exists(fl1)                                # TRUE
 file.exists(fl2)                                # FALSE
 file.exists(fl3)                                # TRUE
+
+# add a remote resource
+url <- "http://httpbin.org/get"
+addResource(bfc0, "TestWeb", rtype="web", fpath=url)
 listResources(bfc0)
 loadResource(bfc0, rid3)
 updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
 bfc0[[rid3]] = fl1
+updateResource(bfc0, 5, weblink="http://google.com")
 queryResources(bfc0, "test")
+checkResource(bfc0, 5)
 removeResource(bfc0, rid3)
 listResources(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
