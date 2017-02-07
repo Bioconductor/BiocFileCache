@@ -9,22 +9,22 @@
 \alias{length,BiocFileCache-method}
 \alias{[[,BiocFileCache,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
-\alias{newResource,BiocFileCache-method}
-\alias{newResource}
-\alias{addResource,BiocFileCache-method}
-\alias{addResource}
-\alias{listResources,BiocFileCache-method}
-\alias{listResources}
-\alias{loadResource,BiocFileCache-method}
-\alias{loadResource}
-\alias{updateResource,BiocFileCache-method}
-\alias{updateResource}
-\alias{queryResources,BiocFileCache-method}
-\alias{queryResources}
-\alias{checkResource,BiocFileCache-method}
-\alias{checkResource}
-\alias{removeResource,BiocFileCache-method}
-\alias{removeResource}
+\alias{bfcnew,BiocFileCache-method}
+\alias{bfcnew}
+\alias{bfcadd,BiocFileCache-method}
+\alias{bfcadd}
+\alias{bfclist,BiocFileCache-method}
+\alias{bfclist}
+\alias{bfcpath,BiocFileCache-method}
+\alias{bfcpath}
+\alias{bfcupdate,BiocFileCache-method}
+\alias{bfcupdate}
+\alias{bfcquery,BiocFileCache-method}
+\alias{bfcquery}
+\alias{bfcneedsupdate,BiocFileCache-method}
+\alias{bfcneedsupdate}
+\alias{bfcremove,BiocFileCache-method}
+\alias{bfcremove}
 \alias{cleanCache,BiocFileCache-method}
 \alias{cleanCache}
 \alias{removeCache,BiocFileCache-method}
@@ -42,24 +42,24 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
-\S4method{newResource}{BiocFileCache}(x, rname)
+\S4method{bfcnew}{BiocFileCache}(x, rname)
 
-\S4method{addResource}{BiocFileCache}(x, rname, fpath = NA_character_,
+\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = NA_character_,
   rtype = c("local", "web"), action = c("copy", "move", "asis"),
   proxy = "", ...)
 
-\S4method{listResources}{BiocFileCache}(x, rids)
+\S4method{bfclist}{BiocFileCache}(x, rids)
 
-\S4method{loadResource}{BiocFileCache}(x, rid)
+\S4method{bfcpath}{BiocFileCache}(x, rid)
 
-\S4method{updateResource}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
+\S4method{bfcupdate}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
 
-\S4method{queryResources}{BiocFileCache}(x, queryValue)
+\S4method{bfcquery}{BiocFileCache}(x, queryValue)
 
-\S4method{checkResource}{BiocFileCache}(x, rid)
+\S4method{bfcneedsupdate}{BiocFileCache}(x, rid)
 
-\S4method{removeResource}{BiocFileCache}(x, rids)
+\S4method{bfcremove}{BiocFileCache}(x, rids)
 
 \S4method{cleanCache}{BiocFileCache}(x, days = 120, ask = TRUE)
 
@@ -159,21 +159,21 @@ cache.
 \item \code{[[<-}: Set the file path of a
 select resources from the cache.
 
-\item \code{newResource}: Add a resource to the database
+\item \code{bfcnew}: Add a resource to the database
 
-\item \code{addResource}: Add an existing resource to the database
+\item \code{bfcadd}: Add an existing resource to the database
 
-\item \code{listResources}: list resources in database
+\item \code{bfclist}: list resources in database
 
-\item \code{loadResource}: load resource
+\item \code{bfcpath}: load resource
 
-\item \code{updateResource}: Update a resource in the cache
+\item \code{bfcupdate}: Update a resource in the cache
 
-\item \code{queryResources}: query resource
+\item \code{bfcquery}: query resource
 
-\item \code{checkResource}: check if a resource needs to be updated
+\item \code{bfcneedsupdate}: check if a resource needs to be updated
 
-\item \code{removeResource}: Remove a resource to the database.
+\item \code{bfcremove}: Remove a resource to the database.
 
 \item \code{cleanCache}: Remove old/unused files in BiocFileCache
 
@@ -188,14 +188,14 @@ bfc
 bfcCache(bfc)
 length(bfc)
 bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
-path <- newResource(bfc0, "NewResource")
+path <- bfcnew(bfc0, "NewResource")
 path
 fl1 <- tempfile(); file.create(fl1)
-addResource(bfc0, "Test1", fl1)                 # copy
+bfcadd(bfc0, "Test1", fl1)                 # copy
 fl2 <- tempfile(); file.create(fl2)
-addResource(bfc0, "Test2", fl2, action="move")         # move
+bfcadd(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-rid3 <- addResource(bfc0, "Test3", fl3, action="asis")         # reference
+rid3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
 
 bfc0
 file.exists(fl1)                                # TRUE
@@ -204,16 +204,16 @@ file.exists(fl3)                                # TRUE
 
 # add a remote resource
 url <- "http://httpbin.org/get"
-addResource(bfc0, "TestWeb", rtype="web", fpath=url)
-listResources(bfc0)
-loadResource(bfc0, rid3)
-updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
+bfcadd(bfc0, "TestWeb", rtype="web", fpath=url)
+bfclist(bfc0)
+bfcpath(bfc0, rid3)
+bfcupdate(bfc0, rid3, rpath=fl2, rname="NewRname")
 bfc0[[rid3]] = fl1
-updateResource(bfc0, 5, weblink="http://google.com")
-queryResources(bfc0, "test")
-checkResource(bfc0, 5)
-removeResource(bfc0, rid3)
-listResources(bfc0)
+bfcupdate(bfc0, 5, weblink="http://google.com")
+bfcquery(bfc0, "test")
+bfcneedsupdate(bfc0, 5)
+bfcremove(bfc0, rid3)
+bfclist(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }

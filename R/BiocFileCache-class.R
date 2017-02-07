@@ -56,7 +56,7 @@ setMethod("bfcCache", "BiocFileCache",
 setMethod("length", "BiocFileCache",
     function(x)
 {
-    listResources(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
+    bfclist(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
         collect %>% `[[`("n")
 })
 
@@ -89,9 +89,9 @@ c("BiocFileCache", "numeric", "missing", "character"),
 })
 
 #' @export
-setGeneric("newResource",
+setGeneric("bfcnew",
     function(x, rname)
-    standardGeneric("newResource"),
+    standardGeneric("bfcnew"),
     signature="x")
 #' @describeIn BiocFileCache Add a resource to the database
 #'
@@ -100,11 +100,11 @@ setGeneric("newResource",
 #' The name of the character is the unique rid for the resource
 #' @examples
 #' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
-#' path <- newResource(bfc0, "NewResource")
+#' path <- bfcnew(bfc0, "NewResource")
 #' path
-#' @aliases newResource
-#' @exportMethod newResource
-setMethod("newResource", "BiocFileCache",
+#' @aliases bfcnew
+#' @exportMethod bfcnew
+setMethod("bfcnew", "BiocFileCache",
     function(x, rname)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
@@ -114,10 +114,10 @@ setMethod("newResource", "BiocFileCache",
 })
 
 #' @export
-setGeneric("addResource",
+setGeneric("bfcadd",
     function(x, rname, fpath=NA_character_, rtype=c("local", "web"),
              action=c("copy", "move", "asis"), proxy="", ...)
-    standardGeneric("addResource"),
+    standardGeneric("bfcadd"),
     signature="x")
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -135,11 +135,11 @@ setGeneric("addResource",
 #' @return numeric(1) The unique id of the resource in the cache.
 #' @examples
 #' fl1 <- tempfile(); file.create(fl1)
-#' addResource(bfc0, "Test1", fl1)                 # copy
+#' bfcadd(bfc0, "Test1", fl1)                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
-#' addResource(bfc0, "Test2", fl2, action="move")         # move
+#' bfcadd(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' rid3 <- addResource(bfc0, "Test3", fl3, action="asis")         # reference
+#' rid3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
 #'
 #' bfc0
 #' file.exists(fl1)                                # TRUE
@@ -148,10 +148,10 @@ setGeneric("addResource",
 #'
 #' # add a remote resource
 #' url <- "http://httpbin.org/get"
-#' addResource(bfc0, "TestWeb", rtype="web", fpath=url)
-#' @aliases addResource
-#' @exportMethod addResource
-setMethod("addResource", "BiocFileCache",
+#' bfcadd(bfc0, "TestWeb", rtype="web", fpath=url)
+#' @aliases bfcadd
+#' @exportMethod bfcadd
+setMethod("bfcadd", "BiocFileCache",
     function(x, rname, fpath=NA_character_, rtype=c("local", "web"), 
              action=c("copy", "move", "asis"), proxy="", ...)
 {
@@ -190,19 +190,19 @@ setMethod("addResource", "BiocFileCache",
 })
 
 #' @export
-setGeneric("listResources",
+setGeneric("bfclist",
     function(x, rids)
-    standardGeneric("listResources"),
+    standardGeneric("bfclist"),
     signature="x")
 
 #' @describeIn BiocFileCache list resources in database
 #' @param rids character() List of rids.
 #' @return A list of current resources in the database
 #' @examples
-#' listResources(bfc0)
-#' @aliases listResources
-#' @exportMethod listResources
-setMethod("listResources", "BiocFileCache",
+#' bfclist(bfc0)
+#' @aliases bfclist
+#' @exportMethod bfclist
+setMethod("bfclist", "BiocFileCache",
     function(x, rids)
 {
     if (missing(rids))
@@ -211,17 +211,17 @@ setMethod("listResources", "BiocFileCache",
 })
 
 #' @export
-setGeneric("loadResource",
-    function(x, rid) standardGeneric("loadResource"))
+setGeneric("bfcpath",
+    function(x, rid) standardGeneric("bfcpath"))
 
 #' @describeIn BiocFileCache load resource
 #' @param rid numeric(1) Unique resource id
 #' @return The file path location to load
 #' @examples
-#' loadResource(bfc0, rid3)
-#' @aliases loadResource
-#' @exportMethod loadResource
-setMethod("loadResource", "BiocFileCache",
+#' bfcpath(bfc0, rid3)
+#' @aliases bfcpath
+#' @exportMethod bfcpath
+setMethod("bfcpath", "BiocFileCache",
     function(x, rid)
 {
     stopifnot(rid %in% .get_all_rids(x))
@@ -237,9 +237,9 @@ setMethod("loadResource", "BiocFileCache",
 
 
 #' @export
-setGeneric("updateResource",
+setGeneric("bfcupdate",
     function(x, rid, value, colID, ...)
-    standardGeneric("updateResource"),
+    standardGeneric("bfcupdate"),
     signature="x")
 
 #' @describeIn BiocFileCache Update a resource in the cache
@@ -247,12 +247,12 @@ setGeneric("updateResource",
 #' @param rpath character(1) replacement value for rpath
 #' @param weblink character(1) path to replacement web resource
 #' @examples
-#' updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
+#' bfcupdate(bfc0, rid3, rpath=fl2, rname="NewRname")
 #' bfc0[[rid3]] = fl1
-#' updateResource(bfc0, 5, weblink="http://google.com")
-#' @aliases updateResource
-#' @exportMethod updateResource
-setMethod("updateResource", "BiocFileCache",
+#' bfcupdate(bfc0, 5, weblink="http://google.com")
+#' @aliases bfcupdate
+#' @exportMethod bfcupdate
+setMethod("bfcupdate", "BiocFileCache",
     function(x, rid, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
 {
     stopifnot(!missing(rid), length(rid) == 1L)
@@ -284,18 +284,18 @@ setMethod("updateResource", "BiocFileCache",
 })
 
 #' @export
-setGeneric("queryResources",
-    function(x, queryValue) standardGeneric("queryResources"))
+setGeneric("bfcquery",
+    function(x, queryValue) standardGeneric("bfcquery"))
 
 #' @describeIn BiocFileCache query resource
 #' @param queryValue character(1) pattern to match in resource
 #' @return A list of current resources in the database whose rname, rpath, or
 #' weblink contained queryValue. If not found, returns NA.
 #' @examples
-#' queryResources(bfc0, "test")
-#' @aliases queryResources
-#' @exportMethod queryResources
-setMethod("queryResources", "BiocFileCache",
+#' bfcquery(bfc0, "test")
+#' @aliases bfcquery
+#' @exportMethod bfcquery
+setMethod("bfcquery", "BiocFileCache",
     function(x, queryValue)
 {
     rids <- .sql_query_resource(x, queryValue)
@@ -306,16 +306,16 @@ setMethod("queryResources", "BiocFileCache",
 })
 
 #' @export
-setGeneric("checkResource",
-    function(x, rid) standardGeneric("checkResource"))
+setGeneric("bfcneedsupdate",
+    function(x, rid) standardGeneric("bfcneedsupdate"))
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return logical if resource needs to be updated
 #' @examples
-#' checkResource(bfc0, 5)
-#' @aliases checkResource
-#' @exportMethod checkResource
-setMethod("checkResource", "BiocFileCache",
+#' bfcneedsupdate(bfc0, 5)
+#' @aliases bfcneedsupdate
+#' @exportMethod bfcneedsupdate
+setMethod("bfcneedsupdate", "BiocFileCache",
     function(x, rid)
 {
     stopifnot(!missing(rid), length(rid) == 1L)
@@ -335,16 +335,16 @@ setMethod("checkResource", "BiocFileCache",
 
 
 #' @export
-setGeneric("removeResource",
-    function(x, rids) standardGeneric("removeResource"))
+setGeneric("bfcremove",
+    function(x, rids) standardGeneric("bfcremove"))
 
 #' @describeIn BiocFileCache Remove a resource to the database.
 #' @examples
-#' removeResource(bfc0, rid3)
-#' listResources(bfc0)
-#' @aliases removeResource
-#' @exportMethod removeResource
-setMethod("removeResource", "BiocFileCache",
+#' bfcremove(bfc0, rid3)
+#' bfclist(bfc0)
+#' @aliases bfcremove
+#' @exportMethod bfcremove
+setMethod("bfcremove", "BiocFileCache",
     function(x, rids)
 {
     sqlfile <- .sql_remove_resource(x, rids)
@@ -441,5 +441,5 @@ setMethod("show", "BiocFileCache",
         "bfcCache: ", bfcCache(object), "\n",
         "length: ", length(object), "\n",
         sep="")
-    print(listResources(object))
+    print(bfclist(object))
 })

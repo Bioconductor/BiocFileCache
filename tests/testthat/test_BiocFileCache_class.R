@@ -10,15 +10,15 @@ test_that("addResource works", {
     bfc <- BiocFileCache(tempfile())
     fl <- tempfile(); file.create(fl)
 
-    rid <- addResource(bfc, 'test-1', fl)
+    rid <- bfcadd(bfc, 'test-1', fl)
     expect_identical(length(bfc), 1L)
     expect_true(file.exists(fl))
 
-    rid <- addResource(bfc, 'test-2', fl, action='asis')
+    rid <- bfcadd(bfc, 'test-2', fl, action='asis')
     expect_identical(length(bfc), 2L)
     expect_true(file.exists(fl))
 
-    rid <- addResource(bfc, 'test-1', fl, action='move')
+    rid <- bfcadd(bfc, 'test-1', fl, action='move')
     expect_identical(length(bfc), 3L)
     expect_true(!file.exists(fl))
 })
