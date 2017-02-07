@@ -145,6 +145,10 @@ setGeneric("addResource",
 #' file.exists(fl1)                                # TRUE
 #' file.exists(fl2)                                # FALSE
 #' file.exists(fl3)                                # TRUE
+#'
+#' # add a remote resource
+#' url <- "http://httpbin.org/get"
+#' addResource(bfc0, "TestWeb", rtype="web", fpath=url)
 #' @aliases addResource
 #' @exportMethod addResource
 setMethod("addResource", "BiocFileCache",
@@ -173,7 +177,7 @@ setMethod("addResource", "BiocFileCache",
             action <- "move"
             fpath <- temploc
         }else{
-            stop(fpath, " could not be downloaded.")
+            stop("'", fpath, "' could not be downloaded.")
         }
     }
     switch(
@@ -220,6 +224,7 @@ setGeneric("loadResource",
 setMethod("loadResource", "BiocFileCache",
     function(x, rid)
 {
+    stopifnot(rid %in% .get_all_rids(x))
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
     if (.sql_get_field(x, rid, "rtype")=="web"){
@@ -244,12 +249,14 @@ setGeneric("updateResource",
 #' @examples
 #' updateResource(bfc0, rid3, rpath=fl2, rname="NewRname")
 #' bfc0[[rid3]] = fl1
+#' updateResource(bfc0, 5, weblink="http://google.com")
 #' @aliases updateResource
 #' @exportMethod updateResource
 setMethod("updateResource", "BiocFileCache",
     function(x, rid, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
 {
     stopifnot(!missing(rid), length(rid) == 1L)
+    stopifnot(rid %in% .get_all_rids(x))
     sqlfile <- .sql_update_time(x, rid)
     if (!is.null(rname)){
         stopifnot(is.character(rname))
@@ -264,13 +271,13 @@ setMethod("updateResource", "BiocFileCache",
         stopifnot(.sql_get_field(x, rid, "rtype")=="web")
         localpath <- .sql_get_rpath(x, rid)
         wasSuccess <- .download_resource(weblink, localpath, proxy)
-        if (wasSuccess){
+        if (wasSuccess) {
             sqlfile <- .sql_set_weblink(x, rid, weblink)
             web_time <- .get_web_last_modified(weblink)
             if (length(web_time) != 0L)
                 vl <- .sql_set_modifiedTime(x, rid, web_time)            
-        }else{
-            stop(weblink, "could not be downloaded. \n weblink not updated.")
+        } else {
+            stop("'", weblink, "' could not be downloaded. \n weblink not updated.")
         }
     }
 
@@ -304,6 +311,8 @@ setGeneric("checkResource",
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return logical if resource needs to be updated
+#' @examples
+#' checkResource(bfc0, 5)
 #' @aliases checkResource
 #' @exportMethod checkResource
 setMethod("checkResource", "BiocFileCache",
