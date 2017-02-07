@@ -25,6 +25,8 @@
 \alias{bfcneedsupdate}
 \alias{bfcremove,BiocFileCache-method}
 \alias{bfcremove}
+\alias{bfcsync,BiocFileCache-method}
+\alias{bfcsync}
 \alias{cleanCache,BiocFileCache-method}
 \alias{cleanCache}
 \alias{removeCache,BiocFileCache-method}
@@ -60,6 +62,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{bfcneedsupdate}{BiocFileCache}(x, rid)
 
 \S4method{bfcremove}{BiocFileCache}(x, rids)
+
+\S4method{bfcsync}{BiocFileCache}(x)
 
 \S4method{cleanCache}{BiocFileCache}(x, days = 120, ask = TRUE)
 
@@ -173,7 +177,10 @@ select resources from the cache.
 
 \item \code{bfcneedsupdate}: check if a resource needs to be updated
 
-\item \code{bfcremove}: Remove a resource to the database.
+\item \code{bfcremove}: Remove a resource to the database. If the local file is
+located in the bcfCache, the file will also be deleted.
+
+\item \code{bfcsync}: sync cache and resource.
 
 \item \code{cleanCache}: Remove old/unused files in BiocFileCache
 
@@ -214,6 +221,7 @@ bfcquery(bfc0, "test")
 bfcneedsupdate(bfc0, 5)
 bfcremove(bfc0, rid3)
 bfclist(bfc0)
+bfcsync(bfc0)
 \dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }

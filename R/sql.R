@@ -172,3 +172,20 @@
     .sql_get_query(bfc, sql) %>% select_("rid") %>%
         collect(Inf) %>% `[[`("rid")
 }
+
+.get_all_rpath <-
+    function(bfc)
+{
+    .sql_get_resource_table(bfc) %>% select_("rpath") %>%
+        collect(Inf) %>% `[[`("rpath")
+
+}
+
+.get_rid_filenotfound <-
+    function(bfc)
+{
+    vec <- file.exists(.sql_get_resource_table(bfc) %>% select_("rpath") %>%
+                       collect(Inf) %>% `[[`("rpath"))
+    .get_all_rids(bfc)[!vec]    
+}
+
