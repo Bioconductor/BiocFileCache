@@ -69,6 +69,7 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
      function(x, i, j)
 {
      stopifnot(length(i) == 1L)
+     stopifnot(i %in% .get_all_rids(x))
      .sql_get_rpath(x, i)
 })
 
@@ -82,7 +83,7 @@ c("BiocFileCache", "numeric", "missing", "character"),
      function(x, i, j, ..., value)
 {
      stopifnot(length(i) == 1L, is.character(value), length(value) == 1L)
-
+     stopifnot(file.exists(value))
      sqlfile <- .sql_update_time(x, i)
      sqlfile <- .sql_set_rpath(x, i, value)
      x
@@ -148,17 +149,19 @@ setGeneric("bfcadd",
 #'
 #' # add a remote resource
 #' url <- "http://httpbin.org/get"
-#' bfcadd(bfc0, "TestWeb", rtype="web", fpath=url)
+#' bfcadd(bfc0, "TestWeb", fpath=url)
 #' @aliases bfcadd
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
-    function(x, rname, fpath=NA_character_, rtype=c("local", "web"), 
+    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"), 
              action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
     stopifnot(length(fpath) == 1L, is.character(fpath), !is.na(fpath))
     rtype <- match.arg(rtype)
     action <- match.arg(action)
+
+    if (rtype == "auto") rtype <- .check_rtype(fpath)
     
     if (rtype=="local"){
         stopifnot(file.exists(fpath))
@@ -188,6 +191,15 @@ setMethod("bfcadd", "BiocFileCache",
 
     rid
 })
+
+.check_rtype <- function(path){
+    if (startsWith(path, "http") || startsWith(path, "ftp")) {
+        "web"
+    } else {
+        "local"
+    }
+}
+
 
 #' @export
 setGeneric("bfclist",
@@ -247,7 +259,7 @@ setGeneric("bfcupdate",
 #' @param rpath character(1) replacement value for rpath
 #' @param weblink character(1) path to replacement web resource
 #' @examples
-#' bfcupdate(bfc0, rid3, rpath=fl2, rname="NewRname")
+#' bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 #' bfc0[[rid3]] = fl1
 #' bfcupdate(bfc0, 5, weblink="http://google.com")
 #' @aliases bfcupdate
@@ -264,6 +276,7 @@ setMethod("bfcupdate", "BiocFileCache",
     }
     if (!is.null(rpath)){
         stopifnot(is.character(rpath))
+        stopifnot(file.exists(rpath))
         sqlfile <- .sql_set_rpath(x, rid, rpath)
     }
     if (!is.null(weblink)){
@@ -274,10 +287,15 @@ setMethod("bfcupdate", "BiocFileCache",
         if (wasSuccess) {
             sqlfile <- .sql_set_weblink(x, rid, weblink)
             web_time <- .get_web_last_modified(weblink)
-            if (length(web_time) != 0L)
-                vl <- .sql_set_modifiedTime(x, rid, web_time)            
+            if (length(web_time) != 0L) {
+                sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
+            } else {
+                sqlfile <- .sql_set_modifiedTime(x, rid,
+                                                 as.character(Sys.Date()))
+            }
         } else {
-            stop("'", weblink, "' could not be downloaded. \n weblink not updated.")
+            stop("'", weblink,
+                 "' could not be downloaded. \n weblink not updated.")
         }
     }
 
@@ -359,16 +377,21 @@ setMethod("bfcremove", "BiocFileCache",
 
 #' @export
 setGeneric("bfcsync",
-    function(x) standardGeneric("bfcsync"))
+    function(x, verbose=TRUE) standardGeneric("bfcsync"))
 
 #' @describeIn BiocFileCache sync cache and resource.
-#' @return message indicating if the resource is in sync
+#' @param verbose If descriptive message and list of issues should be included
+#' as output
+#' @return logical if cache is in sync. 'verbose' is TRUE by default, so
+#' descriptive messages will also be included 
 #' @examples
 #' bfcsync(bfc0)
+#' bfcremove(bfc0, 1)
+#' bfcsync(bfc0, FALSE)
 #' @aliases bfcsync
 #' @exportMethod bfcsync
 setMethod("bfcsync", "BiocFileCache",
-    function(x)
+    function(x, verbose=TRUE)
 {
     # files not found
     rids <- .get_rid_filenotfound(x)
@@ -380,19 +403,21 @@ setMethod("bfcsync", "BiocFileCache",
     untracked <- setdiff(files, .get_all_rpath(x))
 
     if ( (length(rids) == 0L) && (length(untracked) == 0L) ){
-        message("Cache in sync")
+        if (verbose) message("Cache in sync")
         TRUE
     }else{
-        if (length(rids) != 0L) {
-            message("The following entries have local files specified but not found.
+        if (verbose) {
+            if (length(rids) != 0L) {
+                message("The following entries have local files specified but not found.
 Consider updating or removing:\n\n")
-            print(bfclist(x, rids))
-            cat("\n\n\n")
-        }
-        if (length(untracked) != 0L) {
-            message("The following entries are in the cache but not being tracked.
+                print(bfclist(x, rids))
+                cat("\n\n\n")
+            }
+            if (length(untracked) != 0L) {
+                message("The following entries are in the cache but not being tracked.
 Consider adding:\n\n")
-            cat(paste(untracked, "\n"), "\n\n")
+                cat(paste(untracked, "\n"), "\n\n")
+            }
         }
         FALSE
     }    
@@ -418,31 +443,36 @@ setMethod("cleanCache", "BiocFileCache",
     function(x, days = 120, ask=TRUE)
 {
     idsToDel <- .sql_clean_cache(x, days)
-    if (ask) {
-        for (id in idsToDel) {
-            doit <- FALSE
-            entry <- .sql_get_resource(x, id)
-            txt <- sprintf(
-                "Remove from cache id: '%d' and delete file '%s' (y/N): ",
-                entry$rid, entry$rpath)
-            repeat {
-                response <- readline(txt)
-                doit <- switch(substr(tolower(response), 1, 1),
-                               y = TRUE, n = FALSE, NA)
-                if (!is.na(doit))
-                    break
-            }
-            if (doit) {
-                file <- unlink(entry$rpath, force=TRUE)
-                file <- .sql_remove_resource(x, id)
-            }
-        }
-    } else {
 
-        paths <- unname(unlist(lapply(idsToDel,
-                                 .sql_get_rpath, bfc=x)))
-        file <- unlink(paths, force=TRUE)
-        file <- .sql_remove_resource(x, idsToDel)
+    if (length(idsToDel) != 0L) {
+    
+        if (ask) {
+            for (id in idsToDel) {
+                doit <- FALSE
+                entry <- .sql_get_resource(x, id)
+                txt <- sprintf(
+                    "Remove from cache id: '%d' and delete file '%s' (y/N): ",
+                    entry$rid, entry$rpath)
+                repeat {
+                    response <- readline(txt)
+                    doit <- switch(substr(tolower(response), 1, 1),
+                                   y = TRUE, n = FALSE, NA)
+                    if (!is.na(doit))
+                        break
+                }
+                if (doit) {
+                    file <- unlink(entry$rpath, force=TRUE)
+                    file <- .sql_remove_resource(x, id)
+                }
+            }
+        } else {
+            
+            paths <- unname(unlist(lapply(idsToDel,
+                                          .sql_get_rpath, bfc=x)))
+            file <- unlink(paths, force=TRUE)
+            file <- .sql_remove_resource(x, idsToDel)
+        }
+
     }
 })
 

@@ -47,7 +47,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{bfcnew}{BiocFileCache}(x, rname)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = NA_character_,
-  rtype = c("local", "web"), action = c("copy", "move", "asis"),
+  rtype = c("auto", "local", "web"), action = c("copy", "move", "asis"),
   proxy = "", ...)
 
 \S4method{bfclist}{BiocFileCache}(x, rids)
@@ -63,7 +63,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcremove}{BiocFileCache}(x, rids)
 
-\S4method{bfcsync}{BiocFileCache}(x)
+\S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE)
 
 \S4method{cleanCache}{BiocFileCache}(x, days = 120, ask = TRUE)
 
@@ -110,6 +110,9 @@ location but save the path in the cache.}
 
 \item{queryValue}{character(1) pattern to match in resource}
 
+\item{verbose}{If descriptive message and list of issues should be included
+as output}
+
 \item{days}{Number of days between accessDate and currentDate; if exceeded
 entry will be deleted}
 
@@ -141,6 +144,9 @@ A list of current resources in the database whose rname, rpath, or
 weblink contained queryValue. If not found, returns NA.
 
 logical if resource needs to be updated
+
+logical if cache is in sync. 'verbose' is TRUE by default, so
+descriptive messages will also be included
 
 TRUE if successfully removed.
 
@@ -211,10 +217,10 @@ file.exists(fl3)                                # TRUE
 
 # add a remote resource
 url <- "http://httpbin.org/get"
-bfcadd(bfc0, "TestWeb", rtype="web", fpath=url)
+bfcadd(bfc0, "TestWeb", fpath=url)
 bfclist(bfc0)
 bfcpath(bfc0, rid3)
-bfcupdate(bfc0, rid3, rpath=fl2, rname="NewRname")
+bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
 bfcupdate(bfc0, 5, weblink="http://google.com")
 bfcquery(bfc0, "test")
@@ -222,6 +228,8 @@ bfcneedsupdate(bfc0, 5)
 bfcremove(bfc0, rid3)
 bfclist(bfc0)
 bfcsync(bfc0)
+bfcremove(bfc0, 1)
+bfcsync(bfc0, FALSE)
 \dontrun{cleanCache(bfc, ask=FALSE)}
 \dontrun{removeCache(bfc, ask=FALSE)}
 }
