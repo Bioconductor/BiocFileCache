@@ -8,7 +8,7 @@ vignette: >
   %\VignetteIndexEntry{BiocFileCache}
   %\VignetteEncoding{UTF-8}
 ---
-	
+
 # Installation
 ```{r, eval = FALSE}
 source("http://www.bioconductor.org/biocLite.R")
