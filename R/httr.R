@@ -5,16 +5,16 @@
     }, warning=function(w) {
         invokeRestart("muffleWarning")
     })
-    
+
     status = tryCatch({
         stop_for_status(response)
     }, http_403 = function(e) {
         identity(e)
     }, http_error=function(e) {
         stop(e)
-    }, error=identity)    
-    
-    
+    }, error=identity)
+
+
     if ((is(status, "error") || is(status, "http_403")) &&
         is.null(cache_info(response)$modified)) {
         response = withCallingHandlers(suppressWarnings(GET(link)))
@@ -50,11 +50,11 @@
                     proxy=proxy)
                 ))
         }
-        if (length(status_code(response)))  
+        if (length(status_code(response)))
         {
             if (status_code(response) != 302L)
                 stop_for_status(response)
-        } 
+        }
         TRUE
     }, error=function(err) {
         warning("download failed",

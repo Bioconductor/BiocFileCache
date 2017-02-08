@@ -88,7 +88,8 @@ cache.}
 
 \item{rname}{character(1) Name of object in file cache}
 
-\item{fpath}{character(1) Path to current file location or remote web resource}
+\item{fpath}{character(1) Path to current file location or remote
+web resource}
 
 \item{rtype}{character(1) local or web indicating if the resource is a local
 file or a web resource}
@@ -164,7 +165,8 @@ sessions.
 \item \code{length}: Get the number of object in the file
 cache.
 
-\item \code{[[}: Get a file path for select resources from the cache.
+\item \code{[[}: Get a file path for select resources from
+the cache.
 
 \item \code{[[<-}: Set the file path of a
 select resources from the cache.
@@ -183,8 +185,9 @@ select resources from the cache.
 
 \item \code{bfcneedsupdate}: check if a resource needs to be updated
 
-\item \code{bfcremove}: Remove a resource to the database. If the local file is
-located in the bcfCache, the file will also be deleted.
+\item \code{bfcremove}: Remove a resource to the database.
+If the local file is located in the bcfCache,
+the file will also be deleted.
 
 \item \code{bfcsync}: sync cache and resource.
 
