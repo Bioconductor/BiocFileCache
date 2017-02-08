@@ -1,0 +1,22 @@
+---
+title: "BiocFileCache"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{BiocFileCache}
+  %\VignetteEncoding{UTF-8}
+---
+	
+# Installation
+```{r, eval = FALSE}
+source("http://www.bioconductor.org/biocLite.R")
+biocLite("BiocFileCache", dependencies = TRUE)
+```
+
+# Loading
+After the package is installed, it can be loaded into R workspace typing
+```{r, eval=TRUE, results='hide', warning=FALSE, message=FALSE}
+library(BiocFileCache)
+```
