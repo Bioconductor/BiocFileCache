@@ -1,6 +1,6 @@
 Package: BiocFileCache
 Title: Manage Files Across Sessions
-Version: 0.0.22
+Version: 0.0.23
 Authors@R: c(person("Lori", "Shepherd",
       email = "lori.shepherd@roswellpark.org",
       role = c("aut", "cre")),
@@ -25,5 +25,9 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.0
 biocViews: DataImport
+VignetteBuilder: knitr
 Suggests:
-    testthat
+    testthat,
+    knitr, 
+    rmarkdown
+
