@@ -41,7 +41,7 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 #' @aliases bfcCache
 #' @exportMethod bfcCache
 setMethod("bfcCache", "BiocFileCache",
-   function(x)
+    function(x)
 {
     x@cache
 })
@@ -60,17 +60,18 @@ setMethod("length", "BiocFileCache",
         collect %>% `[[`("n")
 })
 
-#' @describeIn BiocFileCache Get a file path for select resources from the cache.
+#' @describeIn BiocFileCache Get a file path for select resources from
+#' the cache.
 #' @param i Rid numbers
 #' @param j Not applicable
 #' @return rpath for the given resource in the cache
 #' @exportMethod [[
 setMethod("[[", c("BiocFileCache", "numeric", "missing"),
-     function(x, i, j)
+    function(x, i, j)
 {
-     stopifnot(length(i) == 1L)
-     stopifnot(i %in% .get_all_rids(x))
-     .sql_get_rpath(x, i)
+    stopifnot(length(i) == 1L)
+    stopifnot(i %in% .get_all_rids(x))
+    .sql_get_rpath(x, i)
 })
 
 #' @describeIn BiocFileCache Set the file path of a
@@ -80,13 +81,13 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
 #' @exportMethod [[<-
 setReplaceMethod("[[",
 c("BiocFileCache", "numeric", "missing", "character"),
-     function(x, i, j, ..., value)
+    function(x, i, j, ..., value)
 {
-     stopifnot(length(i) == 1L, is.character(value), length(value) == 1L)
-     stopifnot(file.exists(value))
-     sqlfile <- .sql_update_time(x, i)
-     sqlfile <- .sql_set_rpath(x, i, value)
-     x
+    stopifnot(length(i) == 1L, is.character(value), length(value) == 1L)
+    stopifnot(file.exists(value))
+    sqlfile <- .sql_update_time(x, i)
+    sqlfile <- .sql_set_rpath(x, i, value)
+    x
 })
 
 #' @export
@@ -123,7 +124,8 @@ setGeneric("bfcadd",
 
 #' @describeIn BiocFileCache Add an existing resource to the database
 #'
-#' @param fpath character(1) Path to current file location or remote web resource
+#' @param fpath character(1) Path to current file location or remote
+#' web resource
 #' @param rtype character(1) local or web indicating if the resource is a local
 #' file or a web resource
 #' @param action How to handle the file: create a \code{copy} of
@@ -153,7 +155,7 @@ setGeneric("bfcadd",
 #' @aliases bfcadd
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
-    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"), 
+    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
              action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
@@ -162,12 +164,12 @@ setMethod("bfcadd", "BiocFileCache",
     action <- match.arg(action)
 
     if (rtype == "auto") rtype <- .check_rtype(fpath)
-    
+
     if (rtype=="local"){
         stopifnot(file.exists(fpath))
         rid <- .sql_new_resource(x, rname, rtype, NA_character_)
     }
-    
+
     if (rtype=="web"){
         temploc <- tempfile()
         wasSuccess <- .download_resource(fpath, temploc, proxy)
@@ -320,7 +322,7 @@ setMethod("bfcquery", "BiocFileCache",
     if (length(rids) == 0L)
         NA
     else
-        .sql_get_resource_table(x, rids)    
+        .sql_get_resource_table(x, rids)
 })
 
 #' @export
@@ -347,8 +349,8 @@ setMethod("bfcneedsupdate", "BiocFileCache",
         message("Cannot Determine: Recommend Update.")
     }else{
         toUpdate <- as.Date(web_time) > as.Date(file_time)
-    }    
-    toUpdate    
+    }
+    toUpdate
 })
 
 
@@ -356,8 +358,9 @@ setMethod("bfcneedsupdate", "BiocFileCache",
 setGeneric("bfcremove",
     function(x, rids) standardGeneric("bfcremove"))
 
-#' @describeIn BiocFileCache Remove a resource to the database. If the local file is
-#' located in the bcfCache, the file will also be deleted. 
+#' @describeIn BiocFileCache Remove a resource to the database.
+#' If the local file is located in the bcfCache,
+#' the file will also be deleted.
 #' @examples
 #' bfcremove(bfc0, rid3)
 #' bfclist(bfc0)
@@ -383,7 +386,7 @@ setGeneric("bfcsync",
 #' @param verbose If descriptive message and list of issues should be included
 #' as output
 #' @return logical if cache is in sync. 'verbose' is TRUE by default, so
-#' descriptive messages will also be included 
+#' descriptive messages will also be included
 #' @examples
 #' bfcsync(bfc0)
 #' bfcremove(bfc0, 1)
@@ -398,8 +401,7 @@ setMethod("bfcsync", "BiocFileCache",
 
     # files untracked in cache location
     files <- file.path(bfcCache(x),
-                       setdiff(list.files(bfcCache(x)), "BiocFileCache.sqlite")
-                       )
+                       setdiff(list.files(bfcCache(x)), "BiocFileCache.sqlite"))
     untracked <- setdiff(files, .get_all_rpath(x))
 
     if ( (length(rids) == 0L) && (length(untracked) == 0L) ){
@@ -420,7 +422,7 @@ Consider adding:\n\n")
             }
         }
         FALSE
-    }    
+    }
 })
 
 
@@ -445,7 +447,7 @@ setMethod("cleanCache", "BiocFileCache",
     idsToDel <- .sql_clean_cache(x, days)
 
     if (length(idsToDel) != 0L) {
-    
+
         if (ask) {
             for (id in idsToDel) {
                 doit <- FALSE
@@ -466,7 +468,7 @@ setMethod("cleanCache", "BiocFileCache",
                 }
             }
         } else {
-            
+
             paths <- unname(unlist(lapply(idsToDel,
                                           .sql_get_rpath, bfc=x)))
             file <- unlink(paths, force=TRUE)

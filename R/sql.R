@@ -168,7 +168,7 @@
 
 .sql_query_resource <-
     function(bfc, value)
-{    
+{
     sql <- .sql_sprintf("-- QUERY_NAMES", value)
     .sql_get_query(bfc, sql) %>% select_("rid") %>%
         collect(Inf) %>% `[[`("rid")
@@ -187,6 +187,5 @@
 {
     vec <- file.exists(.sql_get_resource_table(bfc) %>% select_("rpath") %>%
                        collect(Inf) %>% `[[`("rpath"))
-    .get_all_rids(bfc)[!vec]    
+    .get_all_rids(bfc)[!vec]
 }
-
