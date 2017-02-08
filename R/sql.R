@@ -120,11 +120,12 @@
     function(bfc, days)
 {
     mytbl <- .sql_get_resource_table(bfc) %>%
-        select_(~ rid, ~ last_accessed) %>% collect(Inf)
+        select_(~ rid, ~ access_time) %>% collect(Inf)
     currentDate <- Sys.Date()
-    accessDate <- as.Date(sapply(strsplit(mytbl[,2], split=" "), `[`, 1))
+    accessDate <- as.Date(sapply(strsplit(as.character(mytbl[,2]),
+                                          split=" "), `[`, 1))
     diffTime <- currentDate - accessDate
-    mytbl[diffTime > days,1]
+    mytbl[diffTime > days,1] %>% collect(Inf) %>% `[[`("rid")
 }
 
 .sql_get_resource <-
