@@ -132,6 +132,10 @@ test_that("bfcquery works", {
     expect_identical(dim(q1), c(2L,8L))
     expect_identical(q1$rid, c(rid1,rid3))
 
+    # test query on weblink
+    q2 <- as.data.frame(bfcquery(bfc, "wiki"))
+    expect_identical(dim(q2), c(1L,8L))
+
     # quesry not found 
     expect_true(is.na(bfcquery(bfc, "nothere")))
 })

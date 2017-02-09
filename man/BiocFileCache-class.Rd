@@ -23,6 +23,8 @@
 \alias{bfcquery}
 \alias{bfcneedsupdate,BiocFileCache-method}
 \alias{bfcneedsupdate}
+\alias{bfcdownload,BiocFileCache-method}
+\alias{bfcdownload}
 \alias{bfcremove,BiocFileCache-method}
 \alias{bfcremove}
 \alias{bfcsync,BiocFileCache-method}
@@ -60,6 +62,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{bfcquery}{BiocFileCache}(x, queryValue)
 
 \S4method{bfcneedsupdate}{BiocFileCache}(x, rid)
+
+\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "")
 
 \S4method{bfcremove}{BiocFileCache}(x, rids)
 
@@ -185,6 +189,8 @@ select resources from the cache.
 
 \item \code{bfcneedsupdate}: check if a resource needs to be updated
 
+\item \code{bfcdownload}: Redownload resource to location in cache
+
 \item \code{bfcremove}: Remove a resource to the database.
 If the local file is located in the bcfCache,
 the file will also be deleted.
@@ -228,6 +234,7 @@ bfc0[[rid3]] = fl1
 bfcupdate(bfc0, 5, weblink="http://google.com")
 bfcquery(bfc0, "test")
 bfcneedsupdate(bfc0, 5)
+bfcdownload(bfc0, 5)
 bfcremove(bfc0, rid3)
 bfclist(bfc0)
 bfcsync(bfc0)

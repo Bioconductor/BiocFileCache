@@ -71,6 +71,7 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
 {
     stopifnot(length(i) == 1L)
     stopifnot(i %in% .get_all_rids(x))
+    sqlfile <- .sql_update_time(x, i)
     .sql_get_rpath(x, i)
 })
 
@@ -117,7 +118,7 @@ setMethod("bfcnew", "BiocFileCache",
 
 #' @export
 setGeneric("bfcadd",
-    function(x, rname, fpath=NA_character_, rtype=c("local", "web"),
+    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
              action=c("copy", "move", "asis"), proxy="", ...)
     standardGeneric("bfcadd"),
     signature="x")
@@ -238,6 +239,7 @@ setGeneric("bfcpath",
 setMethod("bfcpath", "BiocFileCache",
     function(x, rid)
 {
+    stopifnot(!missing(rid), length(rid) == 1L)
     stopifnot(rid %in% .get_all_rids(x))
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
@@ -299,8 +301,7 @@ setMethod("bfcupdate", "BiocFileCache",
             stop("'", weblink,
                  "' could not be downloaded. \n weblink not updated.")
         }
-    }
-
+    }    
 })
 
 #' @export
@@ -319,10 +320,11 @@ setMethod("bfcquery", "BiocFileCache",
     function(x, queryValue)
 {
     rids <- .sql_query_resource(x, queryValue)
-    if (length(rids) == 0L)
+    if (length(rids) == 0L){
         NA
-    else
+    } else {
         .sql_get_resource_table(x, rids)
+    }
 })
 
 #' @export
@@ -341,6 +343,7 @@ setMethod("bfcneedsupdate", "BiocFileCache",
     stopifnot(!missing(rid), length(rid) == 1L)
     stopifnot(.sql_get_field(x, rid, "rtype")=="web")
     stopifnot(rid %in% .get_all_rids(x))
+    sqlfile <- .sql_update_time(x, rid)
     file_time <- .sql_get_field(x, rid, "last_modified_time")
     link <- .sql_get_field(x, rid, "weblink")
     web_time <- .get_web_last_modified(link)
@@ -353,6 +356,35 @@ setMethod("bfcneedsupdate", "BiocFileCache",
     toUpdate
 })
 
+#' @export
+setGeneric("bfcdownload",
+    function(x, rid, proxy="") standardGeneric("bfcdownload"))
+
+#' @describeIn BiocFileCache Redownload resource to location in cache
+#' @examples
+#' bfcdownload(bfc0, 5)
+#' @aliases bfcdownload
+#' @exportMethod bfcdownload
+setMethod("bfcdownload", "BiocFileCache",
+    function(x, rid, proxy="")
+{
+    stopifnot(!missing(rid), length(rid) == 1L)
+    stopifnot(.sql_get_field(x, rid, "rtype")=="web")
+    stopifnot(rid %in% .get_all_rids(x))
+    sqlfile <- .sql_update_time(x, rid)
+    downloadFile <- .sql_get_field(x, rid, "weblink")
+    saveFile <- .sql_get_field(x, rid, "rpath")
+    wasSuccess <- .download_resource(downloadFile, saveFile, proxy)
+    if (wasSuccess) {
+        web_time <- .get_web_last_modified(downloadFile)
+        if (length(web_time) != 0L) {
+            sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
+        } else {
+            sqlfile <- .sql_set_modifiedTime(x, rid,
+                                             as.character(Sys.Date()))
+        }       
+    }
+})
 
 #' @export
 setGeneric("bfcremove",
@@ -431,7 +463,8 @@ setGeneric("cleanCache",
     function(x, days = 120, ask = TRUE) standardGeneric("cleanCache"),
     signature="x")
 
-#' @describeIn BiocFileCache Remove old/unused files in BiocFileCache
+#' @describeIn BiocFileCache Remove old/unused files in BiocFileCache. If file
+#' to be removed is not in the bfcCache location it will not be deleted. 
 #'
 #' @param days Number of days between accessDate and currentDate; if exceeded
 #' entry will be deleted
@@ -463,7 +496,8 @@ setMethod("cleanCache", "BiocFileCache",
                         break
                 }
                 if (doit) {
-                    file <- unlink(entry$rpath, force=TRUE)
+                    if (startsWith(entry$rpath, bfcCache(x)))
+                        file <- unlink(entry$rpath, force=TRUE)
                     file <- .sql_remove_resource(x, id)
                 }
             }
@@ -471,7 +505,9 @@ setMethod("cleanCache", "BiocFileCache",
 
             paths <- unname(unlist(lapply(idsToDel,
                                           .sql_get_rpath, bfc=x)))
-            file <- unlink(paths, force=TRUE)
+            rmMe <- startsWith(paths, bfcCache(x))
+            paths <- paths[rmMe]
+            if (length(paths) != 0L) file <- unlink(paths, force=TRUE)
             file <- .sql_remove_resource(x, idsToDel)
         }
 
