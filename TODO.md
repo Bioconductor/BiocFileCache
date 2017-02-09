@@ -8,16 +8,16 @@ library(devtools)
 library(RSQLite)
 library(dplyr)
 library(httr)
+library(testthat)
 document()
 install()
 library(BiocFileCache)
 example("BiocFileCache-class")
 
-bfcadd(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
-bfcadd(bfc0, "webTestFTP", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
-bfcadd(bfc0, "webReDir", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
-bfcadd(bfc0, "webNotFound", rtype="web", fpath="https://hehehaf")
-
+#bfcadd(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
+#bfcadd(bfc0, "webTestFTP", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
+#bfcadd(bfc0, "webReDir", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
+#bfcadd(bfc0, "webNotFound", rtype="web", fpath="https://hehehaf")
 
 #####################
 #
