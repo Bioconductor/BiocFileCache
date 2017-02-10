@@ -319,9 +319,12 @@ setGeneric("bfcquery",
     function(x, queryValue) standardGeneric("bfcquery"))
 
 #' @describeIn BiocFileCache query resource
-#' @param queryValue character(1) pattern to match in resource
+#' @param queryValue character vector of patterns to match in resource. It will
+#' match the pattern against rname, rpath, and weblink. 
 #' @return A list of current resources in the database whose rname, rpath, or
-#' weblink contained queryValue. If not found, returns NA.
+#' weblink contained queryValue. If multiple values are given, the resource must
+#' contain all of the patterns. If a resource is not found matching all patterns
+#' listed, returns NA.
 #' @examples
 #' bfcquery(bfc0, "test")
 #' @aliases bfcquery
@@ -329,6 +332,7 @@ setGeneric("bfcquery",
 setMethod("bfcquery", "BiocFileCache",
     function(x, queryValue)
 {
+    stopifnot(is.character(queryValue))
     rids <- .sql_query_resource(x, queryValue)
     if (length(rids) == 0L){
         NA

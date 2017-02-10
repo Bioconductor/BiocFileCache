@@ -113,7 +113,8 @@ location but save the path in the cache.}
 
 \item{weblink}{character(1) path to replacement web resource}
 
-\item{queryValue}{character(1) pattern to match in resource}
+\item{queryValue}{character vector of patterns to match in resource. It will
+match the pattern against rname, rpath, and weblink.}
 
 \item{verbose}{If descriptive message and list of issues should be included
 as output}
@@ -147,7 +148,9 @@ A list of current resources in the database
 The file path location to load
 
 A list of current resources in the database whose rname, rpath, or
-weblink contained queryValue. If not found, returns NA.
+weblink contained queryValue. If multiple values are given, the resource must
+contain all of the patterns. If a resource is not found matching all patterns
+listed, returns NA.
 
 logical if resource needs to be updated
 

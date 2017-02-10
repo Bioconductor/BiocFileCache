@@ -141,8 +141,19 @@ test_that("bfcquery works", {
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
     expect_identical(dim(q2), c(1L,8L))
 
-    # quesry not found 
+    # query not found 
     expect_true(is.na(bfcquery(bfc, "nothere")))
+
+    # multiple value all found
+    path <- file.path(bfcCache(bfc), "myFile")
+    file.create(path)
+    bfc[[rid3]] <- path
+    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf")))
+    expect_identical(dim(q3), c(1L,8L))
+    expect_identical(q3$rid, rid3)
+
+    # multi value some not found
+    expect_true(is.na(bfcquery(bfc, c("prep", "not"))))    
 })
 
 test_that("bfcneedsupdate works", {
