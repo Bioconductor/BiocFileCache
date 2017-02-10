@@ -2,21 +2,29 @@
 title: "BiocFileCache"
 author: Lori Shepherd
 output: 
-  rmarkdown::html_vignette:
-    toc: true
+    BiocStyle::html_document:
+        toc: true
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{BiocFileCache}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{BiocFileCache}
+    %\VignetteEncoding{UTF-8}
 ---
 
 # Overview
 
-Organization of files on a local machine can be cumbersome. This is especially true for local copies of remote resources that may periodically require a new download to have the most updated information available. `BiocFileCache` is designed to help manage local and remote resource files stored locally. It provides a convenient location to organize files and once added to the cache management, the package provides functions to determine if remote resources are out of date and require a new download. 
+Organization of files on a local machine can be cumbersome. This is especially
+true for local copies of remote resources that may periodically require a new
+download to have the most updated information available. `BiocFileCache` is
+designed to help manage local and remote resource files stored locally. It
+provides a convenient location to organize files and once added to the cache
+management, the package provides functions to determine if remote resources are
+out of date and require a new download. 
 
 ## Installation and Loading
 
-`BiocFileCache` is a **Bioconductor** package and can be installed through `biocLite`. 
+`BiocFileCache` is a **Bioconductor** package and can be installed through
+`biocLite`. 
+
 ```{r, eval = FALSE}
 source("http://www.bioconductor.org/biocLite.R")
 biocLite("BiocFileCache", dependencies = TRUE)
@@ -29,14 +37,18 @@ library(BiocFileCache)
 
 ## Creating/Loading the Cache
 
-The initial step to utilizing `BiocFileCache` in managing files is to create a cache object specifing a location. We will create a temporary directory for use with examples in this vignette. If a path is not specified upon creation, the default location is a directory `~/.BiocFileCache`.  
+The initial step to utilizing `BiocFileCache` in managing files is to create a
+cache object specifing a location. We will create a temporary directory for use
+with examples in this vignette. If a path is not specified upon creation, the
+default location is a directory `~/.BiocFileCache`.  
 
 ```{r eval=TRUE}
-path <- tempfile()
+path <- file.path(tempdir(), "tempCacheDir")
 bfc <- BiocFileCache(path)
 ```
 
-If the path location exists and has been utilized to store files previously, the previous object will be loaded with any files saved to the cache. 
+If the path location exists and has been utilized to store files previously, the
+previous object will be loaded with any files saved to the cache. 
 
 Some utility functions to examine the cache are:
 
@@ -44,14 +56,19 @@ Some utility functions to examine the cache are:
  * length(bfc)
  * show(bfc)
 
-`bfcCache` will show the cache path. **NOTE**: Because we are using temporary directories, your path location will be different than shown.  
+`bfcCache()` will show the cache path. **NOTE**: Because we are using temporary
+directories, your path location will be different than shown.  
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfcCache(bfc)
 length(bfc)
 ```
 
-`length` on a BiocFileCache will show the number of files currently being tracked by the `BiocFileCache`. For more detailed information on what is store in the `BiocFileCache` object, there is a show method which will display the object, object class, cache path, number of items currently being tracked, and the table of information on the resources. 
+`length()` on a BiocFileCache will show the number of files currently being
+tracked by the `BiocFileCache`. For more detailed information on what is store
+in the `BiocFileCache` object, there is a show method which will display the
+object, object class, cache path, number of items currently being tracked, and
+the table of information on the resources. 
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfc
@@ -70,21 +87,31 @@ The table of resource files includes the following information:
  * **weblink**: If rtype is "web", this is the link to the remote resource. It will be utilized to download the remote data.  
  * **last_modified_time**: For a remote resource, the last_modified (if available) information for the local copy of the data. This information is checked against the remote resource to determine if the local copy is stale and needs to be updated.  
 
-Now that we have created the cache object and location, let's explore adding files that the cache will manage! 
+
+Now that we have created the cache object and location, let's explore adding
+files that the cache will manage! 
 
 ## Adding/Tracking Resources
 
-Now that a `BiocFileCache` object and cache location has been created, files can be added to the cache for tracking. There are two functions to add a resource to the cache:
+Now that a `BiocFileCache` object and cache location has been created, files can
+be added to the cache for tracking. There are two functions to add a resource to
+the cache:
 
- * bfcnew
- * bfcadd
+ * bfcnew()
+ * bfcadd()
 
-The difference between the options: `bfcadd` should be utilized when a file already exists or a remote resource is being accessed while `bfcnew` stores an entry for a resource and returns a filepath to save to. As there are many types of data that can be saved in many different ways, `bfcnew` allows you to save any R data object in the appropriate matter and still be able to track the saved file. 
+The difference between the options: `bfcadd()` should be utilized when a file
+already exists or a remote resource is being accessed while `bfcnew()` stores an
+entry for a resource and returns a filepath to save to. As there are many types
+of data that can be saved in many different ways, `bfcnew()` allows you to save
+any R data object in the appropriate matter and still be able to track the saved
+file. 
 
 &nbsp;
 &nbsp;
 
-`bfcnew` takes the `BiocFileCache` object and a user specified `rname` and returns a path location to save data to:
+`bfcnew` takes the `BiocFileCache` object and a user specified `rname` and
+returns a path location to save data to:
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 savepath <- bfcnew(bfc, "NewResource")
@@ -99,7 +126,17 @@ bfc
 ```
 
 
-`bfcadd` is for existing files or remote resources.  The user will still specify a `rname` of their choosing but also must specify a path to local file or web resource as `fpath`. If the `fpath` is a local file, there are a few options for the user determined by the `action` argument.  `action` will allow the user to either *copy* the existing file into the cache directory, *move* the existing file into the cache directory, or leave the file whereever it is on the local system yet still track through the cache object *asis*. copy and move will rename the file to the generated cache file path. If the `fpath` is a remote source, the source will try to be downloaded, if it is successful it will save in the cache location and track in the cache object; The original source will be added to the cache information as weblink. 
+`bfcadd()` is for existing files or remote resources.  The user will still
+specify a `rname` of their choosing but also must specify a path to local file
+or web resource as `fpath`. If the `fpath` is a local file, there are a few
+options for the user determined by the `action` argument.  `action` will allow
+the user to either *copy* the existing file into the cache directory, *move* the
+existing file into the cache directory, or leave the file whereever it is on the
+local system yet still track through the cache object *asis*. copy and move will
+rename the file to the generated cache file path. If the `fpath` is a remote
+source, the source will try to be downloaded, if it is successful it will save
+in the cache location and track in the cache object; The original source will be
+added to the cache information as *weblink*. 
 
 &nbsp;
 &nbsp;
@@ -107,13 +144,19 @@ bfc
 First lets use local files:
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 fl1 <- tempfile(); file.create(fl1)
-rid2 <- bfcadd(bfc, "Test_addCopy", fl1)                 # copy
+add2 <- bfcadd(bfc, "Test_addCopy", fl1)                 # copy
+# returns filepath being tracked in cache   
+add2
+# the name is the unique rid in the cache
+rid2 <- as.integer(names(add2))
 
 fl2 <- tempfile(); file.create(fl2)
-rid3 <- bfcadd(bfc, "Test2_addMove", fl2, action="move") # move
+add3 <- bfcadd(bfc, "Test2_addMove", fl2, action="move") # move
+rid3 <- as.integer(names(add3))
 
 fl3 <- tempfile(); file.create(fl3)
-rid4 <- bfcadd(bfc, "Test3_addAsis", fl3, action="asis") # reference
+add4 <- bfcadd(bfc, "Test3_addAsis", fl3, action="asis") # reference
+rid4 <- as.integer(names(add4))
 
 file.exists(fl1)    # TRUE - copied from original location
 file.exists(fl2)    # FALSE - moved from original location
@@ -123,11 +166,12 @@ file.exists(fl3)    # TRUE - left asis, original location tracked
 Now lets add some examples with remote sources: 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 url <- "http://httpbin.org/get"
-rid5 <- bfcadd(bfc, "TestWeb", fpath=url)
+add5 <- bfcadd(bfc, "TestWeb", fpath=url)
+rid5 <- as.integer(names(add5))
 
 url2<- "https://en.wikipedia.org/wiki/Bioconductor"
-rid6 <- bfcadd(bfc, "TestWeb", fpath=url2)
-
+add6 <- bfcadd(bfc, "TestWeb", fpath=url2)
+rid6 <- as.integer(names(add6))
 
 
 # lets look at our BiocFileCache object now
@@ -139,11 +183,18 @@ Now that we are tracking resources, let's explore accessing their information!
 
 ## Investigating/Accessing Resources
 
-Before we get into exploring individual resources, a helper function.  Most of the functions provided require the unique rid[s] assigned to a resource. The `bfcadd` returns the rid as output and `bfcnew` returns the path as a named character vector, the name of the character vector is the rid.  However, you may want to access a resource that you have added some time ago. 
+Before we get into exploring individual resources, a helper function.  Most of
+the functions provided require the unique rid[s] assigned to a resource. The
+`bfcadd` and `bfcnew` return the path as a named character vector, the name of
+the character vector is the rid.  However, you may want to access a resource
+that you have added some time ago. 
 
- * bfcquery
+ * bfcquery()
 
-`bfcquery` will take in a key word and search across the *rname*, *rpath*, and *weblink* for any matching. It will return a subset of the `BiocFileCache` object, listing all entries that contained the key word or `NA` if it cannot be found. 
+`bfcquery()` will take in a key word and search across the *rname*, *rpath*, and
+*weblink* for any matching. It will return a subset of the `BiocFileCache`
+object, listing all entries that contained the key word or `NA` if it cannot be
+found. 
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
@@ -156,14 +207,20 @@ q1
 class(q1)
 ```
 
-As you can see above `bfcquery`, returns an object of class `tbl_sqlite`/`tbl_sql` and can be investiaged further utilizing methods for these classes, such as the package `dplyr` methods. The *rid* can be seen in the first column of the table to be used in other functions. 
+As you can see above `bfcquery()`, returns an object of class
+`tbl_sqlite`/`tbl_sql` and can be investiaged further utilizing methods for
+these classes, such as the package `dplyr` methods. The *rid* can be seen in the
+first column of the table to be used in other functions. 
 
 &nbsp;
 &nbsp;
 
- * bfclist
+ * bfclist()
 
-`bfclist` will list any subset of the `BiocFileCache` object. It returns an object of class `tbl_sqlite`/`tbl_sql`. Any *rids* given that are not found in the BiocFileCache object will be filtered out and if *rids* are not specified, the entire object is listed.
+`bfclist()` will list any subset of the `BiocFileCache` object. It returns an
+object of class `tbl_sqlite`/`tbl_sql`. Any *rids* given that are not found in
+the BiocFileCache object will be filtered out and if *rids* are not specified,
+the entire object is listed.
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfclist(bfc)
@@ -176,12 +233,19 @@ bfclist(bfc, 4:20)
 &nbsp;
 &nbsp;
 
-There are two methods for retrieving the `BiocFileCache` resource path location. 
+There are two methods for retrieving the `BiocFileCache` resource path location.
+ 
 
  * [[
- * bfcpath
+ * bfcpath()
 
-The `[[` will access the *rpath* saved in the `BiocFileCache`. Retrieving this location will return the path to the local version of the resource; allowing the user to then use this path in any load/read methods most appropriate for the resource. The `bfcpath` returns a named character vector also displaying the localfile that can be used for retrieval. If the resource is a remote resource, `bfcpath` will also return the path to the original source saved as `weblink`. 
+The `[[` will access the *rpath* saved in the `BiocFileCache`. Retrieving this
+location will return the path to the local version of the resource; allowing the
+user to then use this path in any load/read methods most appropriate for the
+resource. The `bfcpath()` returns a named character vector also displaying the
+localfile that can be used for retrieval. If the resource is a remote resource,
+`bfcpath()` will also return the path to the original source saved as
+`weblink`. 
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
@@ -195,13 +259,18 @@ bfcpath(bfc, 5)
 &nbsp;
 &nbsp;
 
-Managing remote resources locally involves knowing when to update the local copy of the data. 
+Managing remote resources locally involves knowing when to update the local copy
+of the data. 
 
- * bfcneedsupdate
+ * bfcneedsupdate()
  
-`bfcneedsupdate` is a method that will check the local copy of the data's last_modified tag to the last_modified tag of the remote source. The cache saves this information when the web resource is initially added. If the resource does not have a last_modified tag, it is undetermined. 
+`bfcneedsupdate()` is a method that will check the local copy of the data's
+last_modified tag to the last_modified tag of the remote source. The cache saves
+this information when the web resource is initially added. If the resource does
+not have a last_modified tag, it is undetermined. 
 
-**Note:** This function does not automatically download the remote source if it is out of date.  Please see `bfcdownload`. 
+**Note:** This function does not automatically download the remote source if it
+  is out of date.  Please see `bfcdownload()`. 
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfcneedsupdate(bfc, 5)
@@ -220,6 +289,11 @@ wishes to rename, they must make a copy (or touch) the file first.
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 fileBeingReplaced <- bfc[[rid3]]
 fileBeingReplaced
+
+# fl3 was created when we were adding resources 
+fl3
+
+
 bfc[[rid3]]<-fl3
 bfc[[rid3]]
 ```
@@ -227,11 +301,14 @@ bfc[[rid3]]
 &nbsp;
 &nbsp;
 
-The user may also wish to change the *rname* or *weblink* associated with a resource in addition to the *rpath*. This can be done with
+The user may also wish to change the *rname* or *weblink* associated with a
+resource in addition to the *rpath*. This can be done with
 
- * bfcupdate
+ * bfcupdate()
 
-Again, if changing the *rpath* the file must exist. If a *weblink* is being updated, the data will be downloaded and overwrite the current file specified in *rpath*. 
+Again, if changing the *rpath* the file must exist. If a *weblink* is being
+updated, the data will be downloaded and overwrite the current file specified in
+*rpath*. 
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
@@ -255,21 +332,24 @@ library(dplyr)
 
 
 
-bfclist(bfc, 6) %>% select(c(1,2,7))
+bfclist(bfc, 6) %>% select(rid,rpath,weblink)
 
 
 bfcupdate(bfc, 6, weblink=url, rname="Duplicate")
 
 
-bfclist(bfc, 6) %>% select(c(1,2,7))
+bfclist(bfc, 6) %>% select(rid,rpath,weblink)
 ```
 
 &nbsp;
 &nbsp;
 
-Lastly, remote resources may require an update if the Data is out of date (See bfcneedsupdate).  The `bfcdownload` function will attempt to download from the original resource saved in the cache as *weblink* and overwrite the out of date file *rpath* 
+Lastly, remote resources may require an update if the Data is out of date (See
+bfcneedsupdate).  The `bfcdownload` function will attempt to download from the
+original resource saved in the cache as *weblink* and overwrite the out of date
+file *rpath* 
 
- * bfcdownload
+ * bfcdownload()
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 # So you can imagine something like 
@@ -282,9 +362,12 @@ bfcdownload(bfc, 5)
 
 Now that we have added resources, it is also possible to remove a resource. 
 
- * bfcremove
+ * bfcremove()
  
-When you remove a resource from the cache, it will also delete the local file but only if it is stored in the cache directory as given by `bfcCache(bfc)`. If it is a path to a file somewhere else on the user system, it will only be removed from the `BiocFileCache` object but the file not deleted. 
+When you remove a resource from the cache, it will also delete the local file
+but only if it is stored in the cache directory as given by `bfcCache(bfc)`. If
+it is a path to a file somewhere else on the user system, it will only be
+removed from the `BiocFileCache` object but the file not deleted. 
  
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
@@ -308,12 +391,14 @@ bfc
 
 There is another helper function that may be of use:
  
- * bfcsync
+ * bfcsync()
  
 This function will compare two things:
 
- 1. If any *rpath* cannot be found (This would occur if `bfcnew` is used and the path was not used to save an object)
- 2. If there are files in the cache directory (`bfcCache(bfc)`), that are not being tracked by the `BiocFileCache` object
+ 1. If any *rpath* cannot be found (This would occur if `bfcnew()` is used and
+ the path was not used to save an object)
+ 2. If there are files in the cache directory (`bfcCache(bfc)`), that are not
+ being tracked by the `BiocFileCache` object
  
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 # create a new entry that hasn't been used 
@@ -344,10 +429,15 @@ bfcsync(bfc)
 
 Finally, there are two function involved with cleaning or deleting the cache:
 
- * cleanCache
- * removeCache
+ * cleanCache()
+ * removeCache()
  
-`cleanCache` will evaluate the resources in the `BiocFileCache` object and determine which, if any, have not been accessed in a specified number of days. If `ask=TRUE`, each entry that is above that threshold will ask if it should be removed from the cache object and the file deleted (only deleted if in `bfcCache(bfc)` location). If `ask=FALSE`, it does not ask about each file and automatically removes and deletes the file. The default number of days is 120. 
+`cleanCache()` will evaluate the resources in the `BiocFileCache` object and
+determine which, if any, have not been accessed in a specified number of
+days. If `ask=TRUE`, each entry that is above that threshold will ask if it
+should be removed from the cache object and the file deleted (only deleted if in
+`bfcCache(bfc)` location). If `ask=FALSE`, it does not ask about each file and
+automatically removes and deletes the file. The default number of days is 120. 
  
 ```{r eval=FALSE}
 cleanCache(bfc)
@@ -356,7 +446,8 @@ cleanCache(bfc)
 &nbsp;
 &nbsp;
 
-`removeCache` will remove the `BiocFileCache` complete from the system. Any files saved in `bfcCache(bfc)` directory will also be deleted. 
+`removeCache()` will remove the `BiocFileCache` complete from the system. Any
+files saved in `bfcCache(bfc)` directory will also be deleted. 
 
 ```{r eval=FALSE}
 removeCache(bfc)
@@ -366,4 +457,5 @@ removeCache(bfc)
  
 # Summary
 
-It is our hope that this package allows for easier management of local and remote resources.  
+It is our hope that this package allows for easier management of local and
+remote resources.  
