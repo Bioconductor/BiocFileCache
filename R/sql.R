@@ -122,8 +122,9 @@
     mytbl <- .sql_get_resource_table(bfc) %>%
         select_(~ rid, ~ access_time) %>% collect(Inf)
     currentDate <- Sys.Date()
-    accessDate <- as.Date(sapply(strsplit(as.character(mytbl[,2]),
-                                          split=" "), `[`, 1))
+    accessDate <- as.Date(
+        sapply(strsplit(
+            as.character(mytbl[,2]), split=" "), `[`, 1))
     diffTime <- currentDate - accessDate
     mytbl[diffTime > days,1] %>% collect(Inf) %>% `[[`("rid")
 }
@@ -185,7 +186,8 @@
 .get_rid_filenotfound <-
     function(bfc)
 {
-    vec <- file.exists(.sql_get_resource_table(bfc) %>% select_("rpath") %>%
-                       collect(Inf) %>% `[[`("rpath"))
+    vec <- file.exists(
+        .sql_get_resource_table(bfc) %>% select_("rpath") %>%
+        collect(Inf) %>% `[[`("rpath"))
     .get_all_rids(bfc)[!vec]
 }

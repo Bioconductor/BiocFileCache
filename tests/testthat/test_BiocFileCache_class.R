@@ -19,7 +19,8 @@ test_that("bfcadd and bfcnew works", {
     expect_true(file.exists(fl))
 
     # test file add and location not in cache
-    rid <- bfcadd(bfc, 'test-2', fl, action='asis')
+    path <- bfcadd(bfc, 'test-2', fl, action='asis')
+    rid <- as.integer(names(path))
     expect_identical(length(bfc), 2L)
     expect_true(file.exists(fl))
     expect_identical(bfc[[rid]], fl)
@@ -31,7 +32,8 @@ test_that("bfcadd and bfcnew works", {
 
     # test add web resource
     url <- "http://httpbin.org/get"
-    rid <- bfcadd(bfc, 'test-4', url, rtype="web")
+    path <- bfcadd(bfc, 'test-4', url, rtype="web")
+    rid <- as.integer(names(path))
     expect_identical(length(bfc), 4L)
     expect_true(file.exists(bfc[[rid]]))
 
@@ -40,7 +42,7 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(length(bfc), 5L)
     expect_true(!file.exists(path))
     expect_identical(unname(path),
-                     bfc[[as.numeric(names(path))]])
+                     bfc[[as.integer(names(path))]])
 
     # test out of bounds and file not found
     expect_error(bfc[[7]])
@@ -54,12 +56,15 @@ test_that("bfcadd and bfcnew works", {
 #
 bfc <- BiocFileCache(tempfile())
 fl <- tempfile(); file.create(fl)
-rid1 <- bfcadd(bfc, 'test-1', fl)
-rid2 <- bfcadd(bfc, 'test-2', fl, action='asis')
+add1 <- bfcadd(bfc, 'test-1', fl)
+rid1 <- as.integer(names(add1))
+add2 <- bfcadd(bfc, 'test-2', fl, action='asis')
+rid2 <- as.integer(names(add2))
 url <- "http://httpbin.org/get"
-rid3 <- bfcadd(bfc, 'test-3', url, rtype="web")
+add3 <- bfcadd(bfc, 'test-3', url, rtype="web")
+rid3 <- as.integer(names(add3))
 path <- bfcnew(bfc, 'test-4')
-rid4 <- names(path)
+rid4 <- as.integer(names(path))
 
 test_that("bfclist works", {
     # print all 

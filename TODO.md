@@ -41,3 +41,9 @@ select * into [TargetTable] from [SourceTable];
 drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
+
+
+
+
+new feature: 
+investigate bfcquery taking mutiple value and doing search && 

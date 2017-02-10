@@ -118,10 +118,11 @@ setMethod("bfcnew", "BiocFileCache",
 
 #' @export
 setGeneric("bfcadd",
-    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
-             action=c("copy", "move", "asis"), proxy="", ...)
+    function(
+        x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
+        action=c("copy", "move", "asis"), proxy="", ...)
     standardGeneric("bfcadd"),
-    signature="x")
+signature="x")
 
 #' @describeIn BiocFileCache Add an existing resource to the database
 #'
@@ -136,15 +137,17 @@ setGeneric("bfcadd",
 #' @param proxy proxy server
 #' @param ... For \code{action="copy"}, additional arguments passed to
 #'     \code{file.copy}.
-#' @return numeric(1) The unique id of the resource in the cache.
+#' @return named character(1) The path to save your object/file.
+#' The name of the character is the unique rid for the resource.
 #' @examples
 #' fl1 <- tempfile(); file.create(fl1)
 #' bfcadd(bfc0, "Test1", fl1)                 # copy
 #' fl2 <- tempfile(); file.create(fl2)
 #' bfcadd(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' rid3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
-#'
+#' add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+#' rid3 <- as.integer(names(add3))
+#' 
 #' bfc0
 #' file.exists(fl1)                                # TRUE
 #' file.exists(fl2)                                # FALSE
@@ -156,8 +159,9 @@ setGeneric("bfcadd",
 #' @aliases bfcadd
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
-    function(x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
-             action=c("copy", "move", "asis"), proxy="", ...)
+    function(
+        x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
+        action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
     stopifnot(length(fpath) == 1L, is.character(fpath), !is.na(fpath))
@@ -183,7 +187,9 @@ setMethod("bfcadd", "BiocFileCache",
             action <- "move"
             fpath <- temploc
         }else{
-            stop("'", fpath, "' could not be downloaded.")
+            stop(
+                "download failed:",
+                "\n file: '", fpath, "'")
         }
     }
     switch(
@@ -192,7 +198,8 @@ setMethod("bfcadd", "BiocFileCache",
         move = file.rename(fpath, .sql_get_rpath(x, rid)),
         asis = .sql_set_rpath(x, rid, fpath))
 
-    rid
+    rpath <- .sql_get_rpath(x, rid)
+    setNames(rpath, rid)
 })
 
 .check_rtype <- function(path){
@@ -294,12 +301,15 @@ setMethod("bfcupdate", "BiocFileCache",
             if (length(web_time) != 0L) {
                 sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
             } else {
-                sqlfile <- .sql_set_modifiedTime(x, rid,
-                                                 as.character(Sys.Date()))
+                sqlfile <- .sql_set_modifiedTime(
+                    x, rid, as.character(Sys.Date())
+                )
             }
         } else {
-            stop("'", weblink,
-                 "' could not be downloaded. \n weblink not updated.")
+            stop(
+                "download failed",
+                "\n weblink not updated.",
+                "\n file: '", weblink, "'")
         }
     }    
 })
@@ -380,8 +390,10 @@ setMethod("bfcdownload", "BiocFileCache",
         if (length(web_time) != 0L) {
             sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
         } else {
-            sqlfile <- .sql_set_modifiedTime(x, rid,
-                                             as.character(Sys.Date()))
+            sqlfile <- .sql_set_modifiedTime(
+                x,
+                rid,
+                as.character(Sys.Date()))
         }       
     }
 })
@@ -432,8 +444,8 @@ setMethod("bfcsync", "BiocFileCache",
     rids <- .get_rid_filenotfound(x)
 
     # files untracked in cache location
-    files <- file.path(bfcCache(x),
-                       setdiff(list.files(bfcCache(x)), "BiocFileCache.sqlite"))
+    files <- file.path(
+        bfcCache(x), setdiff(list.files(bfcCache(x)), "BiocFileCache.sqlite"))
     untracked <- setdiff(files, .get_all_rpath(x))
 
     if ( (length(rids) == 0L) && (length(untracked) == 0L) ){
@@ -442,15 +454,20 @@ setMethod("bfcsync", "BiocFileCache",
     }else{
         if (verbose) {
             if (length(rids) != 0L) {
-                message("The following entries have local files specified but not found.
-Consider updating or removing:\n\n")
+                txt = "The following entries have local files
+                        specified but not found.
+                        Consider updating or removing:"
+                message(paste(strwrap(txt, exdent=4), collapse="\n"), "\n\n")
                 print(bfclist(x, rids))
-                cat("\n\n\n")
+                message("\n\n\n")
             }
             if (length(untracked) != 0L) {
-                message("The following entries are in the cache but not being tracked.
-Consider adding:\n\n")
-                cat(paste(untracked, "\n"), "\n\n")
+                txt = "The following entries are in the cache
+                        but not being tracked.
+                        Consider adding to cache with 'bfcadd()':"
+                message(paste(strwrap(txt, exdent=4), collapse="\n"), "\n\n")
+                cat(paste(untracked, collapse="\n"))
+                message("\n\n")
             }
         }
         FALSE
@@ -490,8 +507,9 @@ setMethod("cleanCache", "BiocFileCache",
                     entry$rid, entry$rpath)
                 repeat {
                     response <- readline(txt)
-                    doit <- switch(substr(tolower(response), 1, 1),
-                                   y = TRUE, n = FALSE, NA)
+                    doit <- switch(
+                        substr(tolower(response), 1, 1),
+                        y = TRUE, n = FALSE, NA)
                     if (!is.na(doit))
                         break
                 }
@@ -503,8 +521,8 @@ setMethod("cleanCache", "BiocFileCache",
             }
         } else {
 
-            paths <- unname(unlist(lapply(idsToDel,
-                                          .sql_get_rpath, bfc=x)))
+            paths <- unlist(lapply(idsToDel, .sql_get_rpath, bfc=x),
+                            use.names=FALSE)
             rmMe <- startsWith(paths, bfcCache(x))
             paths <- paths[rmMe]
             if (length(paths) != 0L) file <- unlink(paths, force=TRUE)
@@ -534,8 +552,9 @@ setMethod("removeCache", "BiocFileCache",
         txt <- sprintf("remove cache and %d resource (y/N): ", length(x))
         repeat {
             response <- readline(txt)
-            doit <- switch(substr(tolower(response), 1, 1),
-                           y = TRUE, n = FALSE, NA)
+            doit <- switch(
+                substr(tolower(response), 1, 1),
+                y = TRUE, n = FALSE, NA)
             if (!is.na(doit))
                 break
         }

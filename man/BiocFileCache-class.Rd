@@ -139,7 +139,8 @@ Updated BiocFileCache object
 named character(1) The path to save your object/file.
 The name of the character is the unique rid for the resource
 
-numeric(1) The unique id of the resource in the cache.
+named character(1) The path to save your object/file.
+The name of the character is the unique rid for the resource.
 
 A list of current resources in the database
 
@@ -197,7 +198,8 @@ the file will also be deleted.
 
 \item \code{bfcsync}: sync cache and resource.
 
-\item \code{cleanCache}: Remove old/unused files in BiocFileCache
+\item \code{cleanCache}: Remove old/unused files in BiocFileCache. If file
+to be removed is not in the bfcCache location it will not be deleted.
 
 \item \code{removeCache}: Completely remove the BiocFileCache
 
@@ -217,7 +219,8 @@ bfcadd(bfc0, "Test1", fl1)                 # copy
 fl2 <- tempfile(); file.create(fl2)
 bfcadd(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-rid3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+rid3 <- as.integer(names(add3))
 
 bfc0
 file.exists(fl1)                                # TRUE
