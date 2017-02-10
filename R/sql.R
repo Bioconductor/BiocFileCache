@@ -169,10 +169,14 @@
 
 .sql_query_resource <-
     function(bfc, value)
-{
-    sql <- .sql_sprintf("-- QUERY_NAMES", value)
-    .sql_get_query(bfc, sql) %>% select_("rid") %>%
-        collect(Inf) %>% `[[`("rid")
+{ 
+    helperFun <- function(bfc0, vl){
+        sql <- .sql_sprintf("-- QUERY_NAMES", vl)
+        .sql_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
+            `[[`("rid")
+    }
+    res <- lapply(value, FUN=helperFun, bfc0=bfc)
+    Reduce(intersect, res)
 }
 
 .get_all_rpath <-
