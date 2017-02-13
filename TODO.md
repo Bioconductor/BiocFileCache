@@ -15,10 +15,20 @@ library(BiocFileCache)
 example("BiocFileCache-class")
 
 
-#bfcadd(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
-#bfcadd(bfc0, "webTestFTP", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
-#bfcadd(bfc0, "webReDir", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
-#bfcadd(bfc0, "webNotFound", rtype="web", fpath="https://hehehaf")
+
+# test http
+bfcadd(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
+# test ftp 
+bfcadd(bfc0, "webTestFTP", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
+# test a redirection
+bfcadd(bfc0, "webReDir", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
+# test a not found 
+bfcadd(bfc0, "webNotFound", rtype="web", fpath="https://hehehaf")
+
+# test simple no last modified tag
+bfcadd(bfc0, "website", fpath="http://httpbin.org/get")
+# test simple with last modified tag 
+bfcadd(bfc0, "website", fpath="https://en.wikipedia.org/wiki/Bioconductor")
 
 #####################
 #
