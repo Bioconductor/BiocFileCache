@@ -75,11 +75,20 @@
         i = integer(0)
     src <- src_sqlite(.sql_dbfile(bfc))
     if (length(i) == 0)
-        tbl(src, "resource")
+        vl <- tbl(src, "resource")
     else if (length(i) == 1)
-        tbl(src, "resource") %>% filter_(~ rid == i)
+        vl <- tbl(src, "resource") %>% filter_(~ rid == i)
     else
-        tbl(src, "resource") %>% filter_(~ rid %in% i)
+        vl <- tbl(src, "resource") %>% filter_(~ rid %in% i)
+
+    class(vl) <- c("tbl_bfc", class(vl))
+    vl
+}
+
+.sql_get_nrows <-
+    function(x)
+{
+    x %>% count() %>% collect(Inf) %>% `[[`('n')
 }
 
 .sql_get_field <-

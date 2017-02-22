@@ -234,6 +234,14 @@ setMethod("bfcinfo", "BiocFileCache",
 })
 
 #' @export
+dim.tbl_bfc <- function(x)
+{
+    result <- NextMethod("dim")
+    result[1] <- .sql_get_nrows(x)
+    result
+}
+
+#' @export
 setGeneric("bfcpath",
     function(x, rid) standardGeneric("bfcpath"))
 
