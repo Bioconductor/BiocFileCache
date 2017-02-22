@@ -82,20 +82,25 @@ test_that("bfcinfo works", {
                      c(0L, 8L))
 })
 
-test_that("bfcpath and bfcrpathworks", {
+test_that("bfcpath and bfcrpath works", {
     # local file
     expect_identical(length(bfcpath(bfc, rid1)), 1L)
-    expect_identical(names(bfcpath(bfc, rid1)), "localFile")
+    expect_identical(names(bfcpath(bfc, rid1)), as.character(rid1))
     expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rid1))
         
     # web file
     expect_identical(length(bfcpath(bfc, rid3)), 2L)
-    expect_identical(names(bfcpath(bfc, rid3)), c("localFile", "weblink"))
-    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc,rid3))
-        
+    expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "weblink"))
+    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rid3))
+    
     # index not found 
     expect_error(bfcpath(bfc, 6))
-    expect_error(bfcrpath(bfc, 6))
+    expect_true(is.null(bfcrpath(bfc, 6)))
+    expect_true(is.null(bfcrpath(bfc, 6:12)))
+
+    # multiple files
+    expect_identical(length(bfcrpath(bfc, 1:7)), 4L)
+    expect_identical(length(bfcrpath(bfc, c(1,2,5))), 2L)
 })
 
 test_that("check rtpye works", {

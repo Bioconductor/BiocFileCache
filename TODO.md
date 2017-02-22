@@ -61,12 +61,9 @@ http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-
 
 
 7. multiple ids for 
-
-bfcpath - no 
 bfcrpath - yes
 bfcupdate - yes
 bfcneedsupdate - yes
-bfcdownload - no 
 
 
 8. add extended use section
