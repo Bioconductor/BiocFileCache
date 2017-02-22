@@ -13,10 +13,12 @@
 \alias{bfcnew}
 \alias{bfcadd,BiocFileCache-method}
 \alias{bfcadd}
-\alias{bfclist,BiocFileCache-method}
-\alias{bfclist}
+\alias{bfcinfo,BiocFileCache-method}
+\alias{bfcinfo}
 \alias{bfcpath,BiocFileCache-method}
 \alias{bfcpath}
+\alias{bfcrpath,BiocFileCache-method}
+\alias{bfcrpath}
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
 \alias{bfcquery,BiocFileCache-method}
@@ -52,9 +54,11 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
   rtype = c("auto", "local", "web"), action = c("copy", "move", "asis"),
   proxy = "", ...)
 
-\S4method{bfclist}{BiocFileCache}(x, rids)
+\S4method{bfcinfo}{BiocFileCache}(x, rids)
 
 \S4method{bfcpath}{BiocFileCache}(x, rid)
+
+\S4method{bfcrpath}{BiocFileCache}(x, rid)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
@@ -127,39 +131,49 @@ entry will be deleted}
 \item{object}{A \code{BiocFileCache} instance.}
 }
 \value{
-A \code{BiocFileCache} instance.
+For 'BiocFileCache': A \code{BiocFileCache} instance.
 
-character(1) location of the directory containing the cache.
+For 'bfcCache': character(1) location of the directory
+containing the cache.
 
-integer(1) Number of objects in the file cache.
+For 'length': integer(1) Number of objects in the file cache.
 
-rpath for the given resource in the cache
+For '[[': rpath for the given resource in the cache
 
-Updated BiocFileCache object
+For '[[<-': Updated biocFileCache, invisibly
 
-named character(1) The path to save your object/file.
+For 'bfcnew': named character(1) The path to save your object/file.
 The name of the character is the unique rid for the resource
 
-named character(1) The path to save your object/file.
+For 'bfcadd': named character(1) The path to save your object/file.
 The name of the character is the unique rid for the resource.
 
-A list of current resources in the database
+For 'bfcinfo': A list of current resources in the database
 
-The file path location to load
+For 'bfcpath': The file path location to load and original source
+information for web resources.
 
-A list of current resources in the database whose rname, rpath, or
-weblink contained queryValue. If multiple values are given, the resource must
-contain all of the patterns. If a resource is not found matching all patterns
-listed, returns NA.
+For 'bfcrpath': The local file path location to load
 
-logical if resource needs to be updated
+For 'bfcupdate': Returns updated biocFileCache object, invisibly
 
-logical if cache is in sync. 'verbose' is TRUE by default, so
-descriptive messages will also be included
+For 'bfcquery': A list of current resources in the database whose
+rname, rpath, or weblink contained queryValue. If multiple values are given,
+the resource must contain all of the patterns. If a resource is not found
+matching all patterns listed, returns NA.
 
-TRUE if successfully removed.
+For 'bfcneedsupdate': logical if resource needs to be updated
 
-TRUE if successfully removed.
+For 'bfcdownload': Returns rpath to data, invisibly
+
+For 'bfcremove': Returns updated biocFileCache object, invisibly
+
+For 'bfcsync': logical if cache is in sync. 'verbose' is TRUE by
+default, so descriptive messages will also be included
+
+For 'cleanCache': TRUE if successfully removed.
+
+For 'removeCache': TRUE if successfully removed.
 }
 \description{
 This class represents the location of files stored on disk. Use the
@@ -183,9 +197,11 @@ select resources from the cache.
 
 \item \code{bfcadd}: Add an existing resource to the database
 
-\item \code{bfclist}: list resources in database
+\item \code{bfcinfo}: list resources in database
 
-\item \code{bfcpath}: load resource
+\item \code{bfcpath}: display paths of resource
+
+\item \code{bfcrpath}: display rpath of resource
 
 \item \code{bfcupdate}: Update a resource in the cache
 
@@ -233,8 +249,9 @@ file.exists(fl3)                                # TRUE
 # add a remote resource
 url <- "http://httpbin.org/get"
 bfcadd(bfc0, "TestWeb", fpath=url)
-bfclist(bfc0)
+bfcinfo(bfc0)
 bfcpath(bfc0, rid3)
+bfcrpath(bfc0, rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
 bfcupdate(bfc0, 5, weblink="http://google.com")
@@ -242,7 +259,7 @@ bfcquery(bfc0, "test")
 bfcneedsupdate(bfc0, 5)
 bfcdownload(bfc0, 5)
 bfcremove(bfc0, rid3)
-bfclist(bfc0)
+bfcinfo(bfc0)
 bfcsync(bfc0)
 bfcremove(bfc0, 1)
 bfcsync(bfc0, FALSE)

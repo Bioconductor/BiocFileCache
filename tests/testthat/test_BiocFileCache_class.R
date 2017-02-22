@@ -66,33 +66,36 @@ rid3 <- as.integer(names(add3))
 path <- bfcnew(bfc, 'test-4')
 rid4 <- as.integer(names(path))
 
-test_that("bfclist works", {
+test_that("bfcinfo works", {
     # print all 
-    expect_identical(dim(as.data.frame(bfclist(bfc))),
+    expect_identical(dim(as.data.frame(bfcinfo(bfc))),
                      c(4L, 8L))
-    expect_is(bfclist(bfc), "tbl_sqlite")
+    expect_is(bfcinfo(bfc), "tbl_sqlite")
     # print subset
-    expect_identical(dim(as.data.frame(bfclist(bfc, 1:3))),
+    expect_identical(dim(as.data.frame(bfcinfo(bfc, 1:3))),
                      c(3L, 8L))
     # print one found and one not found 
-    expect_identical(dim(as.data.frame(bfclist(bfc, c(1, 6)))),
+    expect_identical(dim(as.data.frame(bfcinfo(bfc, c(1, 6)))),
                      c(1L, 8L))
     # index not found 
-    expect_identical(dim(as.data.frame(bfclist(bfc, 6))),
+    expect_identical(dim(as.data.frame(bfcinfo(bfc, 6))),
                      c(0L, 8L))
 })
 
-test_that("bfcpath works", {
+test_that("bfcpath and bfcrpathworks", {
     # local file
     expect_identical(length(bfcpath(bfc, rid1)), 1L)
     expect_identical(names(bfcpath(bfc, rid1)), "localFile")
-    
+    expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rid1))
+        
     # web file
     expect_identical(length(bfcpath(bfc, rid3)), 2L)
     expect_identical(names(bfcpath(bfc, rid3)), c("localFile", "weblink"))
-    
+    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc,rid3))
+        
     # index not found 
-    expect_error(bfcpath(bfc, 6))    
+    expect_error(bfcpath(bfc, 6))
+    expect_error(bfcrpath(bfc, 6))
 })
 
 test_that("check rtpye works", {
@@ -121,9 +124,9 @@ test_that("bfcupdate works", {
     link = "https://en.wikipedia.org/wiki/Bioconductor"
     bfcupdate(bfc, rid3, weblink=link, rname="prepQuery")
     vl <- as.character(unname(as.data.frame(
-        bfclist(bfc,rid3))[c("rname", "weblink")]))
+        bfcinfo(bfc,rid3))[c("rname", "weblink")]))
     expect_identical(vl, c("prepQuery", link))
-    time <- as.data.frame(bfclist(bfc,rid3))$last_modified_time
+    time <- as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
     expect_identical(time, BiocFileCache:::.get_web_last_modified(link))
     
     # test rpath update and give second query example
@@ -171,7 +174,7 @@ test_that("bfcneedsupdate works", {
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
     expect_message(is.na(bfcneedsupdate(bfc, rid3)))
     expect_identical(as.character(Sys.Date()),
-        as.data.frame(bfclist(bfc,rid3))$last_modified_time)
+        as.data.frame(bfcinfo(bfc,rid3))$last_modified_time)
 })
 
 test_that("bfcsync and bfcremove works", {

@@ -215,29 +215,30 @@ first column of the table to be used in other functions.
 &nbsp;
 &nbsp;
 
- * bfclist()
+ * bfcinfo()
 
-`bfclist()` will list any subset of the `BiocFileCache` object. It returns an
+`bfcinfo()` will list any subset of the `BiocFileCache` object. It returns an
 object of class `tbl_sqlite`/`tbl_sql`. Any *rids* given that are not found in
 the BiocFileCache object will be filtered out and if *rids* are not specified,
 the entire object is listed.
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
-bfclist(bfc)
+bfcinfo(bfc)
 
-bfclist(bfc, c(1,6))
+bfcinfo(bfc, c(1,6))
 
-bfclist(bfc, 4:20)
+bfcinfo(bfc, 4:20)
 ```
 
 &nbsp;
 &nbsp;
 
-There are two methods for retrieving the `BiocFileCache` resource path location.
+There are three methods for retrieving the `BiocFileCache` resource path location.
  
 
  * [[
  * bfcpath()
+ * bfcrpath()
 
 The `[[` will access the *rpath* saved in the `BiocFileCache`. Retrieving this
 location will return the path to the local version of the resource; allowing the
@@ -245,7 +246,8 @@ user to then use this path in any load/read methods most appropriate for the
 resource. The `bfcpath()` returns a named character vector also displaying the
 localfile that can be used for retrieval. If the resource is a remote resource,
 `bfcpath()` will also return the path to the original source saved as
-`weblink`. 
+`weblink`. The `bfcrpath()` returns a named character vector only displaying the
+localfile.
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
@@ -254,6 +256,8 @@ bfc[[2]]
 bfcpath(bfc, 2)
 
 bfcpath(bfc, 5)
+
+bfcrpath(bfc, 5)
 ```
 
 &nbsp;
@@ -312,13 +316,13 @@ updated, the data will be downloaded and overwrite the current file specified in
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 
-bfclist(bfc, 1)
+bfcinfo(bfc, 1)
 
 
 bfcupdate(bfc, 1, rname="FirstEntry")
 
 
-bfclist(bfc, 1)
+bfcinfo(bfc, 1)
 
 
 
@@ -332,13 +336,13 @@ library(dplyr)
 
 
 
-bfclist(bfc, 6) %>% select(rid,rpath,weblink)
+bfcinfo(bfc, 6) %>% select(rid,rpath,weblink)
 
 
 bfcupdate(bfc, 6, weblink=url, rname="Duplicate")
 
 
-bfclist(bfc, 6) %>% select(rid,rpath,weblink)
+bfcinfo(bfc, 6) %>% select(rid,rpath,weblink)
 ```
 
 &nbsp;
