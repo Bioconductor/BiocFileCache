@@ -297,7 +297,7 @@ setMethod("bfcrpath", "BiocFileCache",
 
 #' @export
 setGeneric("bfcupdate",
-    function(x, rid, value, colID, ...)
+    function(x, rids, value, colID, ...)
     standardGeneric("bfcupdate"),
     signature="x")
 
@@ -313,44 +313,72 @@ setGeneric("bfcupdate",
 #' @return For 'bfcupdate': Returns updated biocFileCache object, invisibly
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
-    function(x, rid, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
+    function(x, rids, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
 {
-    stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(rid %in% .get_all_rids(x))
-    sqlfile <- .sql_update_time(x, rid)
-    if (!is.null(rname)){
-        stopifnot(is.character(rname))
-        sqlfile <- .sql_set_rname(x, rid, rname)
-    }
-    if (!is.null(rpath)){
-        stopifnot(is.character(rpath))
-        stopifnot(file.exists(rpath))
-        sqlfile <- .sql_set_rpath(x, rid, rpath)
-    }
-    if (!is.null(weblink)){
-        stopifnot(is.character(weblink))
-        stopifnot(.sql_get_field(x, rid, "rtype")=="web")
-        localpath <- .sql_get_rpath(x, rid)
-        wasSuccess <- .download_resource(weblink, localpath, proxy)
-        if (wasSuccess) {
-            sqlfile <- .sql_set_weblink(x, rid, weblink)
-            web_time <- .get_web_last_modified(weblink)
-            if (length(web_time) != 0L) {
-                sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
-            } else {
-                sqlfile <- .sql_set_modifiedTime(
-                    x, rid, as.character(Sys.Date())
-                )
-            }
-        } else {
-            stop(
-                "download failed",
-                "\n weblink not updated.",
-                "\n file: '", weblink, "'")
+
+    stopifnot(!missing(rids), all(rids %in% .get_all_rids(x)))
+    
+    stopifnot(((length(rids) == length(rname)) || is.null(rname)), 
+              ((length(rids) == length(rpath)) || is.null(rpath)), 
+              ((length(rids) == length(weblink)) || is.null(weblink)))
+
+    if (!is.null(rname)) stopifnot(is.character(rname))
+    if (!is.null(rpath)) stopifnot(is.character(rpath))
+    if (!is.null(weblink)) stopifnot(is.character(weblink))
+    
+    for (i in seq_along(rids)){
+
+        sqlfile <- .sql_update_time(x, rids[i])
+        
+        if (!is.null(rname)){
+            sqlfile <- .sql_set_rname(x, rids[i], rname[i])
         }
-    }
+        
+        if (!is.null(rpath)){
+            chk <- file.exists(rpath[i])
+            if (chk) {
+                sqlfile <- .sql_set_rpath(x, rids[i], rpath[i])
+            } else {
+                message(paste("set rpath failed",
+                              "\n rpath not updated.",
+                              "\n rid: ", rids[i],
+                              "\n rpath: '", rpath[i], "' does not exist.", sep="")) 
+            }
+        }
+
+        if (!is.null(weblink)){
+            chk <- .sql_get_field(x, rids[i], "rtype")=="web"
+            if (chk) {
+                localpath <- .sql_get_rpath(x, rids[i])
+                wasSuccess <- .download_resource(weblink[i], localpath, proxy)
+                if (wasSuccess) {
+                    sqlfile <- .sql_set_weblink(x, rids[i], weblink[i])
+                    web_time <- .get_web_last_modified(weblink[i])
+                    if (length(web_time) != 0L) {
+                        sqlfile <- .sql_set_modifiedTime(x, rids[i], web_time)
+                    } else {
+                        sqlfile <- .sql_set_modifiedTime(
+                            x, rids[i], as.character(Sys.Date())
+                            )
+                    }
+                } else {
+                    message(
+                        "download failed",
+                        "\n weblink not updated.",
+                        "\n rid: ", rids[i],
+                        "\n file: '", weblink, "'")
+                }                           
+            }else{
+                message(paste("set weblink failed",
+                              "\n weblink not updated.",
+                              "\n rid: ", rids[i],
+                              "\n Resource rtype is not web.", sep=""))
+            }
+        }
+    } 
+   
     invisible(x)
-})
+}) 
 
 #' @export
 setGeneric("bfcquery",

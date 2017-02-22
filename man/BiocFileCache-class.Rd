@@ -60,7 +60,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcrpath}{BiocFileCache}(x, rids)
 
-\S4method{bfcupdate}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
+\S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
 
 \S4method{bfcquery}{BiocFileCache}(x, queryValue)
