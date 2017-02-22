@@ -262,30 +262,37 @@ setMethod("bfcpath", "BiocFileCache",
     path <- .sql_get_rpath(x, rid)
     if (.sql_get_field(x, rid, "rtype")=="web"){
         weblink <- .sql_get_field(x, rid, "weblink")
-        setNames(c(path, weblink), c("localFile", "weblink"))
+        setNames(c(path, weblink), c(rid, "weblink"))
     }else{
-        setNames(path, "localFile")
+        setNames(path, rid)
     }
 })
 
 #' @export
 setGeneric("bfcrpath",
-    function(x, rid) standardGeneric("bfcrpath"))
+    function(x, rids) standardGeneric("bfcrpath"))
 
 #' @describeIn BiocFileCache display rpath of resource
-#' @return For 'bfcrpath': The local file path location to load
+#' @return For 'bfcrpath': The local file path location to load.
+#' If no 'rids' are valid, returns NULL.
 #' @examples
 #' bfcrpath(bfc0, rid3)
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "BiocFileCache",
-    function(x, rid)
+    function(x, rids)
 {
-    stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(rid %in% .get_all_rids(x))
-    sqlfile <- .sql_update_time(x, rid)
-    path <- .sql_get_rpath(x, rid)
-    setNames(path, "localFile")    
+    if (missing(rids))
+        rids <- .get_all_rids(x)
+    
+    helper <- function(i, x0){
+        if (i %in% .get_all_rids(x0)) {
+            sqlfile <- .sql_update_time(x0, i)
+            path <- .sql_get_rpath(x0, i)
+            setNames(path, i)
+        }
+    }
+    unlist(lapply(rids, FUN=helper, x0=x))    
 })
 
 #' @export

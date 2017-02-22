@@ -258,6 +258,8 @@ bfcpath(bfc, 2)
 bfcpath(bfc, 5)
 
 bfcrpath(bfc, 5)
+
+bfcrpath(bfc)
 ```
 
 &nbsp;

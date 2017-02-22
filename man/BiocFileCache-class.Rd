@@ -58,7 +58,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcpath}{BiocFileCache}(x, rid)
 
-\S4method{bfcrpath}{BiocFileCache}(x, rid)
+\S4method{bfcrpath}{BiocFileCache}(x, rids)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rid, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
@@ -153,7 +153,8 @@ For 'bfcinfo': A list of current resources in the database
 For 'bfcpath': The file path location to load and original source
 information for web resources.
 
-For 'bfcrpath': The local file path location to load
+For 'bfcrpath': The local file path location to load.
+If no 'rids' are valid, returns NULL.
 
 For 'bfcupdate': Returns updated biocFileCache object, invisibly
 
