@@ -65,7 +65,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcquery}{BiocFileCache}(x, queryValue)
 
-\S4method{bfcneedsupdate}{BiocFileCache}(x, rid)
+\S4method{bfcneedsupdate}{BiocFileCache}(x, rids)
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "")
 
@@ -163,7 +163,9 @@ rname, rpath, or weblink contained queryValue. If multiple values are given,
 the resource must contain all of the patterns. If a resource is not found
 matching all patterns listed, returns NA.
 
-For 'bfcneedsupdate': logical if resource needs to be updated
+For 'bfcneedsupdate': named logical vector if resource needs to
+be updated. The name is the unique 'rid' for the resource. If no 'rids'
+are web resources, or no 'rids' are valid, returns NULL
 
 For 'bfcdownload': Returns rpath to data, invisibly
 

@@ -161,6 +161,13 @@
         collect(Inf) %>% `[[`("rid")
 
 }
+.get_all_web_rids <-
+    function(bfc)
+{
+    .sql_get_resource_table(bfc) %>% filter_(~ rtype == "web") %>%
+        select_("rid") %>% collect(Inf) %>% `[[`("rid")
+
+}
 
 .sql_set_modifiedTime <-
     function(bfc, rid, value)
