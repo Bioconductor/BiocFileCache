@@ -99,7 +99,8 @@ setGeneric("bfcnew",
     signature="x")
 #' @describeIn BiocFileCache Add a resource to the database
 #'
-#' @param rname character(1) Name of object in file cache
+#' @param rname character(1) Name of object in file cache. For 'bfcupdate' a
+#' character vector of replacement rnames
 #' @return For 'bfcnew': named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource
 #' @examples
@@ -303,8 +304,8 @@ setGeneric("bfcupdate",
 
 #' @describeIn BiocFileCache Update a resource in the cache
 #'
-#' @param rpath character(1) replacement value for rpath
-#' @param weblink character(1) path to replacement web resource
+#' @param rpath character vector of replacement rpaths
+#' @param weblink character vector of replacement web resources
 #' @examples
 #' bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 #' bfc0[[rid3]] = fl1
@@ -342,7 +343,8 @@ setMethod("bfcupdate", "BiocFileCache",
                 message(paste("set rpath failed",
                               "\n rpath not updated.",
                               "\n rid: ", rids[i],
-                              "\n rpath: '", rpath[i], "' does not exist.", sep="")) 
+                              "\n rpath: '", rpath[i], "' does not exist.",
+                              sep="")) 
             }
         }
 
