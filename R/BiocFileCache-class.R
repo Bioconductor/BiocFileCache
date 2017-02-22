@@ -13,7 +13,7 @@
 #'
 #' @param cache character(1) On-disk location (directory path) of
 #'     cache.
-#' @return A \code{BiocFileCache} instance.
+#' @return For 'BiocFileCache': A \code{BiocFileCache} instance.
 #' @examples
 #' bfc <- BiocFileCache()            # global cache
 #' bfc
@@ -35,7 +35,8 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 
 #' @describeIn BiocFileCache Get the location of the on-disk cache.
 #' @param x \code{BiocFileCache} instance.
-#' @return character(1) location of the directory containing the cache.
+#' @return For 'bfcCache': character(1) location of the directory
+#' containing the cache.
 #' @examples
 #' bfcCache(bfc)
 #' @aliases bfcCache
@@ -48,7 +49,7 @@ setMethod("bfcCache", "BiocFileCache",
 
 #' @describeIn BiocFileCache Get the number of object in the file
 #'     cache.
-#' @return integer(1) Number of objects in the file cache.
+#' @return For 'length': integer(1) Number of objects in the file cache.
 #' @examples
 #' length(bfc)
 #' @importFrom stats setNames
@@ -56,7 +57,7 @@ setMethod("bfcCache", "BiocFileCache",
 setMethod("length", "BiocFileCache",
     function(x)
 {
-    bfclist(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
+    bfcinfo(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
         collect %>% `[[`("n")
 })
 
@@ -64,7 +65,7 @@ setMethod("length", "BiocFileCache",
 #' the cache.
 #' @param i Rid numbers
 #' @param j Not applicable
-#' @return rpath for the given resource in the cache
+#' @return For '[[': rpath for the given resource in the cache
 #' @exportMethod [[
 setMethod("[[", c("BiocFileCache", "numeric", "missing"),
     function(x, i, j)
@@ -78,7 +79,7 @@ setMethod("[[", c("BiocFileCache", "numeric", "missing"),
 #' @describeIn BiocFileCache Set the file path of a
 #' select resources from the cache.
 #' @param value character(1) Replace file path
-#' @return Updated BiocFileCache object
+#' @return For '[[<-': Updated biocFileCache, invisibly
 #' @exportMethod [[<-
 setReplaceMethod("[[",
 c("BiocFileCache", "numeric", "missing", "character"),
@@ -99,7 +100,7 @@ setGeneric("bfcnew",
 #' @describeIn BiocFileCache Add a resource to the database
 #'
 #' @param rname character(1) Name of object in file cache
-#' @return named character(1) The path to save your object/file.
+#' @return For 'bfcnew': named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource
 #' @examples
 #' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
@@ -137,7 +138,7 @@ signature="x")
 #' @param proxy proxy server
 #' @param ... For \code{action="copy"}, additional arguments passed to
 #'     \code{file.copy}.
-#' @return named character(1) The path to save your object/file.
+#' @return For 'bfcadd': named character(1) The path to save your object/file.
 #' The name of the character is the unique rid for the resource.
 #' @examples
 #' fl1 <- tempfile(); file.create(fl1)
@@ -212,19 +213,19 @@ setMethod("bfcadd", "BiocFileCache",
 
 
 #' @export
-setGeneric("bfclist",
+setGeneric("bfcinfo",
     function(x, rids)
-    standardGeneric("bfclist"),
+    standardGeneric("bfcinfo"),
     signature="x")
 
 #' @describeIn BiocFileCache list resources in database
 #' @param rids character() List of rids.
-#' @return A list of current resources in the database
+#' @return For 'bfcinfo': A list of current resources in the database
 #' @examples
-#' bfclist(bfc0)
-#' @aliases bfclist
-#' @exportMethod bfclist
-setMethod("bfclist", "BiocFileCache",
+#' bfcinfo(bfc0)
+#' @aliases bfcinfo
+#' @exportMethod bfcinfo
+setMethod("bfcinfo", "BiocFileCache",
     function(x, rids)
 {
     if (missing(rids))
@@ -236,9 +237,10 @@ setMethod("bfclist", "BiocFileCache",
 setGeneric("bfcpath",
     function(x, rid) standardGeneric("bfcpath"))
 
-#' @describeIn BiocFileCache load resource
+#' @describeIn BiocFileCache display paths of resource
 #' @param rid numeric(1) Unique resource id
-#' @return The file path location to load
+#' @return For 'bfcpath': The file path location to load and original source
+#' information for web resources.
 #' @examples
 #' bfcpath(bfc0, rid3)
 #' @aliases bfcpath
@@ -258,6 +260,25 @@ setMethod("bfcpath", "BiocFileCache",
     }
 })
 
+#' @export
+setGeneric("bfcrpath",
+    function(x, rid) standardGeneric("bfcrpath"))
+
+#' @describeIn BiocFileCache display rpath of resource
+#' @return For 'bfcrpath': The local file path location to load
+#' @examples
+#' bfcrpath(bfc0, rid3)
+#' @aliases bfcrpath
+#' @exportMethod bfcrpath
+setMethod("bfcrpath", "BiocFileCache",
+    function(x, rid)
+{
+    stopifnot(!missing(rid), length(rid) == 1L)
+    stopifnot(rid %in% .get_all_rids(x))
+    sqlfile <- .sql_update_time(x, rid)
+    path <- .sql_get_rpath(x, rid)
+    setNames(path, "localFile")    
+})
 
 #' @export
 setGeneric("bfcupdate",
@@ -274,6 +295,7 @@ setGeneric("bfcupdate",
 #' bfc0[[rid3]] = fl1
 #' bfcupdate(bfc0, 5, weblink="http://google.com")
 #' @aliases bfcupdate
+#' @return For 'bfcupdate': Returns updated biocFileCache object, invisibly
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rid, rname=NULL, rpath=NULL, weblink=NULL, proxy="")
@@ -311,7 +333,8 @@ setMethod("bfcupdate", "BiocFileCache",
                 "\n weblink not updated.",
                 "\n file: '", weblink, "'")
         }
-    }    
+    }
+    invisible(x)
 })
 
 #' @export
@@ -321,10 +344,10 @@ setGeneric("bfcquery",
 #' @describeIn BiocFileCache query resource
 #' @param queryValue character vector of patterns to match in resource. It will
 #' match the pattern against rname, rpath, and weblink. 
-#' @return A list of current resources in the database whose rname, rpath, or
-#' weblink contained queryValue. If multiple values are given, the resource must
-#' contain all of the patterns. If a resource is not found matching all patterns
-#' listed, returns NA.
+#' @return For 'bfcquery': A list of current resources in the database whose
+#' rname, rpath, or weblink contained queryValue. If multiple values are given,
+#' the resource must contain all of the patterns. If a resource is not found
+#' matching all patterns listed, returns NA.
 #' @examples
 #' bfcquery(bfc0, "test")
 #' @aliases bfcquery
@@ -346,7 +369,7 @@ setGeneric("bfcneedsupdate",
     function(x, rid) standardGeneric("bfcneedsupdate"))
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
-#' @return logical if resource needs to be updated
+#' @return For 'bfcneedsupdate': logical if resource needs to be updated
 #' @examples
 #' bfcneedsupdate(bfc0, 5)
 #' @aliases bfcneedsupdate
@@ -378,6 +401,7 @@ setGeneric("bfcdownload",
 #' @examples
 #' bfcdownload(bfc0, 5)
 #' @aliases bfcdownload
+#' @return For 'bfcdownload': Returns rpath to data, invisibly
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
     function(x, rid, proxy="")
@@ -400,6 +424,7 @@ setMethod("bfcdownload", "BiocFileCache",
                 as.character(Sys.Date()))
         }       
     }
+    invisible(saveFile)
 })
 
 #' @export
@@ -411,8 +436,9 @@ setGeneric("bfcremove",
 #' the file will also be deleted.
 #' @examples
 #' bfcremove(bfc0, rid3)
-#' bfclist(bfc0)
+#' bfcinfo(bfc0)
 #' @aliases bfcremove
+#' @return For 'bfcremove': Returns updated biocFileCache object, invisibly
 #' @exportMethod bfcremove
 setMethod("bfcremove", "BiocFileCache",
     function(x, rids)
@@ -424,6 +450,7 @@ setMethod("bfcremove", "BiocFileCache",
         }
     }
     sqlfile <- .sql_remove_resource(x, rids)
+    invisible(x)
 })
 
 #' @export
@@ -433,8 +460,8 @@ setGeneric("bfcsync",
 #' @describeIn BiocFileCache sync cache and resource.
 #' @param verbose If descriptive message and list of issues should be included
 #' as output
-#' @return logical if cache is in sync. 'verbose' is TRUE by default, so
-#' descriptive messages will also be included
+#' @return For 'bfcsync': logical if cache is in sync. 'verbose' is TRUE by
+#' default, so descriptive messages will also be included
 #' @examples
 #' bfcsync(bfc0)
 #' bfcremove(bfc0, 1)
@@ -462,7 +489,7 @@ setMethod("bfcsync", "BiocFileCache",
                         specified but not found.
                         Consider updating or removing:"
                 message(paste(strwrap(txt, exdent=4), collapse="\n"), "\n\n")
-                print(bfclist(x, rids))
+                print(bfcinfo(x, rids))
                 message("\n\n\n")
             }
             if (length(untracked) != 0L) {
@@ -490,7 +517,7 @@ setGeneric("cleanCache",
 #' @param days Number of days between accessDate and currentDate; if exceeded
 #' entry will be deleted
 #' @param ask check if really want to remove cache and files
-#' @return TRUE if successfully removed.
+#' @return For 'cleanCache': TRUE if successfully removed.
 #' @examples
 #' \dontrun{cleanCache(bfc, ask=FALSE)}
 #' @aliases cleanCache
@@ -543,7 +570,7 @@ setGeneric("removeCache",
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
 #'
-#' @return TRUE if successfully removed.
+#' @return For 'removeCache': TRUE if successfully removed.
 #' @examples
 #' \dontrun{removeCache(bfc, ask=FALSE)}
 #' @aliases removeCache
@@ -580,6 +607,7 @@ setMethod("show", "BiocFileCache",
     cat("class: ", class(object), "\n",
         "bfcCache: ", bfcCache(object), "\n",
         "length: ", length(object), "\n",
+        "For more information see: bfcinfo or bfcquery \n",
         sep="")
-    print(bfclist(object))
+#    print(bfcinfo(object))
 })

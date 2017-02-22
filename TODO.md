@@ -55,3 +55,9 @@ http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-
 
 
 
+
+
+1. implement to get rid of ?? show
+5. attempt implement "{", change class representation see tmp.R
+7. multiple ids for bfcupdate and brcneedsupdate
+8. add extended use section
