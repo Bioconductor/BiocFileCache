@@ -381,31 +381,49 @@ setMethod("bfcquery", "BiocFileCache",
 
 #' @export
 setGeneric("bfcneedsupdate",
-    function(x, rid) standardGeneric("bfcneedsupdate"))
+    function(x, rids) standardGeneric("bfcneedsupdate"))
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
-#' @return For 'bfcneedsupdate': logical if resource needs to be updated
+#' @return For 'bfcneedsupdate': named logical vector if resource needs to
+#' be updated. The name is the unique 'rid' for the resource. If no 'rids'
+#' are web resources, or no 'rids' are valid, returns NULL
 #' @examples
 #' bfcneedsupdate(bfc0, 5)
 #' @aliases bfcneedsupdate
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "BiocFileCache",
-    function(x, rid)
+    function(x, rids)
 {
-    stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(.sql_get_field(x, rid, "rtype")=="web")
-    stopifnot(rid %in% .get_all_rids(x))
-    sqlfile <- .sql_update_time(x, rid)
-    file_time <- .sql_get_field(x, rid, "last_modified_time")
-    link <- .sql_get_field(x, rid, "weblink")
-    web_time <- .get_web_last_modified(link)
-    if ((length(file_time) == 0L) || (length(web_time) == 0L)){
-        toUpdate <- NA
-        message("Cannot Determine: Recommend Update.")
-    }else{
-        toUpdate <- as.Date(web_time) > as.Date(file_time)
-    }
-    toUpdate
+
+    if (missing(rids))
+        rids <- .get_all_rids(x)
+
+    helper <- function(i, x0){
+        if (i %in% .get_all_web_rids(x0)) {
+            sqlfile <- .sql_update_time(x0, i)
+            file_time <- .sql_get_field(x0, i, "last_modified_time")
+            link <- .sql_get_field(x0, i, "weblink")
+            web_time <- .get_web_last_modified(link)
+            if ((length(file_time) == 0L) || (length(web_time) == 0L)){
+                toUpdate <- NA
+                message(paste("rid ", i,
+                              ": Cannot Determine: Recommend Update.",
+                              sep=""))
+            }else{
+                toUpdate <- as.Date(web_time) > as.Date(file_time)
+            }
+            setNames(toUpdate, i)
+        } else {
+            if (i %in% .get_all_rids(x0)) 
+                message(paste("rid ", i, ": Is not a web resource.",
+                              sep=""))
+            setNames(NA, i)
+        }            
+    }# end helper
+    tmp <- unlist(lapply(rids, FUN=helper, x0=x))
+    tmp <- tmp[names(tmp) %in% as.character(.get_all_web_rids(x))]
+    if (length(tmp) == 0L ) NULL
+    else tmp
 })
 
 #' @export

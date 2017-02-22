@@ -166,9 +166,9 @@ test_that("bfcquery works", {
 
 test_that("bfcneedsupdate works", {
     # test not web source
-    expect_error(bfcneedsupdate(bfc, rid4))
+    expect_true(is.null(bfcneedsupdate(bfc, rid4)))
     # test out of bounds
-    expect_error(bfcneedsupdate(bfc, 7))
+    expect_true(is.null(bfcneedsupdate(bfc, 7)))
 
     # test last modified not available
     expect_false(bfcneedsupdate(bfc, rid3))
@@ -180,6 +180,12 @@ test_that("bfcneedsupdate works", {
     expect_message(is.na(bfcneedsupdate(bfc, rid3)))
     expect_identical(as.character(Sys.Date()),
         as.data.frame(bfcinfo(bfc,rid3))$last_modified_time)
+
+    # remove those that aren't web
+    expect_identical(length(bfcneedsupdate(bfc)),
+                     length(BiocFileCache:::.get_all_web_rids(bfc)))
+    expect_identical(names(bfcneedsupdate(bfc)),
+                     as.character(BiocFileCache:::.get_all_web_rids(bfc))) 
 })
 
 test_that("bfcsync and bfcremove works", {
