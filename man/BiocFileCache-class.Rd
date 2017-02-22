@@ -94,7 +94,8 @@ cache.}
 
 \item{value}{character(1) Replace file path}
 
-\item{rname}{character(1) Name of object in file cache}
+\item{rname}{character(1) Name of object in file cache. For 'bfcupdate' a
+character vector of replacement rnames}
 
 \item{fpath}{character(1) Path to current file location or remote
 web resource}
@@ -113,9 +114,9 @@ location but save the path in the cache.}
 
 \item{rid}{numeric(1) Unique resource id}
 
-\item{rpath}{character(1) replacement value for rpath}
+\item{rpath}{character vector of replacement rpaths}
 
-\item{weblink}{character(1) path to replacement web resource}
+\item{weblink}{character vector of replacement web resources}
 
 \item{queryValue}{character vector of patterns to match in resource. It will
 match the pattern against rname, rpath, and weblink.}
