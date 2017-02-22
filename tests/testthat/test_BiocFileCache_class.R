@@ -120,10 +120,10 @@ test_that("bfcupdate works", {
     expect_error(bfc[[rid1]] <- "A/file/doesnt/work")
 
     # test errors, files not found 
-    expect_error(bfcupdate(bfc, rid2, weblink="rid2/local/notweb"))
-    expect_error(suppressWarnings(bfcupdate(bfc, rid3,
+    expect_message(bfcupdate(bfc, rid2, weblink="rid2/local/notweb"))
+    expect_message(suppressWarnings(bfcupdate(bfc, rid3,
                                             weblink="http://notworking/web")))
-    expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid"))
+    expect_message(bfcupdate(bfc, rid2, rpath="path/not/valid"))
     
     # test update weblink and rname
     link = "https://en.wikipedia.org/wiki/Bioconductor"
@@ -137,6 +137,10 @@ test_that("bfcupdate works", {
     # test rpath update and give second query example
     bfcupdate(bfc, rid1, rpath=fl2, rname="prepQuery2")
     expect_identical(unname(bfcpath(bfc, rid1)), fl2)
+    
+    # test error
+    expect_error(bfcupdate(bfc, c(rid2, rid1), rname="oneName"))
+    expect_error(bfcupdate(bfc, 1:7))
 })
 
 test_that("bfcquery works", {

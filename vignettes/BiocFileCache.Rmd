@@ -281,6 +281,7 @@ not have a last_modified tag, it is undetermined.
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfcneedsupdate(bfc, 5)
 bfcneedsupdate(bfc, 6)
+bfcneedsupdate(bfc)
 ```
 
 ## Updating Resource Entries or Local Copy of Remote Data
