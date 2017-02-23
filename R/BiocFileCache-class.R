@@ -178,7 +178,8 @@ setMethod("bfcadd", "BiocFileCache",
     }
 
     if (rtype=="web"){
-        temploc <- tempfile()
+        temploc <- tempfile(tmpdir=bfcCache(x))
+        on.exit(unlink(temploc))
         wasSuccess <- .download_resource(fpath, temploc, proxy)
         if (wasSuccess){
             rid <- .sql_new_resource(x, rname, rtype, fpath)
@@ -352,8 +353,11 @@ setMethod("bfcupdate", "BiocFileCache",
             chk <- .sql_get_field(x, rids[i], "rtype")=="web"
             if (chk) {
                 localpath <- .sql_get_rpath(x, rids[i])
-                wasSuccess <- .download_resource(weblink[i], localpath, proxy)
+                temppath <- tempfile(tmpdir=bfcCache(x))
+                on.exit(unlink(temppath))
+                wasSuccess <- .download_resource(weblink[i], temppath, proxy)
                 if (wasSuccess) {
+                    file.rename(temppath, localpath)
                     sqlfile <- .sql_set_weblink(x, rids[i], weblink[i])
                     web_time <- .get_web_last_modified(weblink[i])
                     if (length(web_time) != 0L) {
@@ -475,8 +479,11 @@ setMethod("bfcdownload", "BiocFileCache",
     sqlfile <- .sql_update_time(x, rid)
     downloadFile <- .sql_get_field(x, rid, "weblink")
     saveFile <- .sql_get_field(x, rid, "rpath")
-    wasSuccess <- .download_resource(downloadFile, saveFile, proxy)
+    tempSave <- tempfile(tmpdir=bfcCache(x))
+    on.exit(unlink(tempSave))
+    wasSuccess <- .download_resource(downloadFile, tempSave, proxy)
     if (wasSuccess) {
+        file.rename(tempSave, saveFile)
         web_time <- .get_web_last_modified(downloadFile)
         if (length(web_time) != 0L) {
             sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
