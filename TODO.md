@@ -52,3 +52,40 @@ select * into [TargetTable] from [SourceTable];
 drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
+
+
+
+###################
+#
+#
+##################
+
+to implement [ subset - have a new class subCache 
+BiocFileCache will extend subCache 
+
+subCache - read only 
+bfcCache
+length
+[[
+bfcinfo
+bfcpath
+bfcrpath
+bfcquery
+bfcneedsupdate
+bfcsync
+show
+
+?? bfcdownload (overwrites existing if successful)
+?? create bfcremove that only removes from sql not delete files?
+
+
+
+
+BiocFileCache - read/write
+[[<-
+bfcnew
+bfcadd
+bfcupdate
+bfcremove
+cleanCache
+removeCache
