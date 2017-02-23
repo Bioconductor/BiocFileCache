@@ -52,35 +52,3 @@ select * into [TargetTable] from [SourceTable];
 drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
-
-
-
-
-
-
-
-
-
-library(BiocFileCache)
-library(dplyr)
-
-bfc <- BiocFileCache() 
-url <-
-"ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
-
-res <- bfcquery(bfc, url)
-
-if(is.na(res)){
-    ans <- bfcadd(bfc, rname="ensembl, homo sapien", fpath=url)	
-}else{
-  # in this case we know that there is only 1 entry with that url, but may want
-  #  to check		
-  rid = res %>% filter_(~ weblink == url) %>% collect(Inf) %>% `[[`("rid")
-  ans <- bfcrpath(bfc, rid)
-}
-
-# now ans is the path of file to load
-ans
-
-file = read.table(gzfile(ans), header=T)
-

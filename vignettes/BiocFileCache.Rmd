@@ -461,7 +461,55 @@ removeCache(bfc)
 ```
 **Note** Use with caution!
 
- 
+
+# Use Case
+
+Once might imaging the following workflow: 
+
+
+```{r eval=TRUE, collapse=TRUE, comment=""}
+
+library(BiocFileCache)
+library(dplyr)
+library(rtracklayer)
+
+# load the cache
+path <- file.path(tempdir(), "tempCacheDir")
+bfc <- BiocFileCache(path)
+
+# the web resource of interest 
+url <- "http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit"
+
+# check if url is being tracked
+res <- bfcquery(bfc, url)
+
+if(is.na(res)){
+
+    # if it is not in cache, add 
+    ans <- bfcadd(bfc, rname="canFam1, goldenpath", fpath=url)	
+
+}else{
+
+  # if it is in cache, get path to load
+  rid = res %>% filter_(~ weblink == url) %>% collect(Inf) %>% `[[`("rid")
+  ans <- bfcrpath(bfc, rid)
+
+}
+
+# now ans is the path of the file to load 
+ans 
+
+# we know because we search for the url that the file is a .2bit, 
+# if we searched on other terms we can use 'bfcpath' to see the 
+# original weblink to know the appropriate load/read/import method
+bfcpath(bfc, as.numeric(names(ans)))
+
+
+temp = TwoBitFile(ans)
+seqinfo(temp)
+import(temp)
+```
+
 # Summary
 
 It is our hope that this package allows for easier management of local and
