@@ -467,7 +467,7 @@ removeCache(bfc)
 Once might imaging the following workflow: 
 
 
-```{r eval=TRUE, collapse=TRUE, comment=""}
+```{r eval=FALSE}
 
 library(BiocFileCache)
 library(dplyr)
