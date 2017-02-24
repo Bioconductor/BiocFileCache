@@ -14,21 +14,17 @@ install()
 library(BiocFileCache)
 example("BiocFileCache-class")
 
+temp = bfc0[2:3]
 
 
-# test http
-bfcadd(bfc0, "webTestWork", rtype="web", fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit")
-# test ftp 
-bfcadd(bfc0, "webTestFTP", fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz")
-# test a redirection
-bfcadd(bfc0, "webReDir", fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip")
-# test a not found 
-bfcadd(bfc0, "webNotFound", rtype="web", fpath="https://hehehaf")
 
-# test simple no last modified tag
-bfcadd(bfc0, "website", fpath="http://httpbin.org/get")
-# test simple with last modified tag 
-bfcadd(bfc0, "website", fpath="https://en.wikipedia.org/wiki/Bioconductor")
+
+fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit"
+fpath="ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
+fpath="https://github.com/wch/webshot/releases/download/v0.3/phantomjs-2.1.1-macosx.zip"
+fpath="http://httpbin.org/get"
+fpath="https://en.wikipedia.org/wiki/Bioconductor"
+
 
 #####################
 #
@@ -53,39 +49,3 @@ drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
 
-
-
-###################
-#
-#
-##################
-
-to implement [ subset - have a new class subCache 
-BiocFileCache will extend subCache 
-
-subCache - read only 
-bfcCache
-length
-[[
-bfcinfo
-bfcpath
-bfcrpath
-bfcquery
-bfcneedsupdate
-bfcsync
-show
-
-?? bfcdownload (overwrites existing if successful)
-?? create bfcremove that only removes from sql not delete files?
-
-
-
-
-BiocFileCache - read/write
-[[<-
-bfcnew
-bfcadd
-bfcupdate
-bfcremove
-cleanCache
-removeCache

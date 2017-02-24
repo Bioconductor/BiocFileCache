@@ -75,11 +75,10 @@ test_that("bfcinfo works", {
     expect_identical(dim(as.data.frame(bfcinfo(bfc, 1:3))),
                      c(3L, 8L))
     # print one found and one not found 
-    expect_identical(dim(as.data.frame(bfcinfo(bfc, c(1, 6)))),
-                     c(1L, 8L))
+    expect_error(bfcinfo(bfc, c(1, 6)))
+    
     # index not found 
-    expect_identical(dim(as.data.frame(bfcinfo(bfc, 6))),
-                     c(0L, 8L))
+    expect_error(bfcinfo(bfc, 6))
 })
 
 test_that("bfcpath and bfcrpath works", {
@@ -95,12 +94,12 @@ test_that("bfcpath and bfcrpath works", {
     
     # index not found 
     expect_error(bfcpath(bfc, 6))
-    expect_true(is.null(bfcrpath(bfc, 6)))
-    expect_true(is.null(bfcrpath(bfc, 6:12)))
+    expect_error(bfcrpath(bfc, 6))
+    expect_error(bfcrpath(bfc, 6:12))
 
     # multiple files
-    expect_identical(length(bfcrpath(bfc, 1:7)), 4L)
-    expect_identical(length(bfcrpath(bfc, c(1,2,5))), 2L)
+    expect_identical(length(bfcrpath(bfc, 1:3)), 3L)
+    expect_identical(length(bfcrpath(bfc)), 4L)
 })
 
 test_that("check rtpye works", {
@@ -110,6 +109,27 @@ test_that("check rtpye works", {
 
     # test not web type 
     expect_identical(BiocFileCache:::.check_rtype("not/a/web/path"), "local")
+})
+
+test_that("subsetting works", {
+
+    # out of bounds
+    expect_error(bfc[3:5])
+    expect_error(bfc[10])
+    
+    # empty
+    bfcsub3 <- bfc[]
+    expect_identical(length(bfcsub3), length(bfc))
+    expect_identical(as.data.frame(bfcinfo(bfcsub3)),
+                     as.data.frame(bfcinfo(bfc)))
+
+    # test restricted methods on subset
+    expect_error(bfcnew(bfcsub3))
+    expect_error(bfcadd(bfcsub3))
+    expect_error(bfcupdate(bfcsub3, rname="test"))
+    fltemp <- tempfile(); file.create(fltemp)
+    expect_error(bfcsub3[[2]] <- fltemp)
+    
 })
 
 test_that("bfcupdate works", {   
@@ -172,7 +192,7 @@ test_that("bfcneedsupdate works", {
     # test not web source
     expect_true(is.null(bfcneedsupdate(bfc, rid4)))
     # test out of bounds
-    expect_true(is.null(bfcneedsupdate(bfc, 7)))
+    expect_error(bfcneedsupdate(bfc, 7))
 
     # test last modified not available
     expect_false(bfcneedsupdate(bfc, rid3))

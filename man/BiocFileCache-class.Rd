@@ -4,26 +4,34 @@
 \name{BiocFileCache-class}
 \alias{BiocFileCache-class}
 \alias{BiocFileCache}
-\alias{bfcCache,BiocFileCache-method}
+\alias{bfcCache,BiocFileCacheBase-method}
 \alias{bfcCache}
-\alias{length,BiocFileCache-method}
-\alias{[[,BiocFileCache,numeric,missing-method}
+\alias{length,BiocFileCacheBase-method}
+\alias{rid,BiocFileCacheReadOnly-method}
+\alias{rid}
+\alias{rid,BiocFileCache-method}
+\alias{rid}
+\alias{[,BiocFileCache,numeric-method}
+\alias{[,BiocFileCacheReadOnly,numeric-method}
+\alias{[,BiocFileCache,missing-method}
+\alias{[,BiocFileCacheReadOnly,missing-method}
+\alias{[[,BiocFileCacheBase,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{bfcnew,BiocFileCache-method}
 \alias{bfcnew}
 \alias{bfcadd,BiocFileCache-method}
 \alias{bfcadd}
-\alias{bfcinfo,BiocFileCache-method}
+\alias{bfcinfo,BiocFileCacheBase-method}
 \alias{bfcinfo}
-\alias{bfcpath,BiocFileCache-method}
+\alias{bfcpath,BiocFileCacheBase-method}
 \alias{bfcpath}
-\alias{bfcrpath,BiocFileCache-method}
+\alias{bfcrpath,BiocFileCacheBase-method}
 \alias{bfcrpath}
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
-\alias{bfcquery,BiocFileCache-method}
+\alias{bfcquery,BiocFileCacheBase-method}
 \alias{bfcquery}
-\alias{bfcneedsupdate,BiocFileCache-method}
+\alias{bfcneedsupdate,BiocFileCacheBase-method}
 \alias{bfcneedsupdate}
 \alias{bfcdownload,BiocFileCache-method}
 \alias{bfcdownload}
@@ -35,16 +43,28 @@
 \alias{cleanCache}
 \alias{removeCache,BiocFileCache-method}
 \alias{removeCache}
-\alias{show,BiocFileCache-method}
+\alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
-\S4method{bfcCache}{BiocFileCache}(x)
+\S4method{bfcCache}{BiocFileCacheBase}(x)
 
-\S4method{length}{BiocFileCache}(x)
+\S4method{length}{BiocFileCacheBase}(x)
 
-\S4method{[[}{BiocFileCache,numeric,missing}(x, i, j)
+\S4method{rid}{BiocFileCacheReadOnly}(x)
+
+\S4method{rid}{BiocFileCache}(x)
+
+\S4method{[}{BiocFileCache,numeric}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{BiocFileCacheReadOnly,numeric}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{BiocFileCache,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{[}{BiocFileCacheReadOnly,missing}(x, i, j, ..., drop = TRUE)
+
+\S4method{[[}{BiocFileCacheBase,numeric,missing}(x, i, j)
 
 \S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
 
@@ -54,18 +74,18 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
   rtype = c("auto", "local", "web"), action = c("copy", "move", "asis"),
   proxy = "", ...)
 
-\S4method{bfcinfo}{BiocFileCache}(x, rids)
+\S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
-\S4method{bfcpath}{BiocFileCache}(x, rid)
+\S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
-\S4method{bfcrpath}{BiocFileCache}(x, rids)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   weblink = NULL, proxy = "")
 
-\S4method{bfcquery}{BiocFileCache}(x, queryValue)
+\S4method{bfcquery}{BiocFileCacheBase}(x, queryValue)
 
-\S4method{bfcneedsupdate}{BiocFileCache}(x, rids)
+\S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "")
 
@@ -77,7 +97,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{removeCache}{BiocFileCache}(x, ask = TRUE)
 
-\S4method{show}{BiocFileCache}(object)
+\S4method{show}{BiocFileCacheBase}(object)
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
@@ -91,6 +111,8 @@ cache.}
 
 \item{...}{For \code{action="copy"}, additional arguments passed to
 \code{file.copy}.}
+
+\item{drop}{Not applicable}
 
 \item{value}{character(1) Replace file path}
 
@@ -139,6 +161,8 @@ containing the cache.
 
 For 'length': integer(1) Number of objects in the file cache.
 
+For '[': A subset of the BiocFileCache object
+
 For '[[': rpath for the given resource in the cache
 
 For '[[<-': Updated biocFileCache, invisibly
@@ -166,7 +190,7 @@ matching all patterns listed, returns NA.
 
 For 'bfcneedsupdate': named logical vector if resource needs to
 be updated. The name is the unique 'rid' for the resource. If no 'rids'
-are web resources, or no 'rids' are valid, returns NULL
+are web resources returns NULL
 
 For 'bfcdownload': Returns rpath to data, invisibly
 
@@ -190,6 +214,18 @@ sessions.
 
 \item \code{length}: Get the number of object in the file
 cache.
+
+\item \code{rid}: Get the rids of the object
+
+\item \code{rid}: Get the rids of the object
+
+\item \code{[}: Subset a BiocFileCache object
+
+\item \code{[}: Subset a BiocFileCache object
+
+\item \code{[}: Subset a BiocFileCache object
+
+\item \code{[}: Subset a BiocFileCache object
 
 \item \code{[[}: Get a file path for select resources from
 the cache.
