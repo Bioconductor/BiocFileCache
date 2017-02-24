@@ -2,8 +2,21 @@
 #' @import RSQLite
 #' @import dplyr
 #' @import httr
-.BiocFileCache = setClass("BiocFileCache",
-    slots=c(cache="character"))
+.BiocFileCacheBase = setClass(
+    "BiocFileCacheBase",
+    slots=c(cache="character")
+)
+
+.BiocFileCacheReadOnly = setClass(
+    "BiocFileCacheReadOnly",
+    contains="BiocFileCacheBase",
+    slots=c(rid="integer")
+)
+
+.BiocFileCache = setClass(
+    "BiocFileCache",
+    contains="BiocFileCacheBase"
+)
 
 #' BiocFileCache class
 #'
@@ -41,11 +54,7 @@ setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
 #' bfcCache(bfc)
 #' @aliases bfcCache
 #' @exportMethod bfcCache
-setMethod("bfcCache", "BiocFileCache",
-    function(x)
-{
-    x@cache
-})
+setMethod("bfcCache", "BiocFileCacheBase", function(x) { x@cache })
 
 #' @describeIn BiocFileCache Get the number of object in the file
 #'     cache.
@@ -54,12 +63,63 @@ setMethod("bfcCache", "BiocFileCache",
 #' length(bfc)
 #' @importFrom stats setNames
 #' @exportMethod length
-setMethod("length", "BiocFileCache",
-    function(x)
+setMethod("length", "BiocFileCacheBase", function(x) { length(rid(x)) })
+
+#' @export
+setGeneric("rid", function(x) standardGeneric("rid"))
+
+#' @describeIn BiocFileCache Get the rids of the object
+#' @aliases rid
+#' @exportMethod rid
+setMethod("rid", "BiocFileCacheReadOnly", function(x) x@rid)
+
+#' @describeIn BiocFileCache Get the rids of the object
+#' @aliases rid
+#' @exportMethod rid
+setMethod("rid", "BiocFileCache", function(x) .get_all_rids(x))
+
+
+#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @param drop Not applicable
+#' @return For '[': A subset of the BiocFileCache object
+#' @exportMethod [
+setMethod("[", c("BiocFileCache", "numeric"),
+    function(x, i, j, ..., drop=TRUE)
 {
-    bfcinfo(x) %>% summarize_(.dots=setNames(list(~ n()), "n")) %>%
-        collect %>% `[[`("n")
+    rid <- as.integer(i)
+    if (!all(rid %in% .get_all_rids(x)))
+        stop("all 'i' must be in rid()")
+    .BiocFileCacheReadOnly(x, rid=rid)
 })
+
+#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @exportMethod [
+setMethod("[", c("BiocFileCacheReadOnly", "numeric"),
+    function(x, i, j, ..., drop=TRUE)
+{
+    rid <- as.integer(i)
+    if (!all(rid %in% rid(x)))
+        stop("all 'i' must be in rid()")
+    initialize(x, rid=rid)
+})    
+
+#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @exportMethod [
+setMethod("[", c("BiocFileCache", "missing"),
+    function(x, i, j, ..., drop=TRUE)
+{
+    rid <- .get_all_rids(x)
+    .BiocFileCacheReadOnly(x, rid=rid)
+})
+
+#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @exportMethod [
+setMethod("[", c("BiocFileCacheReadOnly", "missing"),
+    function(x, i, j, ..., drop=TRUE)
+{
+    rid <- rid(x)
+    initialize(x, rid=rid)
+})    
 
 #' @describeIn BiocFileCache Get a file path for select resources from
 #' the cache.
@@ -67,7 +127,7 @@ setMethod("length", "BiocFileCache",
 #' @param j Not applicable
 #' @return For '[[': rpath for the given resource in the cache
 #' @exportMethod [[
-setMethod("[[", c("BiocFileCache", "numeric", "missing"),
+setMethod("[[", c("BiocFileCacheBase", "numeric", "missing"),
     function(x, i, j)
 {
     stopifnot(length(i) == 1L)
@@ -227,11 +287,12 @@ setGeneric("bfcinfo",
 #' bfcinfo(bfc0)
 #' @aliases bfcinfo
 #' @exportMethod bfcinfo
-setMethod("bfcinfo", "BiocFileCache",
+setMethod("bfcinfo", "BiocFileCacheBase",
     function(x, rids)
 {
-    if (missing(rids))
-        rids <- integer(0)
+    if (missing(rids)) rids <- rid(x)
+    if (!all(rids %in% rid(x)))
+        stop("all 'rids' must be in rid()")
     .sql_get_resource_table(x, rids)
 })
 
@@ -255,11 +316,11 @@ setGeneric("bfcpath",
 #' bfcpath(bfc0, rid3)
 #' @aliases bfcpath
 #' @exportMethod bfcpath
-setMethod("bfcpath", "BiocFileCache",
+setMethod("bfcpath", "BiocFileCacheBase",
     function(x, rid)
 {
     stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(rid %in% .get_all_rids(x))
+    stopifnot(rid %in% rid(x))
     sqlfile <- .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
     if (.sql_get_field(x, rid, "rtype")=="web"){
@@ -281,12 +342,13 @@ setGeneric("bfcrpath",
 #' bfcrpath(bfc0, rid3)
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
-setMethod("bfcrpath", "BiocFileCache",
+setMethod("bfcrpath", "BiocFileCacheBase",
     function(x, rids)
 {
     if (missing(rids))
-        rids <- .get_all_rids(x)
-    
+        rids <- rid(x)
+    if (!all(rids %in% rid(x)))
+        stop("all 'rids' must be in rid()")
     helper <- function(i, x0){
         if (i %in% .get_all_rids(x0)) {
             sqlfile <- .sql_update_time(x0, i)
@@ -401,11 +463,11 @@ setGeneric("bfcquery",
 #' bfcquery(bfc0, "test")
 #' @aliases bfcquery
 #' @exportMethod bfcquery
-setMethod("bfcquery", "BiocFileCache",
+setMethod("bfcquery", "BiocFileCacheBase",
     function(x, queryValue)
 {
     stopifnot(is.character(queryValue))
-    rids <- .sql_query_resource(x, queryValue)
+    rids <- intersect(.sql_query_resource(x, queryValue), rid(x))
     if (length(rids) == 0L){
         NA
     } else {
@@ -420,17 +482,18 @@ setGeneric("bfcneedsupdate",
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return For 'bfcneedsupdate': named logical vector if resource needs to
 #' be updated. The name is the unique 'rid' for the resource. If no 'rids'
-#' are web resources, or no 'rids' are valid, returns NULL
+#' are web resources returns NULL
 #' @examples
 #' bfcneedsupdate(bfc0, 5)
 #' @aliases bfcneedsupdate
 #' @exportMethod bfcneedsupdate
-setMethod("bfcneedsupdate", "BiocFileCache",
+setMethod("bfcneedsupdate", "BiocFileCacheBase",
     function(x, rids)
 {
 
-    if (missing(rids))
-        rids <- .get_all_rids(x)
+    if (missing(rids)) rids <- rid(x)
+    if (!all(rids %in% rid(x)))
+        stop("all 'rids' must be in rid()")
 
     helper <- function(i, x0){
         if (i %in% .get_all_web_rids(x0)) {
@@ -671,7 +734,7 @@ setMethod("removeCache", "BiocFileCache",
 #' @describeIn BiocFileCache Display a \code{BiocFileCache} instance.
 #' @param object A \code{BiocFileCache} instance.
 #' @exportMethod show
-setMethod("show", "BiocFileCache",
+setMethod("show", "BiocFileCacheBase",
     function(object)
 {
     cat("class: ", class(object), "\n",

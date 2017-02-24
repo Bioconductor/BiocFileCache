@@ -218,16 +218,30 @@ first column of the table to be used in other functions.
  * bfcinfo()
 
 `bfcinfo()` will list any subset of the `BiocFileCache` object. It returns an
-object of class `tbl_sqlite`/`tbl_sql`. Any *rids* given that are not found in
-the BiocFileCache object will be filtered out and if *rids* are not specified,
+object of class `tbl_sqlite`/`tbl_sql`. If *rids* are not specified,
 the entire object is listed.
 
 ```{r eval=TRUE, collapse=TRUE, comment=""}
 bfcinfo(bfc)
 
-bfcinfo(bfc, c(1,6))
+bfcinfo(bfc, c(1:2))
 
-bfcinfo(bfc, 4:20)
+```
+&nbsp;
+&nbsp;
+
+ * [
+
+`[` allows for subsetting of the BiocFileCache object.  The output will be a
+BiocFileSubCache object. Users will still be able to query, remove (from the
+subset object only), and access resources of the subset, however the resources
+cannot be updated.
+
+```{r eval=TRUE, collapse=TRUE, comment=""}
+bfcsubWeb = bfc[5:6]
+bfcsubWeb
+
+bfcinfo(bfcsubWeb)
 ```
 
 &nbsp;
@@ -485,8 +499,8 @@ res <- bfcquery(bfc, url)
 
 if(is.na(res)){
 
-    # if it is not in cache, add 
-    ans <- bfcadd(bfc, rname="canFam1, goldenpath", fpath=url)	
+    # if it is not in cache, add
+     ans <- bfcadd(bfc, rname="canFam1, goldenpath", fpath=url)
 
 }else{
 
