@@ -508,6 +508,26 @@ bfcpath(bfc, as.numeric(names(ans)))
 temp = TwoBitFile(ans)
 seqinfo(temp)
 import(temp)
+
+#
+# One could also imagine the following:
+#
+
+library(BiocFileCache)
+
+# load the cache
+bfc <- BiocFileCache()
+
+# 
+# Do some work!
+#
+
+# add a location in the cache 
+filepath <- bfcnew(bfc, "R workspace")
+
+save(list = ls(), file=filepath)
+
+# now the R workspace is being tracked in the cache
 ```
 
 # Summary
