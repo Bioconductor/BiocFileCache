@@ -1,3 +1,5 @@
+.CACHE_FILE <- "BiocFileCache.sqlite"
+
 .sql_file <-
     function(bfc, file)
 {
@@ -7,7 +9,7 @@
 .sql_dbfile <-
     function(bfc)
 {
-    .sql_file(bfc, "BiocFileCache.sqlite")
+    .sql_file(bfc, .CACHE_FILE)
 }
 
 .sql_get_query <-
@@ -47,10 +49,10 @@
 }
 
 .sql_new_resource <-
-    function(bfc, rname, rtype, weblink)
+    function(bfc, rname, rtype, fpath)
 {
     fname <- tempfile("", bfcCache(bfc))
-    sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, weblink)
+    sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
 
@@ -159,8 +161,8 @@
 {
     .sql_get_resource_table(bfc) %>% select_("rid") %>%
         collect(Inf) %>% `[[`("rid")
-
 }
+
 .get_all_web_rids <-
     function(bfc)
 {
@@ -176,17 +178,17 @@
     .sql_get_query(bfc, sql)
 }
 
-.sql_set_weblink <-
+.sql_set_fpath <-
     function(bfc, rid, value)
 {
-    sql <- .sql_sprintf("-- UPDATE_WEBLINK", value, rid)
+    sql <- .sql_sprintf("-- UPDATE_FPATH", value, rid)
     .sql_get_query(bfc, sql)
 }
 
 .sql_query_resource <-
     function(bfc, value)
 { 
-    helperFun <- function(bfc0, vl){
+    helperFun <- function(bfc0, vl) {
         sql <- .sql_sprintf("-- QUERY_NAMES", vl)
         .sql_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
             `[[`("rid")
