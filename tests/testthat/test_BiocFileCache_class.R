@@ -1,3 +1,5 @@
+context("BiocFileCache_class")
+
 test_that("BiocFileCache creation works", {
     dir <- tempfile()
 
@@ -89,7 +91,7 @@ test_that("bfcpath and bfcrpath works", {
         
     # web file
     expect_identical(length(bfcpath(bfc, rid3)), 2L)
-    expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "weblink"))
+    expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "fpath"))
     expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rid3))
     
     # index not found 
@@ -140,16 +142,15 @@ test_that("bfcupdate works", {
     expect_error(bfc[[rid1]] <- "A/file/doesnt/work")
 
     # test errors, files not found 
-    expect_message(bfcupdate(bfc, rid2, weblink="rid2/local/notweb"))
-    expect_message(suppressWarnings(bfcupdate(bfc, rid3,
-                                            weblink="http://notworking/web")))
-    expect_message(bfcupdate(bfc, rid2, rpath="path/not/valid"))
+    expect_error(bfcupdate(bfc, rid2, fpath="rid2/local/notweb"))
+    expect_error(bfcupdate(bfc, rid3, fpath="http://notworking/web"))
+    expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid"))
     
-    # test update weblink and rname
+    # test update fpath and rname
     link = "https://en.wikipedia.org/wiki/Bioconductor"
-    bfcupdate(bfc, rid3, weblink=link, rname="prepQuery")
+    bfcupdate(bfc, rid3, fpath=link, rname="prepQuery")
     vl <- as.character(unname(as.data.frame(
-        bfcinfo(bfc,rid3))[c("rname", "weblink")]))
+        bfcinfo(bfc,rid3))[c("rname", "fpath")]))
     expect_identical(vl, c("prepQuery", link))
     time <- as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
     expect_identical(time, BiocFileCache:::.get_web_last_modified(link))
@@ -169,7 +170,7 @@ test_that("bfcquery works", {
     expect_identical(dim(q1), c(2L,8L))
     expect_identical(q1$rid, c(rid1,rid3))
 
-    # test query on weblink
+    # test query on fpath
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
     expect_identical(dim(q2), c(1L,8L))
 
@@ -199,7 +200,7 @@ test_that("bfcneedsupdate works", {
 
     # test last modified not available
     link = "http://google.com"
-    bfcupdate(bfc, rid3, weblink=link)
+    bfcupdate(bfc, rid3, fpath=link)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
     expect_message(is.na(bfcneedsupdate(bfc, rid3)))
     expect_identical(as.character(Sys.Date()),

@@ -6,12 +6,12 @@ CREATE TABLE resource (
     access_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     rpath text, 
     rtype text, 
-    weblink text,
+    fpath text,
     last_modified_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 -- INSERT
 INSERT INTO resource (
-    rname, rpath, rtype, weblink
+    rname, rpath, rtype, fpath
 ) VALUES (
     '%s', '%s', '%s', '%s'
 );
@@ -34,11 +34,11 @@ WHERE rid = '%d';
 UPDATE resource 
 SET last_modified_time  = '%s', access_time = CURRENT_TIMESTAMP
 WHERE rid = '%d';
--- UPDATE_WEBLINK
+-- UPDATE_FPATH
 UPDATE resource 
-SET weblink = '%s', access_time = CURRENT_TIMESTAMP
+SET fpath = '%s', access_time = CURRENT_TIMESTAMP
 WHERE rid = '%d';
 -- QUERY_NAMES
 SELECT rid FROM resource 
-WHERE rname || rpath || weblink 
+WHERE rname || rpath || fpath 
 LIKE '%%%s%%';

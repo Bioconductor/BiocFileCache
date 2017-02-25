@@ -8,13 +8,12 @@
 \alias{bfcCache}
 \alias{length,BiocFileCacheBase-method}
 \alias{rid,BiocFileCacheReadOnly-method}
-\alias{rid}
 \alias{rid,BiocFileCache-method}
 \alias{rid}
-\alias{[,BiocFileCache,numeric-method}
-\alias{[,BiocFileCacheReadOnly,numeric-method}
-\alias{[,BiocFileCache,missing-method}
-\alias{[,BiocFileCacheReadOnly,missing-method}
+\alias{[,BiocFileCache,numeric,missing-method}
+\alias{[,BiocFileCacheReadOnly,numeric,missing-method}
+\alias{[,BiocFileCache,missing,missing-method}
+\alias{[,BiocFileCacheReadOnly,missing,missing-method}
 \alias{[[,BiocFileCacheBase,numeric,missing-method}
 \alias{[[<-,BiocFileCache,numeric,missing,character-method}
 \alias{bfcnew,BiocFileCache-method}
@@ -56,13 +55,13 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{rid}{BiocFileCache}(x)
 
-\S4method{[}{BiocFileCache,numeric}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCache,numeric,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCacheReadOnly,numeric}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCacheReadOnly,numeric,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCache,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCacheReadOnly,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCacheReadOnly,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{[[}{BiocFileCacheBase,numeric,missing}(x, i, j)
 
@@ -81,9 +80,9 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \S4method{bfcrpath}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
-  weblink = NULL, proxy = "")
+  fpath = NULL, proxy = "")
 
-\S4method{bfcquery}{BiocFileCacheBase}(x, queryValue)
+\S4method{bfcquery}{BiocFileCacheBase}(x, query)
 
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
@@ -103,103 +102,112 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 \item{cache}{character(1) On-disk location (directory path) of
 cache.}
 
-\item{x}{\code{BiocFileCache} instance.}
+\item{x}{A \code{BiocFileCache} instance.}
 
-\item{i}{Rid numbers}
+\item{i}{integer() 'rid' identifiers.}
 
-\item{j}{Not applicable}
+\item{j}{Ignored.}
 
 \item{...}{For \code{action="copy"}, additional arguments passed to
 \code{file.copy}.}
 
-\item{drop}{Not applicable}
+\item{drop}{Ignored.}
 
-\item{value}{character(1) Replace file path}
+\item{value}{character(1) Replacement file path.}
 
-\item{rname}{character(1) Name of object in file cache. For 'bfcupdate' a
-character vector of replacement rnames}
+\item{rname}{character(1) Name of object in file cache. For
+'bfcupdate' a character vector of replacement rnames.}
 
-\item{fpath}{character(1) Path to current file location or remote
-web resource}
+\item{fpath}{For bfcadd(), character(1) path to current file
+location or remote web resource. For bfcupdate() character()
+vector of replacement web resources.}
 
-\item{rtype}{character(1) local or web indicating if the resource is a local
-file or a web resource}
+\item{rtype}{character(1) Local or web indicating if the resource
+is a local file or a web resource.}
 
-\item{action}{How to handle the file: create a \code{copy} of
-\code{fpath} in the cache directory; \code{move} the file to
-the cache directory; or \code{asis} leave the file in current
-location but save the path in the cache.}
+\item{action}{character(1) How to handle the file: create a
+\code{copy} of \code{fpath} in the cache directory; \code{move}
+the file to the cache directory; or \code{asis} leave the file
+in current location but save the path in the cache.}
 
-\item{proxy}{proxy server}
+\item{proxy}{character(1) (Optional) proxy server.}
 
-\item{rids}{character() List of rids.}
+\item{rids}{character() Vector of rids.}
 
-\item{rid}{numeric(1) Unique resource id}
+\item{rid}{numeric(1) Unique resource id.}
 
-\item{rpath}{character vector of replacement rpaths}
+\item{rpath}{character() vector of replacement rpaths.}
 
-\item{weblink}{character vector of replacement web resources}
+\item{query}{character() Pattern(s) to match in resource. It will
+match the pattern against rname, rpath, and fpath using SQL
+\code{LIKE}, using \code{&&} logic across query elements.}
 
-\item{queryValue}{character vector of patterns to match in resource. It will
-match the pattern against rname, rpath, and weblink.}
+\item{verbose}{logical(1) If descriptive message and list of issues
+should be included as output.}
 
-\item{verbose}{If descriptive message and list of issues should be included
-as output}
+\item{days}{integer(1) Number of days between accessDate and
+currentDate; if exceeded entry will be deleted.}
 
-\item{days}{Number of days between accessDate and currentDate; if exceeded
-entry will be deleted}
-
-\item{ask}{check if really want to remove cache and files}
+\item{ask}{logical(1) Prompt if really want to remove cache and
+files.}
 
 \item{object}{A \code{BiocFileCache} instance.}
 }
 \value{
-For 'BiocFileCache': A \code{BiocFileCache} instance.
+For 'BiocFileCache': a \code{BiocFileCache} instance.
 
 For 'bfcCache': character(1) location of the directory
-containing the cache.
+    containing the cache.
 
-For 'length': integer(1) Number of objects in the file cache.
+For 'length': integer(1) Number of objects in the file
+    cache.
 
-For '[': A subset of the BiocFileCache object
+For '[': A subset of the BiocFileCache object.
 
-For '[[': rpath for the given resource in the cache
+For '[[': named character(1) rpath for the given resource
+    in the cache.
 
-For '[[<-': Updated biocFileCache, invisibly
+For '[[<-': Updated BiocFileCache, invisibly.
 
-For 'bfcnew': named character(1) The path to save your object/file.
-The name of the character is the unique rid for the resource
+For 'bfcnew': named character(1), the path to save your
+    object / file.  The name of the return value is the unique rid
+    for the resource.
 
-For 'bfcadd': named character(1) The path to save your object/file.
-The name of the character is the unique rid for the resource.
+For 'bfcadd': named character(1), the path to save your
+    object / file.  The name of the character is the unique rid for
+    the resource.
 
-For 'bfcinfo': A list of current resources in the database
+For 'bfcinfo': A \code{bcf_tbl} of current resources in the database.
 
-For 'bfcpath': The file path location to load and original source
-information for web resources.
+For 'bfcpath': the file path location to load and original
+    source information for web resources.
 
-For 'bfcrpath': The local file path location to load.
-If no 'rids' are valid, returns NULL.
+For 'bfcrpath': The local file path location to load.  If
+    no 'rids' are valid, returns NULL.
 
-For 'bfcupdate': Returns updated biocFileCache object, invisibly
+For 'bfcupdate': an updated \code{BiocFileCache} object, invisibly.
 
-For 'bfcquery': A list of current resources in the database whose
-rname, rpath, or weblink contained queryValue. If multiple values are given,
-the resource must contain all of the patterns. If a resource is not found
-matching all patterns listed, returns NA.
+For 'bfcquery': A \code{bcf_tbl} of current resources in
+    the database whose rname, rpath, or fpath contained query. If
+    multiple values are given, the resource must contain all of the
+    patterns. If a resource is not found matching all patterns
+    listed, returns NA.
 
-For 'bfcneedsupdate': named logical vector if resource needs to
-be updated. The name is the unique 'rid' for the resource. If no 'rids'
-are web resources returns NULL
+For 'bfcneedsupdate': named logical vector if resource
+    needs to be updated. The name is the unique 'rid' for the
+    resource. If no 'rids' are web resources returns NULL
 
 For 'bfcdownload': Returns rpath to data, invisibly
 
-For 'bfcremove': Returns updated biocFileCache object, invisibly
+For 'bfcremove': Returns updated biocFileCache object,
+    invisibly
 
-For 'bfcsync': logical if cache is in sync. 'verbose' is TRUE by
-default, so descriptive messages will also be included
+For 'bfcsync': logical(1) indicating whether the cache is
+    in sync (\code{TRUE}) or not. 'verbose' is TRUE by default, so
+    descriptive messages will also be included.
 
-For 'cleanCache': TRUE if successfully removed.
+For 'cleanCache': logical(1), \code{TRUE} if successfully
+    removed.
 
 For 'removeCache': TRUE if successfully removed.
 }
@@ -219,7 +227,7 @@ cache.
 
 \item \code{rid}: Get the rids of the object
 
-\item \code{[}: Subset a BiocFileCache object
+\item \code{[}: Subset a BiocFileCache object.
 
 \item \code{[}: Subset a BiocFileCache object
 
@@ -230,8 +238,8 @@ cache.
 \item \code{[[}: Get a file path for select resources from
 the cache.
 
-\item \code{[[<-}: Set the file path of a
-select resources from the cache.
+\item \code{[[<-}: Set the file path of selected resources
+from the cache.
 
 \item \code{bfcnew}: Add a resource to the database
 
@@ -251,14 +259,15 @@ select resources from the cache.
 
 \item \code{bfcdownload}: Redownload resource to location in cache
 
-\item \code{bfcremove}: Remove a resource to the database.
-If the local file is located in the bcfCache,
-the file will also be deleted.
+\item \code{bfcremove}: Remove a resource to the database.  If
+the local file is located in the bcfCache, the file will also
+be deleted.
 
 \item \code{bfcsync}: sync cache and resource.
 
-\item \code{cleanCache}: Remove old/unused files in BiocFileCache. If file
-to be removed is not in the bfcCache location it will not be deleted.
+\item \code{cleanCache}: Remove old/unused files in
+BiocFileCache. If file to be removed is not in the bfcCache
+location it will not be deleted.
 
 \item \code{removeCache}: Completely remove the BiocFileCache
 
@@ -294,7 +303,7 @@ bfcpath(bfc0, rid3)
 bfcrpath(bfc0, rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
-bfcupdate(bfc0, 5, weblink="http://google.com")
+bfcupdate(bfc0, 5, fpath="http://google.com")
 bfcquery(bfc0, "test")
 bfcneedsupdate(bfc0, 5)
 bfcdownload(bfc0, 5)
