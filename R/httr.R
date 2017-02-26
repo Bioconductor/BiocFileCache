@@ -1,4 +1,4 @@
-.get_web_last_modified <-
+.httr_get_last_modified <-
     function(link)
 {
     response = withCallingHandlers({
@@ -17,19 +17,18 @@
 
     if ((is(status, "error") || is(status, "http_403")) &&
         is.null(cache_info(response)$modified)) {
-        response = withCallingHandlers(suppressWarnings(GET(link)))
-        status = stop_for_status(response)
+        response <- withCallingHandlers(suppressWarnings(GET(link)))
+        status <- stop_for_status(response)
     }
 
     as.character(cache_info(response)$modified)
 }
 
-#
 #.hub_cache_resource <- function(hubpath, cachepath, proxy) {
-# stolen from AnnotationHub
+# from AnnotationHub
 
 #' @importFrom utils packageVersion
-.download_resource <-
+.httr_download <-
     function(websource, localfile, proxy)
 {
     ## retrieve file from hub to cache
@@ -39,16 +38,16 @@
 
         ## Download the resource in a way that supports https
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
-            response <- withCallingHandlers(suppressWarnings(
+            response <- suppressWarnings({
                 GET(websource, progress(),
                     write_disk(localfile, overwrite=TRUE), proxy=proxy)
-                ))
+            })
             cat("\n") ## line break after progress bar
         } else {
-            response <- withCallingHandlers(suppressWarnings(
+            response <- suppressWarnings({
                 GET(websource, write_disk(localfile, overwrite=TRUE),
                     proxy=proxy)
-                ))
+            })
         }
         if (length(status_code(response))) {
             if (status_code(response) != 302L)

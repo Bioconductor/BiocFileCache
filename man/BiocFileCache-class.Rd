@@ -4,12 +4,12 @@
 \name{BiocFileCache-class}
 \alias{BiocFileCache-class}
 \alias{BiocFileCache}
-\alias{bfcCache,BiocFileCacheBase-method}
-\alias{bfcCache}
+\alias{bfccache,BiocFileCacheBase-method}
+\alias{bfccache}
 \alias{length,BiocFileCacheBase-method}
-\alias{rid,BiocFileCacheReadOnly-method}
-\alias{rid,BiocFileCache-method}
-\alias{rid}
+\alias{bfcrid,BiocFileCacheReadOnly-method}
+\alias{bfcrid,BiocFileCache-method}
+\alias{bfcrid}
 \alias{[,BiocFileCache,numeric,missing-method}
 \alias{[,BiocFileCacheReadOnly,numeric,missing-method}
 \alias{[,BiocFileCache,missing,missing-method}
@@ -38,22 +38,22 @@
 \alias{bfcremove}
 \alias{bfcsync,BiocFileCache-method}
 \alias{bfcsync}
-\alias{cleanCache,BiocFileCache-method}
-\alias{cleanCache}
-\alias{removeCache,BiocFileCache-method}
-\alias{removeCache}
+\alias{cleanbfc,BiocFileCache-method}
+\alias{cleanbfc}
+\alias{removebfc,BiocFileCache-method}
+\alias{removebfc}
 \alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
-\S4method{bfcCache}{BiocFileCacheBase}(x)
+\S4method{bfccache}{BiocFileCacheBase}(x)
 
 \S4method{length}{BiocFileCacheBase}(x)
 
-\S4method{rid}{BiocFileCacheReadOnly}(x)
+\S4method{bfcrid}{BiocFileCacheReadOnly}(x)
 
-\S4method{rid}{BiocFileCache}(x)
+\S4method{bfcrid}{BiocFileCache}(x)
 
 \S4method{[}{BiocFileCache,numeric,missing}(x, i, j, ..., drop = TRUE)
 
@@ -69,9 +69,8 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcnew}{BiocFileCache}(x, rname)
 
-\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = NA_character_,
-  rtype = c("auto", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", ...)
+\S4method{bfcadd}{BiocFileCache}(x, rname, fpath, rtype = c("auto", "local",
+  "web"), action = c("copy", "move", "asis"), proxy = "", ...)
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
@@ -92,9 +91,9 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE)
 
-\S4method{cleanCache}{BiocFileCache}(x, days = 120, ask = TRUE)
+\S4method{cleanbfc}{BiocFileCache}(x, days = 120, ask = TRUE)
 
-\S4method{removeCache}{BiocFileCache}(x, ask = TRUE)
+\S4method{removebfc}{BiocFileCache}(x, ask = TRUE)
 
 \S4method{show}{BiocFileCacheBase}(object)
 }
@@ -156,7 +155,7 @@ files.}
 \value{
 For 'BiocFileCache': a \code{BiocFileCache} instance.
 
-For 'bfcCache': character(1) location of the directory
+For 'bfccache': character(1) location of the directory
     containing the cache.
 
 For 'length': integer(1) Number of objects in the file
@@ -177,7 +176,7 @@ For 'bfcadd': named character(1), the path to save your
     object / file.  The name of the character is the unique rid for
     the resource.
 
-For 'bfcinfo': A \code{bcf_tbl} of current resources in the database.
+For 'bfcinfo': A \code{bfc_tbl} of current resources in the database.
 
 For 'bfcpath': the file path location to load and original
     source information for web resources.
@@ -187,29 +186,32 @@ For 'bfcrpath': The local file path location to load.  If
 
 For 'bfcupdate': an updated \code{BiocFileCache} object, invisibly.
 
-For 'bfcquery': A \code{bcf_tbl} of current resources in
+For 'bfcquery': A \code{bfc_tbl} of current resources in
     the database whose rname, rpath, or fpath contained query. If
     multiple values are given, the resource must contain all of the
-    patterns. If a resource is not found matching all patterns
-    listed, returns NA.
+    patterns. A tbl with zero rows is returned when no resources
+    match the query.
 
 For 'bfcneedsupdate': named logical vector if resource
-    needs to be updated. The name is the unique 'rid' for the
-    resource. If no 'rids' are web resources returns NULL
+    needs to be updated. The name is the resource
+    'rid'. \code{TRUE}: fpath \code{modified} time of web resource
+    more recent than in BiocFileCache; \code{FALSE}: fpath
+    \code{modified} time of web resource not more recent than in
+    BiocFileCache; \code{NA}: web resource modified time could not
+    be determined.
 
-For 'bfcdownload': Returns rpath to data, invisibly
+For 'bfcdownload': character(1) path to downloaded resource
+    in cache.
 
-For 'bfcremove': Returns updated biocFileCache object,
-    invisibly
+For 'bfcremove': updated BiocFileCache object, invisibly
 
 For 'bfcsync': logical(1) indicating whether the cache is
     in sync (\code{TRUE}) or not. 'verbose' is TRUE by default, so
     descriptive messages will also be included.
 
-For 'cleanCache': logical(1), \code{TRUE} if successfully
-    removed.
+For 'cleanbfc': updated BiocFileCache, invisibly.
 
-For 'removeCache': TRUE if successfully removed.
+For 'removebfc': TRUE if successfully removed.
 }
 \description{
 This class represents the location of files stored on disk. Use the
@@ -218,14 +220,14 @@ sessions.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{bfcCache}: Get the location of the on-disk cache.
+\item \code{bfccache}: Get the location of the on-disk cache.
 
 \item \code{length}: Get the number of object in the file
 cache.
 
-\item \code{rid}: Get the rids of the object
+\item \code{bfcrid}: Get the rids of the object
 
-\item \code{rid}: Get the rids of the object
+\item \code{bfcrid}: Get the rids of the object
 
 \item \code{[}: Subset a BiocFileCache object.
 
@@ -260,16 +262,16 @@ from the cache.
 \item \code{bfcdownload}: Redownload resource to location in cache
 
 \item \code{bfcremove}: Remove a resource to the database.  If
-the local file is located in the bcfCache, the file will also
-be deleted.
+the local file is located in \code{bfccache(x)}, the file will
+also be deleted.
 
 \item \code{bfcsync}: sync cache and resource.
 
-\item \code{cleanCache}: Remove old/unused files in
-BiocFileCache. If file to be removed is not in the bfcCache
+\item \code{cleanbfc}: Remove old/unused files in
+BiocFileCache. If file to be removed is not in the bfccache
 location it will not be deleted.
 
-\item \code{removeCache}: Completely remove the BiocFileCache
+\item \code{removebfc}: Completely remove the BiocFileCache
 
 \item \code{show}: Display a \code{BiocFileCache} instance.
 }}
@@ -277,7 +279,7 @@ location it will not be deleted.
 \examples{
 bfc <- BiocFileCache()            # global cache
 bfc
-bfcCache(bfc)
+bfccache(bfc)
 length(bfc)
 bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 path <- bfcnew(bfc0, "NewResource")
@@ -312,6 +314,6 @@ bfcinfo(bfc0)
 bfcsync(bfc0)
 bfcremove(bfc0, 1)
 bfcsync(bfc0, FALSE)
-\dontrun{cleanCache(bfc, ask=FALSE)}
-\dontrun{removeCache(bfc, ask=FALSE)}
+\dontrun{cleanbfc(bfc, ask=FALSE)}
+\dontrun{removebfc(bfc, ask=FALSE)}
 }
