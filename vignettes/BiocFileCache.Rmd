@@ -58,16 +58,16 @@ previous object will be loaded with any files saved to the cache.
 
 Some utility functions to examine the cache are:
 
- * `bfcCache(bfc)`
+ * `bfccache(bfc)`
  * `length(bfc)`
  * `show(bfc)`
  * `bfcinfo(bfc)`
 
-`bfcCache()` will show the cache path. **NOTE**: Because we are using temporary
+`bfccache()` will show the cache path. **NOTE**: Because we are using temporary
 directories, your path location will be different than shown.
 
 ```{r}
-bfcCache(bfc)
+bfccache(bfc)
 length(bfc)
 ```
 
@@ -346,7 +346,7 @@ Now that we have added resources, it is also possible to remove a resource.
  * `bfcremove()`
 
 When you remove a resource from the cache, it will also delete the local file
-but only if it is stored in the cache directory as given by `bfcCache(bfc)`. If
+but only if it is stored in the cache directory as given by `bfccache(bfc)`. If
 it is a path to a file somewhere else on the user system, it will only be
 removed from the `BiocFileCache` object but the file not deleted.
 
@@ -369,7 +369,7 @@ This function will compare two things:
 
  1. If any `rpath` cannot be found (This would occur if `bfcnew()` is used and
     the path was not used to save an object)
- 2. If there are files in the cache directory (`bfcCache(bfc)`), that are not
+ 2. If there are files in the cache directory (`bfccache(bfc)`), that are not
     being tracked by the `BiocFileCache` object
 
 ```{r}
@@ -396,25 +396,25 @@ bfcsync(bfc)
 
 Finally, there are two function involved with cleaning or deleting the cache:
 
- * `cleanCache()`
- * `removeCache()`
+ * `cleanbfc()`
+ * `removebfc()`
 
-`cleanCache()` will evaluate the resources in the `BiocFileCache` object and
+`cleanbfc()` will evaluate the resources in the `BiocFileCache` object and
 determine which, if any, have not been accessed in a specified number of
 days. If `ask=TRUE`, each entry that is above that threshold will ask if it
 should be removed from the cache object and the file deleted (only deleted if in
-`bfcCache(bfc)` location). If `ask=FALSE`, it does not ask about each file and
+`bfccache(bfc)` location). If `ask=FALSE`, it does not ask about each file and
 automatically removes and deletes the file. The default number of days is 120.
 
 ```{r eval=FALSE}
-cleanCache(bfc)
+cleanbfc(bfc)
 ```
 
-`removeCache()` will remove the `BiocFileCache` complete from the system. Any
-files saved in `bfcCache(bfc)` directory will also be deleted.
+`removebfc()` will remove the `BiocFileCache` complete from the system. Any
+files saved in `bfccache(bfc)` directory will also be deleted.
 
 ```{r eval=FALSE}
-removeCache(bfc)
+removebfc(bfc)
 ```
 **Note** Use with caution!
 

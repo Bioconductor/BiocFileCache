@@ -46,17 +46,17 @@ BiocFileCache <-
 }
 
 #' @export
-setGeneric("bfcCache", function(x) standardGeneric("bfcCache"))
+setGeneric("bfccache", function(x) standardGeneric("bfccache"))
 
 #' @describeIn BiocFileCache Get the location of the on-disk cache.
 #' @param x A \code{BiocFileCache} instance.
-#' @return For 'bfcCache': character(1) location of the directory
+#' @return For 'bfccache': character(1) location of the directory
 #'     containing the cache.
 #' @examples
-#' bfcCache(bfc)
-#' @aliases bfcCache
-#' @exportMethod bfcCache
-setMethod("bfcCache", "BiocFileCacheBase", function(x) x@cache)
+#' bfccache(bfc)
+#' @aliases bfccache
+#' @exportMethod bfccache
+setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
 
 #' @describeIn BiocFileCache Get the number of object in the file
 #'     cache.
@@ -66,19 +66,19 @@ setMethod("bfcCache", "BiocFileCacheBase", function(x) x@cache)
 #' length(bfc)
 #' @importFrom stats setNames
 #' @exportMethod length
-setMethod("length", "BiocFileCacheBase", function(x) length(rid(x)))
+setMethod("length", "BiocFileCacheBase", function(x) length(bfcrid(x)))
 
 #' @export
-setGeneric("rid", function(x) standardGeneric("rid"))
+setGeneric("bfcrid", function(x) standardGeneric("bfcrid"))
 
 #' @describeIn BiocFileCache Get the rids of the object
-#' @exportMethod rid
-setMethod("rid", "BiocFileCacheReadOnly", function(x) x@rid)
+#' @exportMethod bfcrid
+setMethod("bfcrid", "BiocFileCacheReadOnly", function(x) x@rid)
 
 #' @describeIn BiocFileCache Get the rids of the object
-#' @aliases rid
-#' @exportMethod rid
-setMethod("rid", "BiocFileCache", function(x) .get_all_rids(x))
+#' @aliases bfcrid
+#' @exportMethod bfcrid
+setMethod("bfcrid", "BiocFileCache", function(x) .get_all_rids(x))
 
 #' @describeIn BiocFileCache Subset a BiocFileCache object.
 #' @param drop Ignored.
@@ -87,7 +87,7 @@ setMethod("rid", "BiocFileCache", function(x) .get_all_rids(x))
 setMethod("[", c("BiocFileCache", "numeric", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
-    stopifnot(all(i %in% rid(x)))
+    stopifnot(all(i %in% bfcrid(x)))
     stopifnot(identical(drop, TRUE))
 
     .BiocFileCacheReadOnly(x, rid=as.integer(i))
@@ -98,7 +98,7 @@ setMethod("[", c("BiocFileCache", "numeric", "missing"),
 setMethod("[", c("BiocFileCacheReadOnly", "numeric", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
-    stopifnot(all(i %in% rid(x)))
+    stopifnot(all(i %in% bfcrid(x)))
     stopifnot(identical(drop, TRUE))
 
     initialize(x, rid=as.integer(i))
@@ -111,7 +111,7 @@ setMethod("[", c("BiocFileCache", "missing", "missing"),
 {
     stopifnot(identical(drop, TRUE))
 
-    .BiocFileCacheReadOnly(x, rid=rid(x))
+    .BiocFileCacheReadOnly(x, rid=bfcrid(x))
 })
 
 #' @describeIn BiocFileCache Subset a BiocFileCache object
@@ -132,9 +132,9 @@ setMethod("[", c("BiocFileCacheReadOnly", "missing", "missing"),
 setMethod("[[", c("BiocFileCacheBase", "numeric", "missing"),
     function(x, i, j)
 {
-    stopifnot(length(i) == 1L, i %in% rid(x))
+    stopifnot(length(i) == 1L, i %in% bfcrid(x))
 
-    sqlfile <- .sql_update_time(x, i)
+    .sql_update_time(x, i)
     .sql_get_rpath(x, i)
 })
 
@@ -149,8 +149,8 @@ setReplaceMethod("[[", c("BiocFileCache", "numeric", "missing", "character"),
     stopifnot(length(i) == 1L, length(value) == 1L)
     stopifnot(file.exists(value))
 
-    sqlfile <- .sql_update_time(x, i)
-    sqlfile <- .sql_set_rpath(x, i, value)
+    .sql_update_time(x, i)
+    .sql_set_rpath(x, i, value)
     x
 })
 
@@ -185,7 +185,7 @@ setMethod("bfcnew", "BiocFileCache",
 #' @export
 setGeneric("bfcadd",
     function(
-        x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
+        x, rname, fpath, rtype=c("auto", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
     ) standardGeneric("bfcadd"),
     signature="x"
@@ -228,55 +228,31 @@ setGeneric("bfcadd",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath=NA_character_, rtype=c("auto", "local", "web"),
+        x, rname, fpath, rtype=c("auto", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
     stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
-    rtype <- match.arg(rtype)
+    rtype <- .util_standardize_rtype(rtype, fpath)
+    stopifnot(rtype == "web" || file.exists(fpath))
     action <- match.arg(action)
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
-    if (rtype == "auto")
-        rtype <- .check_rtype(fpath)
+    rid <- .sql_new_resource(x, rname, rtype, fpath)
+    rpath <- bfcrpath(x, rid)
     if (rtype == "local") {
-        stopifnot(file.exists(fpath))
-        rid <- .sql_new_resource(x, rname, rtype, NA_character_)
+        switch(
+            action,
+            copy = file.copy(fpath, rpath, ...),
+            move = file.rename(fpath, rpath),
+            asis = .sql_set_rpath(x, rid, fpath)
+        )
     } else {                            # rtype == "web"
-        temploc <- tempfile(tmpdir=bfcCache(x))
-        on.exit(unlink(temploc))
-        wasSuccess <- .download_resource(fpath, temploc, proxy)
-        if (wasSuccess) {
-            rid <- .sql_new_resource(x, rname, rtype, fpath)
-            fpath <- .sql_get_field(x, rid, "fpath")
-            web_time <- .get_web_last_modified(fpath)
-            if (length(web_time) != 0L)
-                vl <- .sql_set_modifiedTime(x, rid, web_time)
-            action <- "move"
-            fpath <- temploc
-        } else {
-            stop("download failed:\n  file: '", fpath, "'")
-        }
+        .util_download(x, rid, proxy, "bfcadd()")
     }
-    switch(
-        action,
-        copy = file.copy(fpath, .sql_get_rpath(x, rid), ...),
-        move = file.rename(fpath, .sql_get_rpath(x, rid)),
-        asis = .sql_set_rpath(x, rid, fpath))
 
-    rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
-
-.check_rtype <-
-    function(path)
-{
-    if (startsWith(path, "http") || startsWith(path, "ftp")) {
-        "web"
-    } else {
-        "local"
-    }
-}
 
 #' @export
 setGeneric("bfcinfo",
@@ -286,7 +262,7 @@ setGeneric("bfcinfo",
 
 #' @describeIn BiocFileCache list resources in database
 #' @param rids character() Vector of rids.
-#' @return For 'bfcinfo': A \code{bcf_tbl} of current resources in the database.
+#' @return For 'bfcinfo': A \code{bfc_tbl} of current resources in the database.
 #' @examples
 #' bfcinfo(bfc0)
 #' @aliases bfcinfo
@@ -295,8 +271,8 @@ setMethod("bfcinfo", "BiocFileCacheBase",
     function(x, rids)
 {
     if (missing(rids))
-        rids <- rid(x)
-    stopifnot(all(rids %in% rid(x)))
+        rids <- bfcrid(x)
+    stopifnot(all(rids %in% bfcrid(x)))
 
     .sql_get_resource_table(x, rids)
 })
@@ -324,12 +300,12 @@ setGeneric("bfcpath", function(x, rid) standardGeneric("bfcpath"))
 setMethod("bfcpath", "BiocFileCacheBase",
     function(x, rid)
 {
-    stopifnot(!missing(rid), length(rid) == 1L, rid %in% rid(x))
+    stopifnot(!missing(rid), length(rid) == 1L, rid %in% bfcrid(x))
 
-    sqlfile <- .sql_update_time(x, rid)
+    .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
-    if (.sql_get_field(x, rid, "rtype") == "web") {
-        fpath <- .sql_get_field(x, rid, "fpath")
+    if (.sql_get_rtype(x, rid) == "web") {
+        fpath <- .sql_get_fpath(x, rid)
         setNames(c(path, fpath), c(rid, "fpath"))
     } else {
         setNames(path, rid)
@@ -350,17 +326,14 @@ setMethod("bfcrpath", "BiocFileCacheBase",
     function(x, rids)
 {
     if (missing(rids))
-        rids <- rid(x)
-    stopifnot(all(rids %in% rid(x)))
+        rids <- bfcrid(x)
+    stopifnot(all(rids %in% bfcrid(x)))
 
-    helper <- function(i, x0) {
-        if (i %in% rid(x0)) {
-            sqlfile <- .sql_update_time(x0, i)
-            path <- .sql_get_rpath(x0, i)
-            setNames(path, i)
-        }
+    helper <- function(x, i) {
+        .sql_update_time(x, i)
+        .sql_get_rpath(x, i)
     }
-    unlist(lapply(rids, FUN=helper, x0=x))
+    setNames(vapply(rids, helper, character(1), x = x), rids)
 })
 
 #' @export
@@ -381,7 +354,7 @@ setGeneric("bfcupdate",
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rids, rname=NULL, rpath=NULL, fpath=NULL, proxy="")
 {
-    stopifnot(!missing(rids), all(rids %in% rid(x)))
+    stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
         is.null(rname) || (length(rids) == length(rname)),
         is.null(rpath) || (length(rids) == length(rpath)),
@@ -395,55 +368,34 @@ setMethod("bfcupdate", "BiocFileCache",
 
     for (i in seq_along(rids)) {
 
-        sqlfile <- .sql_update_time(x, rids[i])
+        .sql_update_time(x, rids[i])
 
         if (!is.null(rname)) {
-            sqlfile <- .sql_set_rname(x, rids[i], rname[i])
+            .sql_set_rname(x, rids[i], rname[i])
         }
 
         if (!is.null(rpath)) {
-            chk <- file.exists(rpath[i])
-            if (chk) {
-                sqlfile <- .sql_set_rpath(x, rids[i], rpath[i])
-            } else {
-                stop("bcfupdate() failed",
+            if (!file.exists(rpath[i]))
+                stop(
+                    "bfcupdate() failed",
                     "\n  rid: ", rids[i],
-                    "\n  reason: rpath '", rpath[i], "' does not exist.",
-                    call.=FALSE)
-            }
+                    "\n  rpath: ", sQuote(rpath[i]),
+                    "\n  reason: rpath does not exist.",
+                    call.=FALSE
+                )
+
+            .sql_set_rpath(x, rids[i], rpath[i])
         }
 
         if (!is.null(fpath)) {
-            chk <- .sql_get_field(x, rids[i], "rtype")=="web"
-            if (chk) {
-                localpath <- .sql_get_rpath(x, rids[i])
-                temppath <- tempfile(tmpdir=bfcCache(x))
-                on.exit(unlink(temppath))
-                wasSuccess <- .download_resource(fpath[i], temppath, proxy)
-                if (wasSuccess) {
-                    file.rename(temppath, localpath)
-                    sqlfile <- .sql_set_fpath(x, rids[i], fpath[i])
-                    web_time <- .get_web_last_modified(fpath[i])
-                    if (length(web_time) != 0L) {
-                        sqlfile <- .sql_set_modifiedTime(x, rids[i], web_time)
-                    } else {
-                        sqlfile <- .sql_set_modifiedTime(
-                            x, rids[i], as.character(Sys.Date())
-                            )
-                    }
-                } else {
-                    stop("bcfupdate() download failed",
-                        "\n  rid: ", rids[i],
-                        "\n  file: '", fpath, "'",
-                        "\n  reason: download failed",
-                        call.=FALSE)
-                }
-            } else {
-                stop("bfcupdate() fpath failed",
+            if (.sql_get_rtype(x, rids[i]) != "web")
+                stop("bfcupdate() failed",
                     "\n  rid: ", rids[i],
                     "\n  reason: resource rtype is not 'web'",
                     call.=FALSE)
-            }
+
+            .sql_set_fpath(x, rids[i], fpath[i])
+            .util_download_and_rename(x, rids[i], proxy, "bfcupdate()")
         }
     }
 
@@ -457,11 +409,11 @@ setGeneric("bfcquery", function(x, query) standardGeneric("bfcquery"))
 #' @param query character() Pattern(s) to match in resource. It will
 #'     match the pattern against rname, rpath, and fpath using SQL
 #'     \code{LIKE}, using \code{&&} logic across query elements.
-#' @return For 'bfcquery': A \code{bcf_tbl} of current resources in
+#' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
 #'     the database whose rname, rpath, or fpath contained query. If
 #'     multiple values are given, the resource must contain all of the
-#'     patterns. If a resource is not found matching all patterns
-#'     listed, returns NA.
+#'     patterns. A tbl with zero rows is returned when no resources
+#'     match the query.
 #' @examples
 #' bfcquery(bfc0, "test")
 #' @aliases bfcquery
@@ -471,12 +423,8 @@ setMethod("bfcquery", "BiocFileCacheBase",
 {
     stopifnot(is.character(query))
 
-    rids <- intersect(.sql_query_resource(x, query), rid(x))
-    if (length(rids) == 0L) {
-        NA
-    } else {
-        .sql_get_resource_table(x, rids)
-    }
+    rids <- intersect(.sql_query_resource(x, query), bfcrid(x))
+    .sql_get_resource_table(x, rids)
 })
 
 #' @export
@@ -486,8 +434,12 @@ setGeneric("bfcneedsupdate",
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return For 'bfcneedsupdate': named logical vector if resource
-#'     needs to be updated. The name is the unique 'rid' for the
-#'     resource. If no 'rids' are web resources returns NULL
+#'     needs to be updated. The name is the resource
+#'     'rid'. \code{TRUE}: fpath \code{modified} time of web resource
+#'     more recent than in BiocFileCache; \code{FALSE}: fpath
+#'     \code{modified} time of web resource not more recent than in
+#'     BiocFileCache; \code{NA}: web resource modified time could not
+#'     be determined.
 #' @examples
 #' bfcneedsupdate(bfc0, 5)
 #' @aliases bfcneedsupdate
@@ -496,32 +448,25 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
     function(x, rids)
 {
     if (missing(rids))
-        rids <- rid(x)
-    stopifnot(all(rids %in% rid(x)))
+        rids <- .get_all_web_rids(x)
+    stopifnot(all(rids %in% bfcrid(x)))
+    if (!all(rids %in% .get_all_web_rids(x)))
+        stop("rids not all web resources")
 
-    helper <- function(i, x0) {
-        if (i %in% .get_all_web_rids(x0)) {
-            sqlfile <- .sql_update_time(x0, i)
-            file_time <- .sql_get_field(x0, i, "last_modified_time")
-            link <- .sql_get_field(x0, i, "fpath")
-            web_time <- .get_web_last_modified(link)
-            if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
-                toUpdate <- NA
-                message("rid ", i, ": Cannot Determine: Recommend Update.")
-            } else {
-                toUpdate <- as.Date(web_time) > as.Date(file_time)
-            }
-            setNames(toUpdate, i)
+    helper <- function(x, rid) {
+        .sql_update_time(x, rid)
+        file_time <- .sql_get_last_modified(x, rid)
+        fpath <- .sql_get_fpath(x, rid)
+        web_time <- .httr_get_last_modified(fpath)
+        if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
+            NA
         } else {
-            if (i %in% rid(x0))
-                message("rid ", i, ": Is not a web resource.")
-            setNames(NA, i)
+            as.Date(web_time) > as.Date(file_time)
         }
-    }# end helper
-    tmp <- unlist(lapply(rids, FUN=helper, x0=x))
-    tmp <- tmp[names(tmp) %in% as.character(.get_all_web_rids(x))]
-    if (length(tmp) == 0L ) NULL
-    else tmp
+    } # end helper
+    result <- vapply(rids, helper, logical(1), x=x)
+
+    setNames(result, rids)
 })
 
 #' @export
@@ -530,7 +475,8 @@ setGeneric("bfcdownload",
 )
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
-#' @return For 'bfcdownload': Returns rpath to data, invisibly
+#' @return For 'bfcdownload': character(1) path to downloaded resource
+#'     in cache.
 #' @examples
 #' bfcdownload(bfc0, 5)
 #' @aliases bfcdownload
@@ -539,39 +485,22 @@ setMethod("bfcdownload", "BiocFileCache",
     function(x, rid, proxy="")
 {
     stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(.sql_get_field(x, rid, "rtype")=="web")
-    stopifnot(rid %in% rid(x))
+    stopifnot(.sql_get_rtype(x, rid) == "web")
+    stopifnot(rid %in% bfcrid(x))
 
-    sqlfile <- .sql_update_time(x, rid)
-    downloadFile <- .sql_get_field(x, rid, "fpath")
-    saveFile <- .sql_get_field(x, rid, "rpath")
-    tempSave <- tempfile(tmpdir=bfcCache(x))
-    on.exit(unlink(tempSave))
-    wasSuccess <- .download_resource(downloadFile, tempSave, proxy)
+    .sql_update_time(x, rid)
+    .util_download_and_rename(x, rid, proxy, "bfcdownload()")
 
-    if (wasSuccess) {
-        file.rename(tempSave, saveFile)
-        web_time <- .get_web_last_modified(downloadFile)
-        if (length(web_time) != 0L) {
-            sqlfile <- .sql_set_modifiedTime(x, rid, web_time)
-        } else {
-            sqlfile <- .sql_set_modifiedTime(
-                x,
-                rid,
-                as.character(Sys.Date()))
-        }
-    }
-    invisible(saveFile)
+    setNames(bfcrpath(x, rid), rid)
 })
 
 #' @export
 setGeneric("bfcremove", function(x, rids) standardGeneric("bfcremove"))
 
 #' @describeIn BiocFileCache Remove a resource to the database.  If
-#'     the local file is located in the bcfCache, the file will also
-#'     be deleted.
-#' @return For 'bfcremove': Returns updated biocFileCache object,
-#'     invisibly
+#'     the local file is located in \code{bfccache(x)}, the file will
+#'     also be deleted.
+#' @return For 'bfcremove': updated BiocFileCache object, invisibly
 #' @examples
 #' bfcremove(bfc0, rid3)
 #' bfcinfo(bfc0)
@@ -580,14 +509,13 @@ setGeneric("bfcremove", function(x, rids) standardGeneric("bfcremove"))
 setMethod("bfcremove", "BiocFileCache",
     function(x, rids)
 {
-    stopifnot(all(rids %in% rid(x)))
+    stopifnot(all(rids %in% bfcrid(x)))
 
-    for (i in rids) {
-        rpath <- .sql_get_rpath(x, i)
-        if (startsWith(rpath, bfcCache(x)))
-            unlink(rpath, force=TRUE)
-    }
-    sqlfile <- .sql_remove_resource(x, rids)
+    rpaths <- vapply(rids, .sql_get_rpath, character(1), bfc=x)
+    cached <- startsWith(rpaths, bfccache(x))
+
+    .sql_remove_resource(x, rids)
+    status <- .util_unlink(rpaths[cached])
 
     invisible(x)
 })
@@ -617,136 +545,97 @@ setMethod("bfcsync", "BiocFileCache",
     rids <- .get_rid_filenotfound(x)
 
     # files untracked in cache location
-    files <- file.path(bfcCache(x), setdiff(dir(bfcCache(x)), .CACHE_FILE))
+    files <- file.path(bfccache(x), setdiff(dir(bfccache(x)), .CACHE_FILE))
     untracked <- setdiff(files, .get_all_rpath(x))
 
-    if ( (length(rids) == 0L) && (length(untracked) == 0L) ) {
-        if (verbose)
-            message("Cache in sync")
-        TRUE
-    } else {
-        if (verbose) {
-            if (length(rids) != 0L) {
-                txt <- "The following entries have local files specified but
-                        not found. Consider updating or removing:"
-                tbl <- capture.output(bfcinfo(x, rids))
-                message(
-                    paste(strwrap(txt), collapse="\n"),
-                    "\n\n", paste(tbl, collapse="\n")
-                )
-            }
-            if (length(untracked) != 0L) {
-                txt <- "The following entries are in the cache but not being
-                        tracked. Consider adding to cache with 'bfcadd()':"
-                message(
-                    paste(strwrap(txt, exdent=4), collapse="\n"),
-                    "\n  ", paste(untracked, collapse="\n  ")
-                )
-            }
-        }
-        FALSE
+    test <- (length(rids) == 0L) && (length(untracked) == 0L)
+    if (verbose && (length(rids) != 0L)) {
+        txt <-
+            "The following entries have local files specified but not found.
+            Consider updating or removing:"
+        tbl <- capture.output(bfcinfo(x, rids))
+        message(
+            paste(strwrap(txt), collapse="\n"),
+            "\n\n", paste(tbl, collapse="\n")
+        )
     }
+    if (verbose && (length(untracked) != 0L)) {
+        txt <-
+            "The following entries are in the cache but not being tracked.
+            Consider adding to cache with 'bfcadd()':"
+        message(
+            paste(strwrap(txt, exdent=4), collapse="\n"),
+            "\n  ", paste(untracked, collapse="\n  ")
+        )
+    }
+
+    test
 })
 
 #' @export
-setGeneric("cleanCache",
-    function(x, days = 120, ask = TRUE) standardGeneric("cleanCache"),
+setGeneric("cleanbfc",
+    function(x, days = 120, ask = TRUE) standardGeneric("cleanbfc"),
     signature="x"
 )
 
 #' @describeIn BiocFileCache Remove old/unused files in
-#'     BiocFileCache. If file to be removed is not in the bfcCache
+#'     BiocFileCache. If file to be removed is not in the bfccache
 #'     location it will not be deleted.
 #' @param days integer(1) Number of days between accessDate and
 #'     currentDate; if exceeded entry will be deleted.
 #' @param ask logical(1) Prompt if really want to remove cache and
 #'     files.
-#' @return For 'cleanCache': logical(1), \code{TRUE} if successfully
-#'     removed.
+#' @return For 'cleanbfc': updated BiocFileCache, invisibly.
 #' @examples
-#' \dontrun{cleanCache(bfc, ask=FALSE)}
-#' @aliases cleanCache
-#' @exportMethod cleanCache
-setMethod("cleanCache", "BiocFileCache",
+#' \dontrun{cleanbfc(bfc, ask=FALSE)}
+#' @aliases cleanbfc
+#' @exportMethod cleanbfc
+setMethod("cleanbfc", "BiocFileCache",
     function(x, days = 120, ask=TRUE)
 {
     stopifnot(is.numeric(days), length(days) == 1L, !is.na(days))
     stopifnot(is.logical(ask), length(ask) == 1L, !is.na(ask))
 
-    idsToDel <- .sql_clean_cache(x, days)
+    rids <- .sql_clean_cache(x, days)
+    rpaths <- vapply(rids, .sql_get_rpath, character(1), bfc=x)
+    cached <- startsWith(rpaths, bfccache(x))
 
-    if (length(idsToDel) != 0L) {
+    if (ask) {
+        txt0 <- paste0(" file ", sQuote(rpaths))
+        txt <- paste0("Remove id ", sQuote(rids), ifelse(cached, txt0, ""))
+        doit <- vapply(txt, .util_ask, logical(1))
 
-        if (ask) {
-            for (id in idsToDel) {
-                doit <- FALSE
-                entry <- .sql_get_resource(x, id)
-                txt <- sprintf(
-                    "Remove from cache id: '%d' and delete file '%s' (y/N): ",
-                    entry$rid, entry$rpath)
-                repeat {
-                    response <- readline(txt)
-                    doit <- switch(
-                        substr(tolower(response), 1, 1),
-                        y = TRUE, n = FALSE, NA)
-                    if (!is.na(doit))
-                        break
-                }
-                if (doit) {
-                    if (startsWith(entry$rpath, bfcCache(x)))
-                        file <- unlink(entry$rpath, force=TRUE)
-                    file <- .sql_remove_resource(x, id)
-                }
-            }
-        } else {
-
-            paths <- unlist(lapply(idsToDel, .sql_get_rpath, bfc=x),
-                            use.names=FALSE)
-            rmMe <- startsWith(paths, bfcCache(x))
-            paths <- paths[rmMe]
-            if (length(paths) != 0L)
-                file <- unlink(paths, force=TRUE)
-            file <- .sql_remove_resource(x, idsToDel)
-        }
-
+        rids <- rids[doit]
+        cached <- cached & doit
     }
+
+    .sql_remove_resource(x, rids)
+    .util_unlink(rpaths[cached])
+
+    invisible(x)
 })
 
 #' @export
-setGeneric("removeCache",
-    function(x, ask = TRUE) standardGeneric("removeCache"),
+setGeneric("removebfc",
+    function(x, ask = TRUE) standardGeneric("removebfc"),
     signature="x"
 )
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
-#' @return For 'removeCache': TRUE if successfully removed.
+#' @return For 'removebfc': TRUE if successfully removed.
 #' @examples
-#' \dontrun{removeCache(bfc, ask=FALSE)}
-#' @aliases removeCache
-#' @exportMethod removeCache
-setMethod("removeCache", "BiocFileCache",
+#' \dontrun{removebfc(bfc, ask=FALSE)}
+#' @aliases removebfc
+#' @exportMethod removebfc
+setMethod("removebfc", "BiocFileCache",
     function(x, ask=TRUE)
 {
     stopifnot(is.logical(ask), length(ask) == 1L, !is.na(ask))
 
-    doit <- FALSE
-    if (ask) {
-        txt <- sprintf("remove cache and %d resource(s) (y/N): ", length(x))
-        repeat {
-            response <- readline(txt)
-            doit <- switch(
-                substr(tolower(response), 1, 1),
-                y = TRUE, n = FALSE, NA
-            )
-            if (!is.na(doit))
-                break
-        }
-    } else {
-        doit <- TRUE
-    }
+    txt <- paste("remove cache and", length(x), "resource(s) (y/N): ")
+    if (!ask || .util_ask(txt))
+        doit <- .util_unlink(bfccache(x), recursive=TRUE)
 
-    if (doit)
-        doit <- unlink(bfcCache(x), recursive=TRUE, force=TRUE) == 0
     doit
 })
 
@@ -757,7 +646,7 @@ setMethod("show", "BiocFileCacheBase",
     function(object)
 {
     cat("class: ", class(object), "\n",
-        "bfcCache: ", bfcCache(object), "\n",
+        "bfccache: ", bfccache(object), "\n",
         "length: ", length(object), "\n",
         "For more information see: bfcinfo() or bfcquery()\n",
         sep="")

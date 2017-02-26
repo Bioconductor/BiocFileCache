@@ -4,11 +4,11 @@ test_that("BiocFileCache creation works", {
     dir <- tempfile()
 
     bfc <- BiocFileCache(dir)
-    expect_identical(bfcCache(bfc), dir)
-    expect_true(file.exists(bfcCache(bfc)))
+    expect_identical(bfccache(bfc), dir)
+    expect_true(file.exists(bfccache(bfc)))
 
     # test that sql file also gets created
-    expect_true(file.exists(file.path(bfcCache(bfc), "BiocFileCache.sqlite")))
+    expect_true(file.exists(file.path(bfccache(bfc), "BiocFileCache.sqlite")))
 })
 
 test_that("bfcadd and bfcnew works", {
@@ -27,7 +27,7 @@ test_that("bfcadd and bfcnew works", {
     expect_true(file.exists(fl))
     expect_identical(bfc[[rid]], fl)
 
-    # test file add and move 
+    # test file add and move
     rid <- bfcadd(bfc, 'test-3', fl, action='move')
     expect_identical(length(bfc), 3L)
     expect_true(!file.exists(fl))
@@ -48,8 +48,7 @@ test_that("bfcadd and bfcnew works", {
 
     # test out of bounds and file not found
     expect_error(bfc[[7]])
-    expect_error(suppressWarnings(bfcadd(bfc, 'test-6',
-                        "http://jibberish", rtype="web")))
+    expect_error(bfcadd(bfc, 'test-6', "http://jibberish", rtype="web"))
     expect_error(bfcadd(bfc, 'test-2', fl, action='asis'))
 })
 
@@ -69,17 +68,17 @@ path <- bfcnew(bfc, 'test-4')
 rid4 <- as.integer(names(path))
 
 test_that("bfcinfo works", {
-    # print all 
+    # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
                      c(4L, 8L))
     expect_is(bfcinfo(bfc), "tbl_sqlite")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, 1:3))),
                      c(3L, 8L))
-    # print one found and one not found 
+    # print one found and one not found
     expect_error(bfcinfo(bfc, c(1, 6)))
-    
-    # index not found 
+
+    # index not found
     expect_error(bfcinfo(bfc, 6))
 })
 
@@ -88,13 +87,13 @@ test_that("bfcpath and bfcrpath works", {
     expect_identical(length(bfcpath(bfc, rid1)), 1L)
     expect_identical(names(bfcpath(bfc, rid1)), as.character(rid1))
     expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rid1))
-        
+
     # web file
     expect_identical(length(bfcpath(bfc, rid3)), 2L)
     expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "fpath"))
     expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rid3))
-    
-    # index not found 
+
+    # index not found
     expect_error(bfcpath(bfc, 6))
     expect_error(bfcrpath(bfc, 6))
     expect_error(bfcrpath(bfc, 6:12))
@@ -104,21 +103,22 @@ test_that("bfcpath and bfcrpath works", {
     expect_identical(length(bfcrpath(bfc)), 4L)
 })
 
-test_that("check rtpye works", {
-    # test web types
-    expect_identical(BiocFileCache:::.check_rtype("http://somepath.com"), "web")
-    expect_identical(BiocFileCache:::.check_rtype("ftp://somepath.com"), "web")
+test_that("check_rtype works", {
+    fun <- BiocFileCache:::.util_standardize_rtype
 
-    # test not web type 
-    expect_identical(BiocFileCache:::.check_rtype("not/a/web/path"), "local")
+    # test web types
+    expect_identical(fun("auto", "http://somepath.com"), "web")
+    expect_identical(fun("auto", "ftp://somepath.com"), "web")
+
+    # test not web type
+    expect_identical(fun("auto", "not/a/web/path"), "local")
 })
 
 test_that("subsetting works", {
-
     # out of bounds
     expect_error(bfc[3:5])
     expect_error(bfc[10])
-    
+
     # empty
     bfcsub3 <- bfc[]
     expect_identical(length(bfcsub3), length(bfc))
@@ -131,21 +131,20 @@ test_that("subsetting works", {
     expect_error(bfcupdate(bfcsub3, rname="test"))
     fltemp <- tempfile(); file.create(fltemp)
     expect_error(bfcsub3[[2]] <- fltemp)
-    
 })
 
-test_that("bfcupdate works", {   
-    # test [[<-, only updates rpath 
+test_that("bfcupdate works", {
+    # test [[<-, only updates rpath
     fl2 <- tempfile(); file.create(fl2)
     bfc[[rid2]] <- fl2
     expect_identical(unname(bfcpath(bfc, rid2)), fl2)
     expect_error(bfc[[rid1]] <- "A/file/doesnt/work")
 
-    # test errors, files not found 
+    # test errors, files not found
     expect_error(bfcupdate(bfc, rid2, fpath="rid2/local/notweb"))
     expect_error(bfcupdate(bfc, rid3, fpath="http://notworking/web"))
     expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid"))
-    
+
     # test update fpath and rname
     link = "https://en.wikipedia.org/wiki/Bioconductor"
     bfcupdate(bfc, rid3, fpath=link, rname="prepQuery")
@@ -153,12 +152,12 @@ test_that("bfcupdate works", {
         bfcinfo(bfc,rid3))[c("rname", "fpath")]))
     expect_identical(vl, c("prepQuery", link))
     time <- as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
-    expect_identical(time, BiocFileCache:::.get_web_last_modified(link))
-    
+    expect_identical(time, BiocFileCache:::.httr_get_last_modified(link))
+
     # test rpath update and give second query example
     bfcupdate(bfc, rid1, rpath=fl2, rname="prepQuery2")
     expect_identical(unname(bfcpath(bfc, rid1)), fl2)
-    
+
     # test error
     expect_error(bfcupdate(bfc, c(rid2, rid1), rname="oneName"))
     expect_error(bfcupdate(bfc, 1:7))
@@ -174,11 +173,11 @@ test_that("bfcquery works", {
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
     expect_identical(dim(q2), c(1L,8L))
 
-    # query not found 
-    expect_true(is.na(bfcquery(bfc, "nothere")))
+    # query not found
+    expect_identical(nrow(bfcquery(bfc, "nothere")), 0L)
 
     # multiple value all found
-    path <- file.path(bfcCache(bfc), "myFile")
+    path <- file.path(bfccache(bfc), "myFile")
     file.create(path)
     bfc[[rid3]] <- path
     q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf")))
@@ -186,12 +185,12 @@ test_that("bfcquery works", {
     expect_identical(q3$rid, rid3)
 
     # multi value some not found
-    expect_true(is.na(bfcquery(bfc, c("prep", "not"))))    
+    expect_identical(nrow(bfcquery(bfc, c("prep", "not"))), 0L)
 })
 
 test_that("bfcneedsupdate works", {
     # test not web source
-    expect_true(is.null(bfcneedsupdate(bfc, rid4)))
+    expect_error(bfcneedsupdate(bfc, rid4))
     # test out of bounds
     expect_error(bfcneedsupdate(bfc, 7))
 
@@ -202,15 +201,20 @@ test_that("bfcneedsupdate works", {
     link = "http://google.com"
     bfcupdate(bfc, rid3, fpath=link)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
-    expect_message(is.na(bfcneedsupdate(bfc, rid3)))
-    expect_identical(as.character(Sys.Date()),
-        as.data.frame(bfcinfo(bfc,rid3))$last_modified_time)
+    expect_identical(
+        as.character(Sys.Date()),
+        as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
+    )
 
     # remove those that aren't web
-    expect_identical(length(bfcneedsupdate(bfc)),
-                     length(BiocFileCache:::.get_all_web_rids(bfc)))
-    expect_identical(names(bfcneedsupdate(bfc)),
-                     as.character(BiocFileCache:::.get_all_web_rids(bfc))) 
+    expect_identical(
+        length(bfcneedsupdate(bfc)),
+        length(BiocFileCache:::.get_all_web_rids(bfc))
+    )
+    expect_identical(
+        names(bfcneedsupdate(bfc)),
+        as.character(BiocFileCache:::.get_all_web_rids(bfc))
+    )
 })
 
 test_that("bfcsync and bfcremove works", {
@@ -218,21 +222,20 @@ test_that("bfcsync and bfcremove works", {
     expect_message(bfcsync(bfc))
     expect_false(bfcsync(bfc, FALSE))
     bfcremove(bfc, rid4)
-    files <- file.path(bfcCache(bfc),
-                       setdiff(list.files(bfcCache(bfc)),
+    files <- file.path(bfccache(bfc),
+                       setdiff(list.files(bfccache(bfc)),
                                "BiocFileCache.sqlite")
                        )
     untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc))
-    unlink(untracked) 
+    unlink(untracked)
     expect_true(bfcsync(bfc, FALSE))
-    expect_message(bfcsync(bfc))
 
     # test that remove, deletes file if in cache
     path <- BiocFileCache:::.sql_get_rpath(bfc, rid3)
     expect_true(file.exists(path))
     bfcremove(bfc, rid3)
     expect_false(file.exists(path))
-    
+
     # test remove leaves file if not in cache
     path <- BiocFileCache:::.sql_get_rpath(bfc, rid2)
     expect_true(file.exists(path))
@@ -240,10 +243,10 @@ test_that("bfcsync and bfcremove works", {
     expect_true(file.exists(path))
 })
 
-test_that("cleanCache works", {
-    #cant test functiuon but test helper
+test_that("cleanbfc works", {
+    # can't test functiuon but test helper
     expect_true(length(BiocFileCache:::.sql_clean_cache(bfc, 1)) == 0L)
-    
+
     # manually change access_time so longer than a day
     sql<-
      sprintf("UPDATE resource SET access_time = '2016-01-01' WHERE rid = %d",
@@ -252,10 +255,10 @@ test_that("cleanCache works", {
     expect_identical(BiocFileCache:::.sql_clean_cache(bfc, 1), rid1)
 })
 
-test_that("removeCache works", {
-    path <- bfcCache(bfc)
+test_that("removebfc works", {
+    bfc <- BiocFileCache(tempfile())
+    path <- bfccache(bfc)
     expect_true(file.exists(path))
-    expect_true(removeCache(bfc, ask=FALSE))
+    expect_true(removebfc(bfc, ask=FALSE))
     expect_false(file.exists(path))
 })
-

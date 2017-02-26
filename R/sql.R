@@ -3,7 +3,7 @@
 .sql_file <-
     function(bfc, file)
 {
-    file.path(bfcCache(bfc), file)
+    file.path(bfccache(bfc), file)
 }
 
 .sql_dbfile <-
@@ -51,7 +51,7 @@
 .sql_new_resource <-
     function(bfc, rname, rtype, fpath)
 {
-    fname <- tempfile("", bfcCache(bfc))
+    fname <- tempfile("", bfccache(bfc))
     sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
@@ -73,15 +73,16 @@
 .sql_get_resource_table <-
     function(bfc, i)
 {
-    if (missing(i))
-        i = integer(0)
     src <- src_sqlite(.sql_dbfile(bfc))
-    if (length(i) == 0)
+    if (missing(i)) {
         vl <- tbl(src, "resource")
-    else if (length(i) == 1)
+    } else if (length(i) == 0) {
+        vl <- tbl(src, "resource") %>% filter_(~ rid == NA_integer_)
+    } else if (length(i) == 1) {
         vl <- tbl(src, "resource") %>% filter_(~ rid == i)
-    else
-        vl <- tbl(src, "resource") %>% filter_(~ rid %in% i)
+    } else {
+         vl <- tbl(src, "resource") %>% filter_(~ rid %in% i)
+    }
 
     class(vl) <- c("tbl_bfc", class(vl))
     vl
@@ -98,6 +99,18 @@
 {
     .sql_get_resource_table(bfc) %>% filter_(~ rid == id) %>%
         select_(field) %>% collect(Inf) %>% `[[`(field)
+}
+
+.sql_get_rtype <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "rtype")
+}
+
+.sql_get_fpath <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "fpath")
 }
 
 .sql_get_rpath <-
@@ -140,22 +153,6 @@
     mytbl[diffTime > days,1] %>% collect(Inf) %>% `[[`("rid")
 }
 
-.sql_get_resource <-
-    function(bfc, id)
-{
-    mytbl <- .sql_get_resource_table(bfc)
-    mytbl %>% filter_(~ rid == id) %>% collect(Inf)
-}
-
-.sql_subset_resources <-
-    function(bfc, i)
-{
-    if (length(i) == 1L)
-        .sql_get_resource(bfc, i)
-    else
-        .sql_get_resource_table(bfc) %>% filter_(~ rid %in% i) %>% collect(Inf)
-}
-
 .get_all_rids <-
     function(bfc)
 {
@@ -171,7 +168,13 @@
 
 }
 
-.sql_set_modifiedTime <-
+.sql_get_last_modified <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "last_modified_time")
+}
+
+.sql_set_last_modified <-
     function(bfc, rid, value)
 {
     sql <- .sql_sprintf("-- UPDATE_MODIFIED", value, rid)
