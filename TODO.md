@@ -48,4 +48,3 @@ select * into [TargetTable] from [SourceTable];
 drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
-

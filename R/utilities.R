@@ -41,9 +41,8 @@
 }
 
 .util_set_last_modified <-
-    function(bfc, rid)
+    function(bfc, rid, fpath = .sql_get_fpath(bfc, rid))
 {
-    fpath <- .sql_get_fpath(bfc, rid)
     web_time <- .httr_get_last_modified(fpath)
     if (length(web_time) == 0L)
         web_time <- as.character(Sys.Date())
@@ -100,5 +99,5 @@
             call. = FALSE
         )
 
-    .util_set_last_modified(bfc, rid)
+    .util_set_last_modified(bfc, rid, fpath)
 }
