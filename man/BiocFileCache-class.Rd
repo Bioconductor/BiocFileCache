@@ -10,12 +10,12 @@
 \alias{bfcrid,BiocFileCacheReadOnly-method}
 \alias{bfcrid,BiocFileCache-method}
 \alias{bfcrid}
-\alias{[,BiocFileCache,numeric,missing-method}
-\alias{[,BiocFileCacheReadOnly,numeric,missing-method}
+\alias{[,BiocFileCache,character,missing-method}
+\alias{[,BiocFileCacheReadOnly,character,missing-method}
 \alias{[,BiocFileCache,missing,missing-method}
 \alias{[,BiocFileCacheReadOnly,missing,missing-method}
-\alias{[[,BiocFileCacheBase,numeric,missing-method}
-\alias{[[<-,BiocFileCache,numeric,missing,character-method}
+\alias{[[,BiocFileCacheBase,character,missing-method}
+\alias{[[<-,BiocFileCache,character,missing,character-method}
 \alias{bfcnew,BiocFileCache-method}
 \alias{bfcnew}
 \alias{bfcadd,BiocFileCache-method}
@@ -55,17 +55,19 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 
 \S4method{bfcrid}{BiocFileCache}(x)
 
-\S4method{[}{BiocFileCache,numeric,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCache,character,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCacheReadOnly,numeric,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCacheReadOnly,character,missing}(x, i, j, ...,
+  drop = TRUE)
 
 \S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \S4method{[}{BiocFileCacheReadOnly,missing,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[[}{BiocFileCacheBase,numeric,missing}(x, i, j)
+\S4method{[[}{BiocFileCacheBase,character,missing}(x, i, j)
 
-\S4method{[[}{BiocFileCache,numeric,missing,character}(x, i, j, ...) <- value
+\S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
+  ...) <- value
 
 \S4method{bfcnew}{BiocFileCache}(x, rname)
 
@@ -103,7 +105,7 @@ cache.}
 
 \item{x}{A \code{BiocFileCache} instance.}
 
-\item{i}{integer() 'rid' identifiers.}
+\item{i}{character() 'rid' identifiers.}
 
 \item{j}{Ignored.}
 
@@ -133,7 +135,7 @@ in current location but save the path in the cache.}
 
 \item{rids}{character() Vector of rids.}
 
-\item{rid}{numeric(1) Unique resource id.}
+\item{rid}{character(1) Unique resource id.}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
@@ -290,7 +292,7 @@ fl2 <- tempfile(); file.create(fl2)
 bfcadd(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
 add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
-rid3 <- as.integer(names(add3))
+rid3 <- names(add3)
 
 bfc0
 file.exists(fl1)                                # TRUE
@@ -305,14 +307,14 @@ bfcpath(bfc0, rid3)
 bfcrpath(bfc0, rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
-bfcupdate(bfc0, 5, fpath="http://google.com")
+bfcupdate(bfc0, "BFC5", fpath="http://google.com")
 bfcquery(bfc0, "test")
-bfcneedsupdate(bfc0, 5)
-bfcdownload(bfc0, 5)
+bfcneedsupdate(bfc0, "BFC5")
+bfcdownload(bfc0, "BFC5")
 bfcremove(bfc0, rid3)
 bfcinfo(bfc0)
 bfcsync(bfc0)
-bfcremove(bfc0, 1)
+bfcremove(bfc0, "BFC1")
 bfcsync(bfc0, FALSE)
 \dontrun{cleanbfc(bfc, ask=FALSE)}
 \dontrun{removebfc(bfc, ask=FALSE)}
