@@ -10,7 +10,7 @@
 .BiocFileCacheReadOnly = setClass(
     "BiocFileCacheReadOnly",
     contains="BiocFileCacheBase",
-    slots=c(rid="integer")
+    slots=c(rid="character")
 )
 
 .BiocFileCache = setClass(
@@ -84,24 +84,24 @@ setMethod("bfcrid", "BiocFileCache", function(x) .get_all_rids(x))
 #' @param drop Ignored.
 #' @return For '[': A subset of the BiocFileCache object.
 #' @exportMethod [
-setMethod("[", c("BiocFileCache", "numeric", "missing"),
+setMethod("[", c("BiocFileCache", "character", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
     stopifnot(all(i %in% bfcrid(x)))
     stopifnot(identical(drop, TRUE))
 
-    .BiocFileCacheReadOnly(x, rid=as.integer(i))
+    .BiocFileCacheReadOnly(x, rid=as.character(i))
 })
 
 #' @describeIn BiocFileCache Subset a BiocFileCache object
 #' @exportMethod [
-setMethod("[", c("BiocFileCacheReadOnly", "numeric", "missing"),
+setMethod("[", c("BiocFileCacheReadOnly", "character", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
     stopifnot(all(i %in% bfcrid(x)))
     stopifnot(identical(drop, TRUE))
 
-    initialize(x, rid=as.integer(i))
+    initialize(x, rid=as.character(i))
 })
 
 #' @describeIn BiocFileCache Subset a BiocFileCache object
@@ -124,12 +124,12 @@ setMethod("[", c("BiocFileCacheReadOnly", "missing", "missing"),
 
 #' @describeIn BiocFileCache Get a file path for select resources from
 #'     the cache.
-#' @param i integer() 'rid' identifiers.
+#' @param i character() 'rid' identifiers.
 #' @param j Ignored.
 #' @return For '[[': named character(1) rpath for the given resource
 #'     in the cache.
 #' @exportMethod [[
-setMethod("[[", c("BiocFileCacheBase", "numeric", "missing"),
+setMethod("[[", c("BiocFileCacheBase", "character", "missing"),
     function(x, i, j)
 {
     stopifnot(length(i) == 1L, i %in% bfcrid(x))
@@ -143,7 +143,7 @@ setMethod("[[", c("BiocFileCacheBase", "numeric", "missing"),
 #' @param value character(1) Replacement file path.
 #' @return For '[[<-': Updated BiocFileCache, invisibly.
 #' @exportMethod [[<-
-setReplaceMethod("[[", c("BiocFileCache", "numeric", "missing", "character"),
+setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
     function(x, i, j, ..., value)
 {
     stopifnot(length(i) == 1L, length(value) == 1L)
@@ -214,7 +214,7 @@ setGeneric("bfcadd",
 #' bfcadd(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
 #' add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
-#' rid3 <- as.integer(names(add3))
+#' rid3 <- names(add3)
 #'
 #' bfc0
 #' file.exists(fl1)                                # TRUE
@@ -290,7 +290,7 @@ dim.tbl_bfc <-
 setGeneric("bfcpath", function(x, rid) standardGeneric("bfcpath"))
 
 #' @describeIn BiocFileCache display paths of resource
-#' @param rid numeric(1) Unique resource id.
+#' @param rid character(1) Unique resource id.
 #' @return For 'bfcpath': the file path location to load and original
 #'     source information for web resources.
 #' @examples
@@ -348,7 +348,7 @@ setGeneric("bfcupdate",
 #' @examples
 #' bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 #' bfc0[[rid3]] = fl1
-#' bfcupdate(bfc0, 5, fpath="http://google.com")
+#' bfcupdate(bfc0, "BFC5", fpath="http://google.com")
 #' @aliases bfcupdate
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
@@ -441,7 +441,7 @@ setGeneric("bfcneedsupdate",
 #'     BiocFileCache; \code{NA}: web resource modified time could not
 #'     be determined.
 #' @examples
-#' bfcneedsupdate(bfc0, 5)
+#' bfcneedsupdate(bfc0, "BFC5")
 #' @aliases bfcneedsupdate
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "BiocFileCacheBase",
@@ -478,7 +478,7 @@ setGeneric("bfcdownload",
 #' @return For 'bfcdownload': character(1) path to downloaded resource
 #'     in cache.
 #' @examples
-#' bfcdownload(bfc0, 5)
+#' bfcdownload(bfc0, "BFC5")
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
@@ -531,7 +531,7 @@ setGeneric("bfcsync", function(x, verbose=TRUE) standardGeneric("bfcsync"))
 #'     descriptive messages will also be included.
 #' @examples
 #' bfcsync(bfc0)
-#' bfcremove(bfc0, 1)
+#' bfcremove(bfc0, "BFC1")
 #' bfcsync(bfc0, FALSE)
 #' @aliases bfcsync
 #' @importFrom utils capture.output

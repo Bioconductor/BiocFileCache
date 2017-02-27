@@ -22,7 +22,7 @@ test_that("bfcadd and bfcnew works", {
 
     # test file add and location not in cache
     path <- bfcadd(bfc, 'test-2', fl, action='asis')
-    rid <- as.integer(names(path))
+    rid <- names(path)
     expect_identical(length(bfc), 2L)
     expect_true(file.exists(fl))
     expect_identical(bfc[[rid]], fl)
@@ -35,7 +35,7 @@ test_that("bfcadd and bfcnew works", {
     # test add web resource
     url <- "http://httpbin.org/get"
     path <- bfcadd(bfc, 'test-4', url, rtype="web")
-    rid <- as.integer(names(path))
+    rid <- names(path)
     expect_identical(length(bfc), 4L)
     expect_true(file.exists(bfc[[rid]]))
 
@@ -44,7 +44,7 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(length(bfc), 5L)
     expect_true(!file.exists(path))
     expect_identical(unname(path),
-                     bfc[[as.integer(names(path))]])
+                     bfc[[names(path)]])
 
     # test out of bounds and file not found
     expect_error(bfc[[7]])
@@ -58,14 +58,14 @@ test_that("bfcadd and bfcnew works", {
 bfc <- BiocFileCache(tempfile())
 fl <- tempfile(); file.create(fl)
 add1 <- bfcadd(bfc, 'test-1', fl)
-rid1 <- as.integer(names(add1))
+rid1 <- names(add1)
 add2 <- bfcadd(bfc, 'test-2', fl, action='asis')
-rid2 <- as.integer(names(add2))
+rid2 <- names(add2)
 url <- "http://httpbin.org/get"
 add3 <- bfcadd(bfc, 'test-3', url, rtype="web")
-rid3 <- as.integer(names(add3))
+rid3 <- names(add3)
 path <- bfcnew(bfc, 'test-4')
-rid4 <- as.integer(names(path))
+rid4 <- names(path)
 
 test_that("bfcinfo works", {
     # print all
@@ -73,7 +73,7 @@ test_that("bfcinfo works", {
                      c(4L, 8L))
     expect_is(bfcinfo(bfc), "tbl_sqlite")
     # print subset
-    expect_identical(dim(as.data.frame(bfcinfo(bfc, 1:3))),
+    expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
                      c(3L, 8L))
     # print one found and one not found
     expect_error(bfcinfo(bfc, c(1, 6)))
@@ -99,7 +99,7 @@ test_that("bfcpath and bfcrpath works", {
     expect_error(bfcrpath(bfc, 6:12))
 
     # multiple files
-    expect_identical(length(bfcrpath(bfc, 1:3)), 3L)
+    expect_identical(length(bfcrpath(bfc, paste0("BFC", 1:3))), 3L)
     expect_identical(length(bfcrpath(bfc)), 4L)
 })
 
@@ -248,9 +248,9 @@ test_that("cleanbfc works", {
     expect_true(length(BiocFileCache:::.sql_clean_cache(bfc, 1)) == 0L)
 
     # manually change access_time so longer than a day
-    sql<-
-     sprintf("UPDATE resource SET access_time = '2016-01-01' WHERE rid = %d",
-              rid1)
+    sql<- sprintf(
+        "UPDATE resource SET access_time = '2016-01-01' WHERE rid = '%s'", rid1
+    )
     sqlfile <- BiocFileCache:::.sql_get_query(bfc,sql)
     expect_identical(BiocFileCache:::.sql_clean_cache(bfc, 1), rid1)
 })

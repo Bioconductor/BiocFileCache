@@ -161,15 +161,15 @@ add2 <- bfcadd(bfc, "Test_addCopy", fl1)                 # copy
 # returns filepath being tracked in cache
 add2
 # the name is the unique rid in the cache
-rid2 <- as.integer(names(add2))
+rid2 <- names(add2)
 
 fl2 <- tempfile(); file.create(fl2)
 add3 <- bfcadd(bfc, "Test2_addMove", fl2, action="move") # move
-rid3 <- as.integer(names(add3))
+rid3 <- names(add3)
 
 fl3 <- tempfile(); file.create(fl3)
 add4 <- bfcadd(bfc, "Test3_addAsis", fl3, action="asis") # reference
-rid4 <- as.integer(names(add4))
+rid4 <- names(add4)
 
 file.exists(fl1)    # TRUE - copied from original location
 file.exists(fl2)    # FALSE - moved from original location
@@ -181,11 +181,11 @@ Now let's add some examples with remote sources:
 ```{r}
 url <- "http://httpbin.org/get"
 add5 <- bfcadd(bfc, "TestWeb", fpath=url)
-rid5 <- as.integer(names(add5))
+rid5 <- names(add5)
 
 url2<- "https://en.wikipedia.org/wiki/Bioconductor"
 add6 <- bfcadd(bfc, "TestWeb", fpath=url2)
-rid6 <- as.integer(names(add6))
+rid6 <- names(add6)
 
 # let's look at our BiocFileCache object now
 bfc
@@ -232,7 +232,7 @@ subset object only), and access resources of the subset, however the resources
 cannot be updated.
 
 ```{r}
-bfcsubWeb = bfc[5:6]
+bfcsubWeb = bfc[paste0("BFC", 5:6)]
 bfcsubWeb
 bfcinfo(bfcsubWeb)
 ```
@@ -254,10 +254,10 @@ local file that can be used for retrieval. If the resource is a remote resource,
 local file.
 
 ```{r}
-bfc[[2]]
-bfcpath(bfc, 2)
-bfcpath(bfc, 5)
-bfcrpath(bfc, 5)
+bfc[["BFC2"]]
+bfcpath(bfc, "BFC2")
+bfcpath(bfc, "BFC5")
+bfcrpath(bfc, "BFC5")
 bfcrpath(bfc)
 ```
 
@@ -275,8 +275,8 @@ not have a last_modified tag, it is undetermined.
   is out of date.  Please see `bfcdownload()`.
 
 ```{r}
-bfcneedsupdate(bfc, 5)
-bfcneedsupdate(bfc, 6)
+bfcneedsupdate(bfc, "BFC5")
+bfcneedsupdate(bfc, "BFC6")
 bfcneedsupdate(bfc)
 ```
 
@@ -310,17 +310,17 @@ updated, the data will be downloaded and overwrite the current file specified in
 `rpath`.
 
 ```{r}
-bfcinfo(bfc, 1)
-bfcupdate(bfc, 1, rname="FirstEntry")
-bfcinfo(bfc, 1)
+bfcinfo(bfc, "BFC1")
+bfcupdate(bfc, "BFC1", rname="FirstEntry")
+bfcinfo(bfc, "BFC1")
 ```
 
 Now let's update a web resource
 
 ```{r}
-bfcinfo(bfc, 6) %>% select(rid,rpath,fpath)
-bfcupdate(bfc, 6, fpath=url, rname="Duplicate")
-bfcinfo(bfc, 6) %>% select(rid, rpath, fpath)
+bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
+bfcupdate(bfc, "BFC6", fpath=url, rname="Duplicate")
+bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 ```
 
 Lastly, remote resources may require an update if the Data is out of date (See
@@ -333,7 +333,7 @@ file `rpath`
 The following confirms that resources need updating, and the performs the update
 
 ```{r}
-rid <- 5
+rid <- "BFC5"
 test <- !identical(bfcneedsupdate(bfc, rid), FALSE) # 'TRUE' or 'NA'
 if (test)
     bfcdownload(bfc, rid)
@@ -354,8 +354,8 @@ removed from the `BiocFileCache` object but the file not deleted.
 # let's remind ourselves of our object
 bfc
 
-bfcremove(bfc, 6)
-bfcremove(bfc, 1)
+bfcremove(bfc, "BFC6")
+bfcremove(bfc, "BFC1")
 
 # let's look at our BiocFileCache object now
 bfc

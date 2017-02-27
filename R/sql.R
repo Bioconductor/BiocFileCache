@@ -63,29 +63,24 @@
     .sql_get_query(bfc, sql)
 }
 
-.sql_full_resource_table <-
-    function(bfc)
-{
-    src <- src_sqlite(.sql_dbfile(bfc))
-    tbl(src, "resource")
-}
-
 .sql_get_resource_table <-
     function(bfc, i)
 {
     src <- src_sqlite(.sql_dbfile(bfc))
+    tbl <- tbl(src, "resource")
+
     if (missing(i)) {
-        vl <- tbl(src, "resource")
+        ## tbl <- tbl
     } else if (length(i) == 0) {
-        vl <- tbl(src, "resource") %>% filter_(~ rid == NA_integer_)
+        tbl <- tbl %>% filter_(~ rid == NA_character_)
     } else if (length(i) == 1) {
-        vl <- tbl(src, "resource") %>% filter_(~ rid == i)
+        tbl <- tbl %>% filter_(~ rid == i)
     } else {
-         vl <- tbl(src, "resource") %>% filter_(~ rid %in% i)
+        tbl <- tbl %>% filter_(~ rid %in% i)
     }
 
-    class(vl) <- c("tbl_bfc", class(vl))
-    vl
+    class(tbl) <- c("tbl_bfc", class(tbl))
+    tbl %>% select_(~ -id)
 }
 
 .sql_get_nrows <-
