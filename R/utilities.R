@@ -1,3 +1,5 @@
+.CACHE_FILE <- "BiocFileCache.sqlite"
+
 .util_standardize_rtype <-
     function(rtype, fpath)
 {
@@ -71,10 +73,9 @@
 }
 
 .util_download_and_rename <-
-    function(bfc, rid, proxy, call)
+    function(bfc, rid, proxy, call, fpath = .sql_get_fpath(bfc, rid))
 {
     rpath <- .sql_get_rpath(bfc, rid)
-    fpath <- .sql_get_fpath(bfc, rid)
     temppath <- tempfile(tmpdir=bfccache(bfc))
     on.exit(unlink(temppath))
 
