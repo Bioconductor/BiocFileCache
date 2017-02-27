@@ -1,5 +1,6 @@
 -- TABLE
 CREATE TABLE resource (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     rid TEXT,
     rname TEXT,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -7,8 +8,7 @@ CREATE TABLE resource (
     rpath TEXT,
     rtype TEXT,
     fpath TEXT,
-    last_modified_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    id INTEGER PRIMARY KEY AUTOINCREMENT
+    last_modified_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 -- INSERT
 INSERT INTO resource (

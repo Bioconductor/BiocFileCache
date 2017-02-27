@@ -394,8 +394,10 @@ setMethod("bfcupdate", "BiocFileCache",
                     "\n  reason: resource rtype is not 'web'",
                     call.=FALSE)
 
+            .util_download_and_rename(
+                x, rids[i], proxy, "bfcupdate()", fpath[i]
+            )
             .sql_set_fpath(x, rids[i], fpath[i])
-            .util_download_and_rename(x, rids[i], proxy, "bfcupdate()")
         }
     }
 

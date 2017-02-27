@@ -1,5 +1,3 @@
-.CACHE_FILE <- "BiocFileCache.sqlite"
-
 .sql_file <-
     function(bfc, file)
 {
