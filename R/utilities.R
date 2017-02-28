@@ -31,6 +31,7 @@
 .util_unlink <-
     function(rpaths, ...)
 {
+    gc()
     status <- unlink(rpaths, ..., force=TRUE) == 0L
     if (!all(status))
         warning(
