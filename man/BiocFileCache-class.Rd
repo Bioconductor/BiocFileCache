@@ -279,11 +279,11 @@ location it will not be deleted.
 }}
 
 \examples{
-bfc <- BiocFileCache()            # global cache
-bfc
-bfccache(bfc)
-length(bfc)
+# bfc <- BiocFileCache()            # global cache
+# bfc
 bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
+bfccache(bfc0)
+length(bfc0)
 path <- bfcnew(bfc0, "NewResource")
 path
 fl1 <- tempfile(); file.create(fl1)
