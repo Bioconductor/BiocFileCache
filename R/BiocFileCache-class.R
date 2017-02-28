@@ -28,8 +28,9 @@
 #'     cache.
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
 #' @examples
-#' bfc <- BiocFileCache()            # global cache
-#' bfc
+#' # bfc <- BiocFileCache()            # global cache
+#' # bfc
+#' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 #' @name BiocFileCache-class
 #' @aliases BiocFileCache
 #' @export BiocFileCache
@@ -53,7 +54,7 @@ setGeneric("bfccache", function(x) standardGeneric("bfccache"))
 #' @return For 'bfccache': character(1) location of the directory
 #'     containing the cache.
 #' @examples
-#' bfccache(bfc)
+#' bfccache(bfc0)
 #' @aliases bfccache
 #' @exportMethod bfccache
 setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
@@ -63,7 +64,7 @@ setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
 #' @return For 'length': integer(1) Number of objects in the file
 #'     cache.
 #' @examples
-#' length(bfc)
+#' length(bfc0)
 #' @importFrom stats setNames
 #' @exportMethod length
 setMethod("length", "BiocFileCacheBase", function(x) length(bfcrid(x)))
@@ -167,7 +168,6 @@ setGeneric("bfcnew",
 #'     object / file.  The name of the return value is the unique rid
 #'     for the resource.
 #' @examples
-#' bfc0 <- BiocFileCache(tempfile())         # temporary catch for examples
 #' path <- bfcnew(bfc0, "NewResource")
 #' path
 #' @aliases bfcnew
