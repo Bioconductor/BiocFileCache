@@ -48,3 +48,41 @@ select * into [TargetTable] from [SourceTable];
 drop table [TargetTable];
 
 http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-in-sqlite
+
+
+
+
+
+# use https://cran.r-project.org/web/packages/rappdirs/rappdirs.pdf
+for default location
+
+# change bfcadd(x, rname, fpath, rtype, action, proxy, ...) so
+  fpath = rname by default
+
+# bfcrpath(x, rnames, ..., rids): character() file path to resource in cacache
+
+
+bfcrpath(bfc, "https://bioc.org/index.html")
+bfcrpath(bfc, "c:/my/file")
+
+- rnames OR rids
+- all rnames OR all rids exist
+- if rnames then
+  - does rname exist (and unique) in database?
+    yes
+	return rpath of resource
+    no
+	rpaths <- vapply(rnames, function(x, rname, ...) {
+            tryCatch({
+                bfcadd(x, rname, ...)
+            }, error=function(e) {
+	        warning(conditionMessage(e))
+                NA_character_
+            })
+        if (anyNA(rids)) {
+	    ## clean up -- remove all added resources
+            stop()
+        }
+	bfcrpath(bfc, rids=rid)
+
+
