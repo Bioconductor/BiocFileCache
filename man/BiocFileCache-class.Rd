@@ -45,7 +45,7 @@
 \alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
-BiocFileCache(cache = path.expand("~/.BiocFileCache"))
+BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{bfccache}{BiocFileCacheBase}(x)
 
@@ -101,7 +101,7 @@ BiocFileCache(cache = path.expand("~/.BiocFileCache"))
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
-cache.}
+cache. For default location see \code{\link[rappdirs]{user_cache_dir}}}
 
 \item{x}{A \code{BiocFileCache} instance.}
 

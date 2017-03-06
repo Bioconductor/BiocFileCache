@@ -2,9 +2,9 @@
 title: "BiocFileCache: Managing File Resources Across Sessions"
 author: Lori Shepherd
 output:
-    BiocStyle::html_document:
-	toc: true
-	toc_depth: 2
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{BiocFileCache: Managing File Resources Across Sessions}

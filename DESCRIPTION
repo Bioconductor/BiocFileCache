@@ -19,6 +19,7 @@ Imports:
     stats,
     utils,
     RSQLite,
+    rappdirs,
     httr
 BugReports: https://github.com/Bioconductor/BiocFileCache/issues
 DevelopmentURL: https://github.com/Bioconductor/BiocFileCache

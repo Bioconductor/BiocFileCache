@@ -53,8 +53,9 @@ http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-
 
 
 
-# use https://cran.r-project.org/web/packages/rappdirs/rappdirs.pdf
-for default location
+
+
+# ask about documentation link??? 
 
 # change bfcadd(x, rname, fpath, rtype, action, proxy, ...) so
   fpath = rname by default

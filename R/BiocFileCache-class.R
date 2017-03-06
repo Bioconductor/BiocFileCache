@@ -2,6 +2,7 @@
 #' @import RSQLite
 #' @import dplyr
 #' @import httr
+#' @import rappdirs
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
     slots=c(cache="character")
@@ -58,7 +59,7 @@
 #' }
 #'
 #' @param cache character(1) On-disk location (directory path) of
-#'     cache.
+#'     cache. For default location see \code{\link[rappdirs]{user_cache_dir}}
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
 #' @examples
 #' # bfc <- BiocFileCache()            # global cache
@@ -68,7 +69,7 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=path.expand("~/.BiocFileCache"))
+    function(cache=user_cache_dir(appname="BiocFileCache"))
 {
     stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
 
