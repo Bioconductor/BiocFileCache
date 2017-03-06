@@ -59,7 +59,7 @@
 #' }
 #'
 #' @param cache character(1) On-disk location (directory path) of
-#'     cache. For default location see \code{\link[rappdirs]{user_cache_dir}}
+#'     cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
 #' @examples
 #' # bfc <- BiocFileCache()            # global cache
@@ -219,7 +219,7 @@ setMethod("bfcnew", "BiocFileCache",
 #' @export
 setGeneric("bfcadd",
     function(
-        x, rname, fpath, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
     ) standardGeneric("bfcadd"),
     signature="x"
@@ -227,8 +227,9 @@ setGeneric("bfcadd",
 
 #' @describeIn BiocFileCache Add an existing resource to the database
 #' @param fpath For bfcadd(), character(1) path to current file
-#'     location or remote web resource. For bfcupdate() character()
-#'     vector of replacement web resources.
+#'     location or remote web resource. If none is given, the rname is
+#'     assumed to also be the path location. For bfcupdate() character() vector
+#'     of replacement web resources.
 #' @param rtype character(1) Local or web indicating if the resource
 #'     is a local file or a web resource.
 #' @param action character(1) How to handle the file: create a
@@ -262,7 +263,7 @@ setGeneric("bfcadd",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))

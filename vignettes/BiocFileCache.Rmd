@@ -143,7 +143,8 @@ bfcinfo(bfc)
 
 `bfcadd()` is for existing files or remote resources.  The user will still
 specify an `rname` of their choosing but also must specify a path to local file
-or web resource as `fpath`. If the `fpath` is a local file, there are a few
+or web resource as `fpath`. If no `fpath` is given, the default is to assume the
+`rname` is also the path location. If the `fpath` is a local file, there are a few
 options for the user determined by the `action` argument.  `action` will allow
 the user to either `copy` the existing file into the cache directory, `move` the
 existing file into the cache directory, or leave the file whereever it is on the

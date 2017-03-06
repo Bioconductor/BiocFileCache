@@ -50,6 +50,12 @@ test_that("bfcadd and bfcnew works", {
     expect_error(bfc[[7]])
     expect_error(bfcadd(bfc, 'test-6', "http://jibberish", rtype="web"))
     expect_error(bfcadd(bfc, 'test-2', fl, action='asis'))
+
+    # test no fpath given
+    url <- "http://httpbin.org/get"
+    path <- bfcadd(bfc, url)
+    expect_identical(BiocFileCache:::.sql_get_fpath(bfc,names(path)),
+                     BiocFileCache:::.sql_get_field(bfc,names(path), "rname"))
 })
 
 #

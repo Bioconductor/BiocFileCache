@@ -71,8 +71,8 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{bfcnew}{BiocFileCache}(x, rname)
 
-\S4method{bfcadd}{BiocFileCache}(x, rname, fpath, rtype = c("auto", "local",
-  "web"), action = c("copy", "move", "asis"), proxy = "", ...)
+\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
+  "local", "web"), action = c("copy", "move", "asis"), proxy = "", ...)
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
@@ -101,7 +101,7 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
-cache. For default location see \code{\link[rappdirs]{user_cache_dir}}}
+cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.}
 
 \item{x}{A \code{BiocFileCache} instance.}
 
@@ -120,8 +120,9 @@ cache. For default location see \code{\link[rappdirs]{user_cache_dir}}}
 'bfcupdate' a character vector of replacement rnames.}
 
 \item{fpath}{For bfcadd(), character(1) path to current file
-location or remote web resource. For bfcupdate() character()
-vector of replacement web resources.}
+location or remote web resource. If none is given, the rname is
+assumed to also be the path location. For bfcupdate() character() vector
+of replacement web resources.}
 
 \item{rtype}{character(1) Local or web indicating if the resource
 is a local file or a web resource.}

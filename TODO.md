@@ -14,9 +14,6 @@ install()
 library(BiocFileCache)
 example("BiocFileCache-class")
 
-temp = bfc0[2:3]
-
-
 
 
 fpath="http://hgdownload.cse.ucsc.edu/goldenpath/canFam1/bigZips/canFam1.2bit"
@@ -54,11 +51,6 @@ http://stackoverflow.com/questions/3604310/alter-table-add-column-if-not-exists-
 
 
 
-
-# ask about documentation link??? 
-
-# change bfcadd(x, rname, fpath, rtype, action, proxy, ...) so
-  fpath = rname by default
 
 # bfcrpath(x, rnames, ..., rids): character() file path to resource in cacache
 
