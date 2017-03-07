@@ -80,7 +80,7 @@
 .sql_new_resource <-
     function(bfc, rname, rtype, fpath)
 {
-    fname <- tempfile("", bfccache(bfc))
+    fname <- normalizePath(tempfile("", bfccache(bfc)))
     sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
