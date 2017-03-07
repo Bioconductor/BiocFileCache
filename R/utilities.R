@@ -40,6 +40,7 @@
             "failed to unlink cache resource(s):",
             "\n  ", paste(sQuote(rpaths[status]), collapse="\n  ")
         )
+    gc()
     status
 }
 
