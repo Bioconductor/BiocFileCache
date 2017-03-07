@@ -240,28 +240,41 @@ test_that("bfcneedsupdate works", {
 })
 
 test_that("bfcsync and bfcremove works", {
+
+    bfc2 <- BiocFileCache(tempfile())
+    fl <- tempfile(); file.create(fl)
+    add1 <- bfc2add(bfc2, 'test-1', fl)
+    rid1 <- names(add1)
+    add2 <- bfc2add(bfc2, 'test-2', fl, action='asis')
+    rid2 <- names(add2)
+    url <- "http://httpbin.org/get"
+    add3 <- bfc2add(bfc2, 'test-3', url, rtype="web")
+    rid3 <- names(add3)
+    path <- bfc2new(bfc2, 'test-4')
+    rid4 <- names(path)
+    
     # test sync
-    expect_message(bfcsync(bfc))
-    expect_false(bfcsync(bfc, FALSE))
-    bfcremove(bfc, rid4)
-    files <- file.path(bfccache(bfc),
-                       setdiff(list.files(bfccache(bfc)),
+    expect_message(bfcsync(bfc2))
+    expect_false(bfcsync(bfc2, FALSE))
+    bfcremove(bfc2, rid4)
+    files <- file.path(bfccache(bfc2),
+                       setdiff(list.files(bfccache(bfc2)),
                                "BiocFileCache.sqlite")
                        )
-    untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc))
+    untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc2))
     unlink(untracked)
-    expect_true(bfcsync(bfc, FALSE))
+    expect_true(bfcsync(bfc2, FALSE))
 
     # test that remove, deletes file if in cache
-    path <- BiocFileCache:::.sql_get_rpath(bfc, rid3)
+    path <- BiocFileCache:::.sql_get_rpath(bfc2, rid3)
     expect_true(file.exists(path))
-    bfcremove(bfc, rid3)
+    bfcremove(bfc2, rid3)
     expect_false(file.exists(path))
 
     # test remove leaves file if not in cache
-    path <- BiocFileCache:::.sql_get_rpath(bfc, rid2)
+    path <- BiocFileCache:::.sql_get_rpath(bfc2, rid2)
     expect_true(file.exists(path))
-    bfcremove(bfc, rid2)
+    bfcremove(bfc2, rid2)
     expect_true(file.exists(path))
 })
 
