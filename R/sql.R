@@ -10,6 +10,23 @@
     .sql_file(bfc, .CACHE_FILE)
 }
 
+.sql_validate_version <-
+    function(bfc)
+{
+    sqlfile <- .sql_dbfile(bfc)
+    con <- dbConnect(SQLite(), sqlfile)
+    sql <- .sql_sprintf("-- SELECT_METADATA")
+    mdata <- dbGetQuery(con, sql)
+    dbDisconnect(con)
+    if (!mdata[mdata$key=="schema_version",2] %in% .SUPPORTED_SCHEMA_VERSIONS)
+        stop(
+            "unsupported schema version '",
+            mdata[mdata$key=="schema_version",2], "'",
+            "\n  use BiocFileCache version '",
+            mdata[mdata$key=="package_version",2], "'"
+            )
+}
+
 .sql_get_query <-
     function(bfc, sql)
 {
@@ -40,9 +57,23 @@
 {
     fl <- .sql_dbfile(bfc)
     if (!file.exists(fl)) {
+        ## update metadata table
+        sql <- .sql_sprintf("-- METADATA")
+        .sql_get_query(bfc, sql)
+        sql <- .sql_sprintf("-- INSERT_METADATA",
+                            sprintf("'schema_version', '%s'",
+                                    .CURRENT_SCHEMA_VERSION))
+        .sql_get_query(bfc, sql)
+        sql <- .sql_sprintf("-- INSERT_METADATA",
+                            sprintf("'package_version', '%s'",
+                                    as.character(packageVersion("BiocFileCache"))
+                                    ))
+        .sql_get_query(bfc, sql)
+        ## create new resource table
         sql <- .sql_sprintf("-- TABLE")
         .sql_get_query(bfc, sql)
     }
+    .sql_validate_version(bfc)
     fl
 }
 
@@ -139,9 +170,14 @@
     mytbl <- .sql_get_resource_table(bfc) %>%
         select_(~ rid, ~ access_time) %>% collect(Inf)
     currentDate <- Sys.Date()
+
+#    accessDate <- as.Date(
+#        sapply(strsplit(
+#            as.character(mytbl[,2]), split=" "), `[`, 1))
     accessDate <- as.Date(
         sapply(strsplit(
-            as.character(mytbl[,2]), split=" "), `[`, 1))
+            (mytbl %>% `[[`("access_time")), split=" "), `[`, 1))
+
     diffTime <- currentDate - accessDate
     mytbl[diffTime > days,1] %>% collect(Inf) %>% `[[`("rid")
 }
@@ -183,7 +219,7 @@
 
 .sql_query_resource <-
     function(bfc, value)
-{ 
+{
     helperFun <- function(bfc0, vl) {
         sql <- .sql_sprintf("-- QUERY_NAMES", vl)
         .sql_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
@@ -208,4 +244,16 @@
         .sql_get_resource_table(bfc) %>% select_("rpath") %>%
         collect(Inf) %>% `[[`("rpath"))
     .get_all_rids(bfc)[!vec]
+}
+
+.get_tbl_rid <-
+    function(tbl)
+{
+    tbl %>% collect(Inf) %>% `[[`("rid")
+}
+
+.fix_rnames <- function(bfc, rnames){
+
+    stopifnot(!missing(rnames))
+    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
 }

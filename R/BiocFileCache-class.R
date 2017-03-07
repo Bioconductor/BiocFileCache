@@ -237,8 +237,8 @@ setGeneric("bfcadd",
 #'     the file to the cache directory; or \code{asis} leave the file
 #'     in current location but save the path in the cache.
 #' @param proxy character(1) (Optional) proxy server.
-#' @param ... For \code{action="copy"}, additional arguments passed to
-#'     \code{file.copy}.
+#' @param ... For 'bfcadd': For \code{action="copy"}, additional arguments passed to
+#'     \code{file.copy}. For 'bfcrpaths': Additional arguments passed to 'bfcadd'.
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -274,7 +274,7 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
     rid <- .sql_new_resource(x, rname, rtype, fpath)
-    rpath <- bfcrpath(x, rid)
+    rpath <- bfcrpath(x, rids = rid)
     if (rtype == "local") {
         switch(
             action,
@@ -321,6 +321,12 @@ dim.tbl_bfc <-
     result
 }
 
+setOldClass("tbl_bfc")
+
+#' @describeIn BiocFileCache Get the rids of the object
+#' @exportMethod bfcrid
+setMethod("bfcrid", "tbl_bfc", function(x) .get_tbl_rid(x))
+
 #' @export
 setGeneric("bfcpath", function(x, rid) standardGeneric("bfcpath"))
 
@@ -348,27 +354,64 @@ setMethod("bfcpath", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric("bfcrpath", function(x, rids) standardGeneric("bfcrpath"))
+setGeneric("bfcrpath", function(x, rnames, ..., rids) standardGeneric("bfcrpath"))
 
-#' @describeIn BiocFileCache display rpath of resource
-#' @return For 'bfcrpath': The local file path location to load.  If
-#'     no 'rids' are valid, returns NULL.
+#' @describeIn BiocFileCache display rpath of resource. If 'rnames' is in the
+#' cache the path is returned, if it is not it will try to add it to the cache
+#' with 'bfcadd'
+#' @param rnames character() list of rnames to search and match on.
+#' @return For 'bfcrpath': The local file path location to load.
 #' @examples
-#' bfcrpath(bfc0, rid3)
+#' bfcrpath(bfc0, rids = rid3)
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "BiocFileCacheBase",
-    function(x, rids)
+    function(x, rnames, ..., rids)
 {
-    if (missing(rids))
-        rids <- bfcrid(x)
-    stopifnot(all(rids %in% bfcrid(x)))
+    if (!missing(rnames) && !missing(rids))
+        stop("specify either 'rnames' or 'rids' not both.")
 
-    helper <- function(x, i) {
+    update_time_and_path <- function(x, i) {
         .sql_update_time(x, i)
         .sql_get_rpath(x, i)
     }
-    setNames(vapply(rids, helper, character(1), x = x), rids)
+
+    add_or_return_rname <- function(x, name, ...){
+        res <- bfcrid(bfcquery(x, name))
+        if (length(res) == 0L){
+            tryCatch({
+                bfcadd(x, name, ...)
+            }, error=function(e) {
+                warning(conditionMessage(e))
+                NA_character_
+            })
+        } else if (length(res) == 1L){
+            path <- update_time_and_path(x, res)
+            setNames(path, res)
+        } else {
+            warning("rname: '", name ,"' is not unique.")
+            NA_character_
+        }
+    }
+
+    if (missing(rids))
+        rids <- bfcrid(x)
+
+    if (!missing(rnames)) {
+        rpaths <- vapply(rnames, add_or_return_rname, character(1), x=x, ...)
+        if (anyNA(rpaths)) {
+            rmdx <- setdiff(bfcrid(x), rids)
+            if (length(rmdx) > 0L)
+                bfcremove(x, rmdx)
+            stop("all 'rnames' not found or valid.")
+        }
+        setNames(rpaths, .fix_rnames(x, names(rpaths)))
+    } else {
+        stopifnot(all(rids %in% bfcrid(x)))
+        rpaths <- vapply(rids, update_time_and_path, character(1), x = x)
+        setNames(rpaths, rids)
+    }
+
 })
 
 #' @export
@@ -528,7 +571,7 @@ setMethod("bfcdownload", "BiocFileCache",
     .sql_update_time(x, rid)
     .util_download_and_rename(x, rid, proxy, "bfcdownload()")
 
-    setNames(bfcrpath(x, rid), rid)
+    setNames(bfcrpath(x, rids=rid), rid)
 })
 
 #' @export

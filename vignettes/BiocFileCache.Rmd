@@ -9,6 +9,7 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{BiocFileCache: Managing File Resources Across Sessions}
     %\VignetteEncoding{UTF-8}
+    %\VignetteDepends{rtracklayer}
 ---
 
 ```{r setup, echo=FALSE}
@@ -252,14 +253,17 @@ resource. The `bfcpath()` returns a named character vector also displaying the
 local file that can be used for retrieval. If the resource is a remote resource,
 `bfcpath()` will also return the path to the original source saved as
 `fpath`. The `bfcrpath()` returns a named character vector only displaying the
-local file.
+local file. `bfcrpath()` can also be used to add a resource into the
+cache. `bfcrpath()` can take an argument `rnames`; if the element in `rnames`
+is not found, it will try and add to the cache with `bfcadd()`. 
 
 ```{r}
 bfc[["BFC2"]]
 bfcpath(bfc, "BFC2")
 bfcpath(bfc, "BFC5")
-bfcrpath(bfc, "BFC5")
+bfcrpath(bfc, rids="BFC5")
 bfcrpath(bfc)
+bfcrpath(bfc, c("http://httpbin.org/get","Test3_addAsis"))
 ```
 
 Managing remote resources locally involves knowing when to update the local copy
@@ -469,7 +473,40 @@ bfcpath(bfc, names(ans))
 
 temp = GTFFile(ans)
 info = import(temp)
+```
 
+```{r eval=TRUE}
+
+#
+# A simplier test to see if something is in the cache
+# and if not start tracking it is using `bfcrpath`
+# 
+
+
+library(BiocFileCache)
+library(rtracklayer)
+
+# load the cache
+path <- file.path(tempdir(), "tempCacheDir")
+bfc <- BiocFileCache(path)
+
+# the web resources of interest
+url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
+
+url2 <- "ftp://ftp.ensembl.org/pub/release-71/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_5.0.71.gtf.gz"
+
+# if not in cache will download and create new entry
+pathsToLoad <- bfcrpath(bfc, c(url, url2))
+
+pathsToLoad
+
+# now load files as see fit
+info = import(GTFFile(pathsToLoad[1]))
+class(info)
+summary(info)
+```
+
+```{r eval=FALSE}
 #
 # One could also imagine the following:
 #

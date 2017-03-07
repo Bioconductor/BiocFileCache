@@ -22,6 +22,7 @@
 \alias{bfcadd}
 \alias{bfcinfo,BiocFileCacheBase-method}
 \alias{bfcinfo}
+\alias{bfcrid,tbl_bfc-method}
 \alias{bfcpath,BiocFileCacheBase-method}
 \alias{bfcpath}
 \alias{bfcrpath,BiocFileCacheBase-method}
@@ -76,9 +77,11 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
+\S4method{bfcrid}{tbl_bfc}(x)
+
 \S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
-\S4method{bfcrpath}{BiocFileCacheBase}(x, rids)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   fpath = NULL, proxy = "")
@@ -109,8 +112,8 @@ cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.}
 
 \item{j}{Ignored.}
 
-\item{...}{For \code{action="copy"}, additional arguments passed to
-\code{file.copy}.}
+\item{...}{For 'bfcadd': For \code{action="copy"}, additional arguments passed to
+\code{file.copy}. For 'bfcrpaths': Additional arguments passed to 'bfcadd'.}
 
 \item{drop}{Ignored.}
 
@@ -137,6 +140,8 @@ in current location but save the path in the cache.}
 \item{rids}{character() Vector of rids.}
 
 \item{rid}{character(1) Unique resource id.}
+
+\item{rnames}{character() list of rnames to search and match on.}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
@@ -184,8 +189,7 @@ For 'bfcinfo': A \code{bfc_tbl} of current resources in the database.
 For 'bfcpath': the file path location to load and original
     source information for web resources.
 
-For 'bfcrpath': The local file path location to load.  If
-    no 'rids' are valid, returns NULL.
+For 'bfcrpath': The local file path location to load.
 
 For 'bfcupdate': an updated \code{BiocFileCache} object, invisibly.
 
@@ -286,9 +290,13 @@ from the cache.
 
 \item \code{bfcinfo}: list resources in database
 
+\item \code{bfcrid}: Get the rids of the object
+
 \item \code{bfcpath}: display paths of resource
 
-\item \code{bfcrpath}: display rpath of resource
+\item \code{bfcrpath}: display rpath of resource. If 'rnames' is in the
+cache the path is returned, if it is not it will try to add it to the cache
+with 'bfcadd'
 
 \item \code{bfcupdate}: Update a resource in the cache
 
@@ -339,7 +347,7 @@ url <- "http://httpbin.org/get"
 bfcadd(bfc0, "TestWeb", fpath=url)
 bfcinfo(bfc0)
 bfcpath(bfc0, rid3)
-bfcrpath(bfc0, rid3)
+bfcrpath(bfc0, rids = rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
 bfcupdate(bfc0, "BFC5", fpath="http://google.com")

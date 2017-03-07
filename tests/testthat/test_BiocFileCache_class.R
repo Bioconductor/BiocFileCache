@@ -92,21 +92,37 @@ test_that("bfcpath and bfcrpath works", {
     # local file
     expect_identical(length(bfcpath(bfc, rid1)), 1L)
     expect_identical(names(bfcpath(bfc, rid1)), as.character(rid1))
-    expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rid1))
+    expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rids=rid1))
 
     # web file
     expect_identical(length(bfcpath(bfc, rid3)), 2L)
     expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "fpath"))
-    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rid3))
+    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rids=rid3))
 
     # index not found
     expect_error(bfcpath(bfc, 6))
-    expect_error(bfcrpath(bfc, 6))
-    expect_error(bfcrpath(bfc, 6:12))
+    expect_error(bfcrpath(bfc, rids=6))
+
+    # expect error
+    expect_error(bfcrpath(bfc, rnames="testweb", rids="BFC5"))
 
     # multiple files
-    expect_identical(length(bfcrpath(bfc, paste0("BFC", 1:3))), 3L)
+    expect_identical(length(bfcrpath(bfc, rids=paste0("BFC", 1:3))), 3L)
     expect_identical(length(bfcrpath(bfc)), 4L)
+
+    # test bfcrpath with rname
+    expect_identical(length(bfcrpath(bfc, c("test-1", "test-3"))), 2L)
+    expect_error(bfcrpath(bfc, "test"))
+    url = "https://en.wikipedia.org/wiki/Bioconductor"
+    expect_error(bfcrpath(bfc, c("test-1",url, "notworking")))
+    expect_identical(length(bfcrid(bfc)), 4L)
+    expect_identical(length(bfcrpath(bfc, c("test-1", url, "test-3"))), 3L)
+    expect_identical(length(bfcrid(bfc)), 5L)
+    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "rname"),
+                     url)
+    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "fpath"),
+                     url)
+
 })
 
 test_that("check_rtype works", {
@@ -177,7 +193,7 @@ test_that("bfcquery works", {
 
     # test query on fpath
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
-    expect_identical(dim(q2), c(1L,8L))
+    expect_identical(dim(q2), c(2L,8L))
 
     # query not found
     expect_identical(nrow(bfcquery(bfc, "nothere")), 0L)
