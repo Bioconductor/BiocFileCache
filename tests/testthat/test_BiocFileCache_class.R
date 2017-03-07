@@ -243,14 +243,14 @@ test_that("bfcsync and bfcremove works", {
 
     bfc2 <- BiocFileCache(tempfile())
     fl <- tempfile(); file.create(fl)
-    add1 <- bfc2add(bfc2, 'test-1', fl)
+    add1 <- bfcadd(bfc2, 'test-1', fl)
     rid1 <- names(add1)
-    add2 <- bfc2add(bfc2, 'test-2', fl, action='asis')
+    add2 <- bfcadd(bfc2, 'test-2', fl, action='asis')
     rid2 <- names(add2)
     url <- "http://httpbin.org/get"
-    add3 <- bfc2add(bfc2, 'test-3', url, rtype="web")
+    add3 <- bfcadd(bfc2, 'test-3', url, rtype="web")
     rid3 <- names(add3)
-    path <- bfc2new(bfc2, 'test-4')
+    path <- bfcnew(bfc2, 'test-4')
     rid4 <- names(path)
     
     # test sync
