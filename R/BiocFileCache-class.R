@@ -625,8 +625,11 @@ setMethod("bfcsync", "BiocFileCache",
     rids <- .get_rid_filenotfound(x)
 
     # files untracked in cache location
-    files <- normalizePath(file.path(bfccache(x), setdiff(dir(bfccache(x)),
-                                                          .CACHE_FILE)))
+    files <- file.path(bfccache(x), setdiff(dir(bfccache(x)),.CACHE_FILE))
+    # normalizePath on windows
+    # can't across platform - no opt on linux but added hidden on mac
+    if (tolower(.Platform$OS.type) == "windows")
+        files = normalizePath(files)
     untracked <- setdiff(files, .get_all_rpath(x))
 
     test <- (length(rids) == 0L) && (length(untracked) == 0L)

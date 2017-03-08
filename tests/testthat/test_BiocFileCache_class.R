@@ -258,10 +258,15 @@ test_that("bfcsync and bfcremove works", {
     expect_message(bfcsync(bfc2))
     expect_false(bfcsync(bfc2, FALSE))
     bfcremove(bfc2, rid4)
-    files <- normalizePath(file.path(bfccache(bfc2),
+    files <- file.path(bfccache(bfc2),
                        setdiff(list.files(bfccache(bfc2)),
                                "BiocFileCache.sqlite")
-                       ))
+                       )
+    # normalizePath on windows
+    # can't across platform - no opt on linux but added hidden (private)
+    # on mac
+    if (tolower(.Platform$OS.type) == "windows")
+        files = normalizePath(files)
     untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc2))
     unlink(untracked)
     expect_true(bfcsync(bfc2, FALSE))
