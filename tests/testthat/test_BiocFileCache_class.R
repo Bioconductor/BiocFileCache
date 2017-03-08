@@ -252,15 +252,16 @@ test_that("bfcsync and bfcremove works", {
     rid3 <- names(add3)
     path <- bfcnew(bfc2, 'test-4')
     rid4 <- names(path)
+    bfcupdate(bfc2, rid1, rpath=add3)
     
     # test sync
     expect_message(bfcsync(bfc2))
     expect_false(bfcsync(bfc2, FALSE))
     bfcremove(bfc2, rid4)
-    files <- file.path(bfccache(bfc2),
+    files <- normalizePath(file.path(bfccache(bfc2),
                        setdiff(list.files(bfccache(bfc2)),
                                "BiocFileCache.sqlite")
-                       )
+                       ))
     untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc2))
     unlink(untracked)
     expect_true(bfcsync(bfc2, FALSE))
