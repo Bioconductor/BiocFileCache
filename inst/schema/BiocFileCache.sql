@@ -1,3 +1,15 @@
+-- IF UPDATE SCHEME CHANGE VARIBLES IN utilities.R
+-- METADATA
+CREATE TABLE metadata (
+    key TEXT UNIQUE NOT NULL,
+    value TEXT
+);
+-- INSERT_METADATA
+INSERT INTO metadata (
+    key, value
+) VALUES (%s);
+-- SELECT_METADATA
+SELECT * FROM metadata;
 -- TABLE
 CREATE TABLE resource (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

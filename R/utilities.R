@@ -1,4 +1,6 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
+.CURRENT_SCHEMA_VERSION <- "0.99.0"
+.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.0")
 
 .util_standardize_rtype <-
     function(rtype, fpath)
@@ -31,12 +33,14 @@
 .util_unlink <-
     function(rpaths, ...)
 {
+    gc()
     status <- unlink(rpaths, ..., force=TRUE) == 0L
     if (!all(status))
         warning(
             "failed to unlink cache resource(s):",
             "\n  ", paste(sQuote(rpaths[status]), collapse="\n  ")
         )
+    gc()
     status
 }
 
