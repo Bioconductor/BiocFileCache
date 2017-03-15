@@ -2,13 +2,14 @@
 title: "BiocFileCache: Managing File Resources Across Sessions"
 author: Lori Shepherd
 output:
-    BiocStyle::html_document:
-        toc: true
-        toc_depth: 2
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteIndexEntry{BiocFileCache: Managing File Resources Across Sessions}
     %\VignetteEncoding{UTF-8}
+    %\VignetteDepends{rtracklayer}
 ---
 
 ```{r setup, echo=FALSE}
@@ -143,7 +144,8 @@ bfcinfo(bfc)
 
 `bfcadd()` is for existing files or remote resources.  The user will still
 specify an `rname` of their choosing but also must specify a path to local file
-or web resource as `fpath`. If the `fpath` is a local file, there are a few
+or web resource as `fpath`. If no `fpath` is given, the default is to assume the
+`rname` is also the path location. If the `fpath` is a local file, there are a few
 options for the user determined by the `action` argument.  `action` will allow
 the user to either `copy` the existing file into the cache directory, `move` the
 existing file into the cache directory, or leave the file whereever it is on the
@@ -251,14 +253,17 @@ resource. The `bfcpath()` returns a named character vector also displaying the
 local file that can be used for retrieval. If the resource is a remote resource,
 `bfcpath()` will also return the path to the original source saved as
 `fpath`. The `bfcrpath()` returns a named character vector only displaying the
-local file.
+local file. `bfcrpath()` can also be used to add a resource into the
+cache. `bfcrpath()` can take an argument `rnames`; if the element in `rnames`
+is not found, it will try and add to the cache with `bfcadd()`. 
 
 ```{r}
 bfc[["BFC2"]]
 bfcpath(bfc, "BFC2")
 bfcpath(bfc, "BFC5")
-bfcrpath(bfc, "BFC5")
+bfcrpath(bfc, rids="BFC5")
 bfcrpath(bfc)
+bfcrpath(bfc, c("http://httpbin.org/get","Test3_addAsis"))
 ```
 
 Managing remote resources locally involves knowing when to update the local copy
@@ -324,7 +329,7 @@ bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 ```
 
 Lastly, remote resources may require an update if the Data is out of date (See
-`bfcneedsupdate()`).  The `bfcdownload` function will attempt to download from 
+`bfcneedsupdate()`).  The `bfcdownload` function will attempt to download from
 the original resource saved in the cache as `fpath` and overwrite the out of date
 file `rpath`
 
@@ -447,10 +452,19 @@ if (dim(res)[1] == 0L) {
   rid = res %>% filter(fpath == url) %>% collect(Inf) %>% `[[`("rid")
   ans <- bfcrpath(bfc, rid)
 
+  # check to see if the resource needs to be updated
+  check <- bfcneedsupdate(bfc, rid)
+  # check can be NA if it cannot be determined, choose how to handle
+  if (is.na(check)) check <- TRUE
+  if (check){
+    ans < - bfcdownload(bfc, rid)
+  }
 }
 
-# now ans is the path of the file to load
+
+# ans is the path of the file to load
 ans
+
 
 # we know because we search for the url that the file is a .gtf.gz,
 # if we searched on other terms we can use 'bfcpath' to see the
@@ -459,7 +473,40 @@ bfcpath(bfc, names(ans))
 
 temp = GTFFile(ans)
 info = import(temp)
+```
 
+```{r eval=TRUE}
+
+#
+# A simplier test to see if something is in the cache
+# and if not start tracking it is using `bfcrpath`
+# 
+
+
+library(BiocFileCache)
+library(rtracklayer)
+
+# load the cache
+path <- file.path(tempdir(), "tempCacheDir")
+bfc <- BiocFileCache(path)
+
+# the web resources of interest
+url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
+
+url2 <- "ftp://ftp.ensembl.org/pub/release-71/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_5.0.71.gtf.gz"
+
+# if not in cache will download and create new entry
+pathsToLoad <- bfcrpath(bfc, c(url, url2))
+
+pathsToLoad
+
+# now load files as see fit
+info = import(GTFFile(pathsToLoad[1]))
+class(info)
+summary(info)
+```
+
+```{r eval=FALSE}
 #
 # One could also imagine the following:
 #
