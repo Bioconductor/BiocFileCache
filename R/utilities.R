@@ -2,6 +2,10 @@
 .CURRENT_SCHEMA_VERSION <- "0.99.0"
 .SUPPORTED_SCHEMA_VERSIONS <- c("0.99.0")
 
+.CURRENT_SCHEMA_VERSION <- "0.99.0"
+
+.SUPPORTED_SCHEMA_VERSIONS <- "0.99.0"
+
 .util_standardize_rtype <-
     function(rtype, fpath)
 {
