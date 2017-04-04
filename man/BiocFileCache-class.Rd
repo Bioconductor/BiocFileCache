@@ -58,7 +58,8 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{[}{BiocFileCache,character,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCacheReadOnly,character,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCacheReadOnly,character,missing}(x, i, j, ...,
+  drop = TRUE)
 
 \S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
@@ -66,12 +67,12 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{[[}{BiocFileCacheBase,character,missing}(x, i, j)
 
-\S4method{[[}{BiocFileCache,character,missing,character}(x, i, j, ...) <- value
+\S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
+  ...) <- value
 
 \S4method{bfcnew}{BiocFileCache}(x, rname)
 
-\S4method{bfcadd}{BiocFileCache}
-(x, rname, fpath = rname, rtype = c("auto",
+\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "local", "web"), action = c("copy", "move", "asis"), proxy = "", ...)
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
