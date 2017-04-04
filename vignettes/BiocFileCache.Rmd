@@ -145,15 +145,15 @@ bfcinfo(bfc)
 `bfcadd()` is for existing files or remote resources.  The user will still
 specify an `rname` of their choosing but also must specify a path to local file
 or web resource as `fpath`. If no `fpath` is given, the default is to assume the
-`rname` is also the path location. If the `fpath` is a local file, there are a few
-options for the user determined by the `action` argument.  `action` will allow
-the user to either `copy` the existing file into the cache directory, `move` the
-existing file into the cache directory, or leave the file whereever it is on the
-local system yet still track through the cache object `asis`. copy and move will
-rename the file to the generated cache file path. If the `fpath` is a remote
-source, the source will try to be downloaded, if it is successful it will save
-in the cache location and track in the cache object; The original source will be
-added to the cache information as `fpath`.
+`rname` is also the path location. If the `fpath` is a local file, there are a
+few options for the user determined by the `action` argument.  `action` will
+allow the user to either `copy` the existing file into the cache directory,
+`move` the existing file into the cache directory, or leave the file whereever
+it is on the local system yet still track through the cache object `asis`. copy
+and move will rename the file to the generated cache file path. If the `fpath`
+is a remote source, the source will try to be downloaded, if it is successful it
+will save in the cache location and track in the cache object; The original
+source will be added to the cache information as `fpath`.
 
 First let's use local files:
 
@@ -207,9 +207,8 @@ that you have added some time ago.
  * `bfcquery()`
 
 `bfcquery()` will take in a key word and search across the `rname`, `rpath`, and
-`fpath` for any matching. It will return a subset of the `BiocFileCache`
-object, listing all entries that contained the key word or `NA` if it cannot be
-found.
+`fpath` for any matching. It will return a subset of the `BiocFileCache` object,
+listing all entries that contained the key word or `NA` if it cannot be found.
 
 ```{r}
 bfcquery(bfc, "Web")
@@ -239,8 +238,8 @@ bfcsubWeb
 bfcinfo(bfcsubWeb)
 ```
 
-There are three methods for retrieving the `BiocFileCache` resource
-path location.
+There are three methods for retrieving the `BiocFileCache` resource path
+location.
 
  * `[[`
  * `bfcpath()`
@@ -255,7 +254,7 @@ local file that can be used for retrieval. If the resource is a remote resource,
 `fpath`. The `bfcrpath()` returns a named character vector only displaying the
 local file. `bfcrpath()` can also be used to add a resource into the
 cache. `bfcrpath()` can take an argument `rnames`; if the element in `rnames`
-is not found, it will try and add to the cache with `bfcadd()`. 
+is not found, it will try and add to the cache with `bfcadd()`.
 
 ```{r}
 bfc[["BFC2"]]
@@ -330,8 +329,8 @@ bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 
 Lastly, remote resources may require an update if the Data is out of date (See
 `bfcneedsupdate()`).  The `bfcdownload` function will attempt to download from
-the original resource saved in the cache as `fpath` and overwrite the out of date
-file `rpath`
+the original resource saved in the cache as `fpath` and overwrite the out of
+date file `rpath`
 
  * `bfcdownload()`
 
@@ -480,7 +479,7 @@ info = import(temp)
 #
 # A simplier test to see if something is in the cache
 # and if not start tracking it is using `bfcrpath`
-# 
+#
 
 
 library(BiocFileCache)
