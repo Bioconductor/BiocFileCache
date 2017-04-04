@@ -24,7 +24,7 @@
             mdata[mdata$key=="schema_version",2], "'",
             "\n  use BiocFileCache version '",
             mdata[mdata$key=="package_version",2], "'"
-            )
+        )
 }
 
 .sql_get_query <-
@@ -60,14 +60,18 @@
         ## update metadata table
         sql <- .sql_sprintf("-- METADATA")
         .sql_get_query(bfc, sql)
-        sql <- .sql_sprintf("-- INSERT_METADATA",
-                            sprintf("'schema_version', '%s'",
-                                    .CURRENT_SCHEMA_VERSION))
+        sql <- .sql_sprintf(
+            "-- INSERT_METADATA",
+            sprintf("'schema_version', '%s'", .CURRENT_SCHEMA_VERSION)
+        )
         .sql_get_query(bfc, sql)
-        sql <- .sql_sprintf("-- INSERT_METADATA",
-                            sprintf("'package_version', '%s'",
-                                    as.character(packageVersion("BiocFileCache"))
-                                    ))
+        sql <- .sql_sprintf(
+            "-- INSERT_METADATA",
+            sprintf(
+                "'package_version', '%s'",
+                as.character(packageVersion("BiocFileCache"))
+            )
+        )
         .sql_get_query(bfc, sql)
         ## create new resource table
         sql <- .sql_sprintf("-- TABLE")
@@ -171,9 +175,6 @@
         select_(~ rid, ~ access_time) %>% collect(Inf)
     currentDate <- Sys.Date()
 
-#    accessDate <- as.Date(
-#        sapply(strsplit(
-#            as.character(mytbl[,2]), split=" "), `[`, 1))
     accessDate <- as.Date(
         sapply(strsplit(
             (mytbl %>% `[[`("access_time")), split=" "), `[`, 1))
