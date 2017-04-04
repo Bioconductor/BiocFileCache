@@ -424,6 +424,84 @@ removebfc(bfc)
 
 # Use Cases
 
+## Local cache of an internet resource
+
+One use for [BiocFileCache][] is to save local copies of remote
+resources. The benefits of this approach include reproducibility,
+faster access, and access (once cached) without need for an internet
+connection. An example is an Ensembl GTF file (also available via
+[AnnotationHub][])
+
+```{r}
+## paste to avoid long line in vignette
+url <- paste(
+    "ftp://ftp.ensembl.org/pub/release-71/gtf",
+    "homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz",
+    sep="/")
+```
+
+For a system-wide cache, simply load the [BiocFileCache][] package and
+ask for the local resource path (`rpath`) of the resource.
+
+```{r, eval=FALSE}
+library(BiocFileCache)
+bfc <- BiocFileCache()
+path <- bfcrpath(bfc, url)
+```
+
+Use the path returned by `bfcrpath()` as usual, e.g.,
+
+```{r, eval=FALSE}
+gtf <- rtracklayer::import.gff(path)
+```
+
+A more compact use, the first or any time, is
+
+```{r, eval=FALSE}
+gtf <- rtracklayer::import.gff(bfcrpath(BiocFileCache(), url))
+```
+
+Ensembl releases do not change with time, so there is no need to check
+whether the cached resource needs to be updated.
+
+## Cache of experimental computations
+
+One might use [BiocFileCache][] to cache results from experimental
+analysis. The `rname` field provides an opportunity to provide
+descriptive metadata to help manage collections of resources, without
+relying on cryptic file naming conventions.
+
+Here we create or use a local file cache in the directory in which we are
+doing our analysis.
+
+```{r, eval=FALSE}
+library(BiocFileCache)
+bfc <- BiocFileCache("~/my-experiment/results")
+```
+
+We perform our analysis...
+
+```{r, eval=FALSE}
+library(DESeq2)
+library(airway)
+data(airway)
+dds <- DESeqDataData(airway, design = ~ cell + dex)
+result <- DESeq(dds)
+```
+
+...and then save our result in a location provided by
+[BiocFileCache][].
+
+```{r, eval=FALSE}
+saveRDS(result, bfcnew(bfc, "airway / DESeq standard analysis"))
+```
+
+Retrieve the result at a later date
+
+```{r, eval=FALSE}
+result <- readRDS(bfcrpath(bfc, "airway / DESeq standard analysis"))
+```
+
 Once might imagine the following workflow:
 
 ```{r eval=FALSE}
