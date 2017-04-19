@@ -56,6 +56,34 @@ test_that("bfcadd and bfcnew works", {
     path <- bfcadd(bfc, url)
     expect_identical(BiocFileCache:::.sql_get_fpath(bfc,names(path)),
                      BiocFileCache:::.sql_get_field(bfc,names(path), "rname"))
+
+    # test relative paths
+    path <- bfcnew(bfc, "relative-test", "relative")
+    expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rtype"),
+                     "relative")
+    temp <- file.path(BiocFileCache::bfccache(bfc),
+        BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"))
+    expect_identical(BiocFileCache:::.sql_get_rpath(bfc,names(path)), temp)
+    expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"),
+                     BiocFileCache:::.sql_get_field(bfc,names(path), "fpath"))
+
+    fl <- tempfile(); file.create(fl)
+    path <- bfcadd(bfc, fl, rtype = "relative")
+    expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rtype"),
+                     "relative")
+    temp <- file.path(BiocFileCache::bfccache(bfc),
+        BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"))
+    expect_identical(BiocFileCache:::.sql_get_rpath(bfc,names(path)), temp)
+    expect_true(file.exists(fl))
+    path <- bfcadd(bfc, fl, rtype = "relative", action="move")
+    expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rtype"),
+                     "relative")
+    temp <- file.path(BiocFileCache::bfccache(bfc),
+        BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"))
+    expect_identical(BiocFileCache:::.sql_get_rpath(bfc,names(path)), temp)
+    expect_true(!file.exists(fl))
+    fl <- tempfile(); file.create(fl)
+    expect_error(bfcadd(bfc, fl, rtype = "relative", action="asis"))
 })
 
 #
@@ -253,11 +281,16 @@ test_that("bfcsync and bfcremove works", {
     path <- bfcnew(bfc2, 'test-4')
     rid4 <- names(path)
     bfcupdate(bfc2, rid1, rpath=add3)
+    add5 <- bfcnew(bfc2, "relative", rtype="relative")
+    rid5 <- names(add5)
+    add6 <- bfcadd(bfc2, "relative2", fl, rtype="relative")
+    rid6 <- names(add6)
     
     # test sync
     expect_message(bfcsync(bfc2))
     expect_false(bfcsync(bfc2, FALSE))
     bfcremove(bfc2, rid4)
+    bfcremove(bfc2, rid5)
     files <- file.path(bfccache(bfc2),
                        setdiff(list.files(bfccache(bfc2)),
                                "BiocFileCache.sqlite")

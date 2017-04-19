@@ -85,6 +85,12 @@
     function(bfc, rname, rtype, fpath)
 {
     fname <- path.expand(tempfile("", bfccache(bfc)))
+    if (rtype == "relative")
+        fname <- basename(fname)
+
+    if (is.na(fpath))
+        fpath <- fname
+
     sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
@@ -144,7 +150,11 @@
 .sql_get_rpath <-
     function(bfc, rid)
 {
-    .sql_get_field(bfc, rid, "rpath")
+    rtype <- .sql_get_rtype(bfc, rid)
+    rpath <- .sql_get_field(bfc, rid, "rpath")
+    if (rtype == "relative")
+        rpath <- file.path(bfccache(bfc), rpath)
+    rpath
 }
 
 .sql_set_rpath <-
@@ -233,18 +243,14 @@
 .get_all_rpath <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% select_("rpath") %>%
-        collect(Inf) %>% `[[`("rpath")
-
+    unname(bfcrpath(bfc))
 }
 
 .get_rid_filenotfound <-
     function(bfc)
 {
-    vec <- file.exists(
-        .sql_get_resource_table(bfc) %>% select_("rpath") %>%
-        collect(Inf) %>% `[[`("rpath"))
-    .get_all_rids(bfc)[!vec]
+    allpaths <- bfcrpath(bfc)
+    names(allpaths)[!file.exists(allpaths)]
 }
 
 .get_tbl_rid <-

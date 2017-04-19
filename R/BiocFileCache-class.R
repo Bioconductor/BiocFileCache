@@ -196,7 +196,8 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
 #' @export
 setGeneric("bfcnew",
-    function(x, rname) standardGeneric("bfcnew"),
+    function(x, rname, rtype=c("local", "relative"))
+    standardGeneric("bfcnew"),
     signature="x"
 )
 
@@ -212,11 +213,12 @@ setGeneric("bfcnew",
 #' @aliases bfcnew
 #' @exportMethod bfcnew
 setMethod("bfcnew", "BiocFileCache",
-    function(x, rname)
+    function(x, rname, rtype=c("local", "relative"))
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    rtype <- match.arg(rtype)
 
-    rid <- .sql_new_resource(x, rname, "local", NA_character_)
+    rid <- .sql_new_resource(x, rname, rtype, NA_character_)
     rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
@@ -224,7 +226,7 @@ setMethod("bfcnew", "BiocFileCache",
 #' @export
 setGeneric("bfcadd",
     function(
-        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype=c("auto", "local", "relative", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
     ) standardGeneric("bfcadd"),
     signature="x"
@@ -235,12 +237,14 @@ setGeneric("bfcadd",
 #'     location or remote web resource. If none is given, the rname is
 #'     assumed to also be the path location. For bfcupdate()
 #'     character() vector of replacement web resources.
-#' @param rtype character(1) Local or web indicating if the resource
-#'     is a local file or a web resource.
+#' @param rtype character(1) Local, relative, or web indicating if the resource
+#'     is a local file, a relative path in the cache, or a web resource. For
+#'     'bfcnew': local or relative are only options.
 #' @param action character(1) How to handle the file: create a
 #'     \code{copy} of \code{fpath} in the cache directory; \code{move}
 #'     the file to the cache directory; or \code{asis} leave the file
-#'     in current location but save the path in the cache.
+#'     in current location but save the path in the cache. If 'rtype ==
+#'     "relative"', action can not be "asis".
 #' @param proxy character(1) (Optional) proxy server.
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
@@ -269,7 +273,7 @@ setGeneric("bfcadd",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype=c("auto", "local", "relative", "web"),
         action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
@@ -278,10 +282,11 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(rtype == "web" || file.exists(fpath))
     action <- match.arg(action)
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
+    stopifnot(!(rtype == "relative" && action == "asis"))
 
     rid <- .sql_new_resource(x, rname, rtype, fpath)
     rpath <- bfcrpath(x, rids = rid)
-    if (rtype == "local") {
+    if (rtype == "local" || rtype == "relative") {
         switch(
             action,
             copy = file.copy(fpath, rpath, ...),

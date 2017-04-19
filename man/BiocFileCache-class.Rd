@@ -70,10 +70,11 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 \S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
   ...) <- value
 
-\S4method{bfcnew}{BiocFileCache}(x, rname)
+\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("local", "relative"))
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
-  "local", "web"), action = c("copy", "move", "asis"), proxy = "", ...)
+  "local", "relative", "web"), action = c("copy", "move", "asis"),
+  proxy = "", ...)
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
@@ -123,18 +124,20 @@ Additional arguments passed to 'bfcadd'.}
 \item{rname}{character(1) Name of object in file cache. For
 'bfcupdate' a character vector of replacement rnames.}
 
+\item{rtype}{character(1) Local, relative, or web indicating if the resource
+is a local file, a relative path in the cache, or a web resource. For
+'bfcnew': local or relative are only options.}
+
 \item{fpath}{For bfcadd(), character(1) path to current file
 location or remote web resource. If none is given, the rname is
 assumed to also be the path location. For bfcupdate()
 character() vector of replacement web resources.}
 
-\item{rtype}{character(1) Local or web indicating if the resource
-is a local file or a web resource.}
-
 \item{action}{character(1) How to handle the file: create a
 \code{copy} of \code{fpath} in the cache directory; \code{move}
 the file to the cache directory; or \code{asis} leave the file
-in current location but save the path in the cache.}
+in current location but save the path in the cache. If 'rtype ==
+"relative"', action can not be "asis".}
 
 \item{proxy}{character(1) (Optional) proxy server.}
 
