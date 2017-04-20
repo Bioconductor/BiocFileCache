@@ -159,12 +159,25 @@ test_that("check_rtype works", {
     # test web types
     expect_identical(fun("auto", "http://somepath.com"), "web")
     expect_identical(fun("auto", "ftp://somepath.com"), "web")
+    expect_identical(fun("local", "https://some.path", "web"), "local")
+    expect_identical(fun("relative", "https://some.path", "web"), "relative")
 
     # test not web type
-    expect_identical(fun("auto", "not/a/web/path"), "relative")
+    expect_identical(fun("auto", "not/a/web/path", "copy"), "relative")
+    expect_identical(fun("auto", "not/a/web/path", "move"), "relative")
+    expect_identical(fun("auto", "not/a/web/path", "asis"), "local")
 
     # expect noopt
-    expect_identical(fun("local", "some/path"), "local")
+    expect_identical(fun("local", "some/path", "copy"), "local")
+    expect_identical(fun("local", "some/path", "move"), "local")
+    expect_identical(fun("local", "some/path", "asis"), "local")
+
+    expect_identical(fun("relative", "some/path", "copy"), "relative")
+    expect_identical(fun("relative", "some/path", "move"), "relative")
+    expect_warning(fun("relative", "some/path", "asis"))
+    suppressWarnings({
+        expect_identical(fun("relative", "some/path", "asis"), "local")
+    })
 })
 
 test_that("subsetting works", {
