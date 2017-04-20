@@ -279,19 +279,17 @@ setGeneric("bfcadd",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
+        x, rname, fpath = rname, rtype = c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
     stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
-    rtype <- .util_standardize_rtype(rtype, fpath)
-    stopifnot(rtype == "web" || file.exists(fpath))
     action <- match.arg(action)
+    rtype <- match.arg(rtype)
+    rtype <- .util_standardize_rtype(rtype, fpath, action)
+    stopifnot(rtype == "web" || file.exists(fpath))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
-    if (action == "asis" && rtype != "local"){
-        warning("The selected action='asis' requires rtype='local'.\n Changing rtype='local'")
-        rtype = "local"
-    }
+
     rid <- .sql_new_resource(x, rname, rtype, fpath)
     rpath <- bfcrpath(x, rids = rid)
     if (rtype %in% c("local", "relative")) {
@@ -299,7 +297,10 @@ setMethod("bfcadd", "BiocFileCache",
             action,
             copy = file.copy(fpath, rpath, ...),
             move = file.rename(fpath, rpath),
-            asis = .sql_set_rpath(x, rid, fpath)
+            asis = {
+                .sql_set_rpath(x, rid, fpath)
+                rpath <- bfcrpath(x, rids = rid)
+            }
         )
     } else {                            # rtype == "web"
         .util_download(x, rid, proxy, "bfcadd()")
