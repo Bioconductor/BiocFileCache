@@ -20,10 +20,12 @@
     dbDisconnect(con)
     if (!mdata[mdata$key=="schema_version",2] %in% .SUPPORTED_SCHEMA_VERSIONS)
         stop(
-            "unsupported schema version '",
-            mdata[mdata$key=="schema_version",2], "'",
-            "\n  use BiocFileCache version '",
-            mdata[mdata$key=="package_version",2], "'"
+            "unsupported schema version ",
+            "\n  sqlite file: ", sqlfile,
+            "\n  file schema version: ",
+            sQuote(mdata[mdata$key=="schema_version",2]),
+            "\n  supported version(s): ",
+            paste(sQuote(.SUPPORTED_SCHEMA_VERSIONS), collapse=" ")
         )
 }
 
