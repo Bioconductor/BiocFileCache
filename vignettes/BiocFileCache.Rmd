@@ -153,7 +153,10 @@ it is on the local system yet still track through the cache object `asis`. copy
 and move will rename the file to the generated cache file path. If the `fpath`
 is a remote source, the source will try to be downloaded, if it is successful it
 will save in the cache location and track in the cache object; The original
-source will be added to the cache information as `fpath`.
+source will be added to the cache information as `fpath`. Relative path
+locations may also be used, specified with `rtype = "relative"`. This will
+store a relative location for the file within the cache; only actions `copy`
+and `move` are available for relative paths.
 
 First let's use local files:
 
@@ -170,7 +173,8 @@ add3 <- bfcadd(bfc, "Test2_addMove", fl2, action="move") # move
 rid3 <- names(add3)
 
 fl3 <- tempfile(); file.create(fl3)
-add4 <- bfcadd(bfc, "Test3_addAsis", fl3, action="asis") # reference
+add4 <- bfcadd(bfc, "Test3_addAsis", fl3, rtype="local",
+	       action="asis") # reference
 rid4 <- names(add4)
 
 file.exists(fl1)    # TRUE - copied from original location
