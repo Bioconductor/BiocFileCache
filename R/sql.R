@@ -85,7 +85,7 @@
     function(bfc, rname, rtype, fpath)
 {
     fname <- path.expand(tempfile("", bfccache(bfc)))
-    if (rtype == "relative")
+    if (identical(rtype, "relative"))
         fname <- basename(fname)
 
     if (is.na(fpath))
@@ -152,7 +152,7 @@
 {
     rtype <- .sql_get_rtype(bfc, rid)
     rpath <- .sql_get_field(bfc, rid, "rpath")
-    if (rtype == "relative")
+    if (identical(rtype, "relative"))
         rpath <- file.path(bfccache(bfc), rpath)
     rpath
 }

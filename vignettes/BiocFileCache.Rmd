@@ -154,9 +154,9 @@ and move will rename the file to the generated cache file path. If the `fpath`
 is a remote source, the source will try to be downloaded, if it is successful it
 will save in the cache location and track in the cache object; The original
 source will be added to the cache information as `fpath`. Relative path
-locations may also be used, specified with `rtype = "relative"`. This will store
-a relative location for the file within the cache; only actions `copy` and
-`move` are available for relative paths.
+locations may also be used, specified with `rtype = "relative"`. This will 
+store a relative location for the file within the cache; only actions `copy`
+and `move` are available for relative paths.
 
 First let's use local files:
 

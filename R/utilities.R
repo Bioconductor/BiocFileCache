@@ -7,14 +7,14 @@
 .util_standardize_rtype <-
     function(rtype, fpath)
 {
-    rtype <- match.arg(rtype, c("auto", "local", "relative", "web"))
+    rtype <- match.arg(rtype, c("auto", "relative", "local", "web"))
 
-    if (rtype == "auto") {
+    if (identical(rtype, "auto")) {
         test <- startsWith(fpath, "http") || startsWith(fpath, "ftp")
         if (test)
             rtype <- "web"
         else
-            rtype <- "local"
+            rtype <- "relative"
     }
 
     rtype
