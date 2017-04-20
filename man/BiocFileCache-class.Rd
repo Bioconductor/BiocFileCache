@@ -70,10 +70,11 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 \S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
   ...) <- value
 
-\S4method{bfcnew}{BiocFileCache}(x, rname)
+\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"))
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
-  "local", "web"), action = c("copy", "move", "asis"), proxy = "", ...)
+  "relative", "local", "web"), action = c("copy", "move", "asis"),
+  proxy = "", ...)
 
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
@@ -123,18 +124,22 @@ Additional arguments passed to 'bfcadd'.}
 \item{rname}{character(1) Name of object in file cache. For
 'bfcupdate' a character vector of replacement rnames.}
 
+\item{rtype}{character(1) 'local', 'relative', or 'web' indicating
+if the resource is a local file, a relative path in the cache,
+or a web resource. For \code{bfcnew}: local or relative are
+only options. For \code{bfcadd}, the default 'auto' creates
+relative or web paths, based on the path prefix.}
+
 \item{fpath}{For bfcadd(), character(1) path to current file
 location or remote web resource. If none is given, the rname is
 assumed to also be the path location. For bfcupdate()
 character() vector of replacement web resources.}
 
-\item{rtype}{character(1) Local or web indicating if the resource
-is a local file or a web resource.}
-
 \item{action}{character(1) How to handle the file: create a
 \code{copy} of \code{fpath} in the cache directory; \code{move}
 the file to the cache directory; or \code{asis} leave the file
-in current location but save the path in the cache.}
+in current location but save the path in the cache. If 'rtype
+== "relative"', action can not be "asis".}
 
 \item{proxy}{character(1) (Optional) proxy server.}
 
@@ -255,8 +260,8 @@ information:
     is updated or accessed}
   \item{'rpath': }{resource path. This is the path to the local
     (on-disk) file}
-  \item{'rtype': }{resource type. Either "local" or "web",
-    indicating if the resource has a remote origin}
+  \item{'rtype': }{resource type. Either "relative", "local", or
+    "web", indicating if the resource has a remote origin}
   \item{'fpath': }{If rtype is "web", this is the link to the
     remote resource. It will be utilized to download or update the
     remote data}
@@ -342,7 +347,7 @@ bfcadd(bfc0, "Test1", fl1)                 # copy
 fl2 <- tempfile(); file.create(fl2)
 bfcadd(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+add3 <- bfcadd(bfc0, "Test3", fl3, rtype="local", action="asis")  # reference
 rid3 <- names(add3)
 
 bfc0

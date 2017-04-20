@@ -20,10 +20,12 @@
     dbDisconnect(con)
     if (!mdata[mdata$key=="schema_version",2] %in% .SUPPORTED_SCHEMA_VERSIONS)
         stop(
-            "unsupported schema version '",
-            mdata[mdata$key=="schema_version",2], "'",
-            "\n  use BiocFileCache version '",
-            mdata[mdata$key=="package_version",2], "'"
+            "unsupported schema version ",
+            "\n  sqlite file: ", sqlfile,
+            "\n  file schema version: ",
+            sQuote(mdata[mdata$key=="schema_version",2]),
+            "\n  supported version(s): ",
+            paste(sQuote(.SUPPORTED_SCHEMA_VERSIONS), collapse=" ")
         )
 }
 
@@ -85,6 +87,12 @@
     function(bfc, rname, rtype, fpath)
 {
     fname <- path.expand(tempfile("", bfccache(bfc)))
+    if (identical(rtype, "relative"))
+        fname <- basename(fname)
+
+    if (is.na(fpath))
+        fpath <- fname
+
     sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
@@ -144,7 +152,11 @@
 .sql_get_rpath <-
     function(bfc, rid)
 {
-    .sql_get_field(bfc, rid, "rpath")
+    rtype <- .sql_get_rtype(bfc, rid)
+    rpath <- .sql_get_field(bfc, rid, "rpath")
+    if (identical(rtype, "relative"))
+        rpath <- file.path(bfccache(bfc), rpath)
+    rpath
 }
 
 .sql_set_rpath <-
@@ -165,6 +177,13 @@
     function(bfc, rid, value)
 {
     sql <- .sql_sprintf("-- UPDATE_RNAME", value, rid)
+    .sql_get_query(bfc, sql)
+}
+
+.sql_set_rtype <-
+    function(bfc, rid, value)
+{
+    sql <- .sql_sprintf("-- UPDATE_RTYPE", value, rid)
     .sql_get_query(bfc, sql)
 }
 
@@ -233,18 +252,26 @@
 .get_all_rpath <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% select_("rpath") %>%
-        collect(Inf) %>% `[[`("rpath")
-
+    unname(bfcrpath(bfc))
 }
 
 .get_rid_filenotfound <-
     function(bfc)
 {
-    vec <- file.exists(
-        .sql_get_resource_table(bfc) %>% select_("rpath") %>%
-        collect(Inf) %>% `[[`("rpath"))
-    .get_all_rids(bfc)[!vec]
+    allpaths <- bfcrpath(bfc)
+    names(allpaths)[!file.exists(allpaths)]
+}
+
+.get_tbl_rid <-
+    function(tbl)
+{
+    tbl %>% collect(Inf) %>% `[[`("rid")
+}
+
+.fix_rnames <- function(bfc, rnames){
+
+    stopifnot(!missing(rnames))
+    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
 }
 
 .get_tbl_rid <-

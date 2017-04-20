@@ -6,17 +6,27 @@
 
 .SUPPORTED_SCHEMA_VERSIONS <- "0.99.0"
 
-.util_standardize_rtype <-
-    function(rtype, fpath)
-{
-    rtype <- match.arg(rtype, c("auto", "local", "web"))
+.CURRENT_SCHEMA_VERSION <- "0.99.1"
 
-    if (rtype == "auto") {
+.SUPPORTED_SCHEMA_VERSIONS <- "0.99.1"
+
+.util_standardize_rtype <-
+    function(rtype, fpath, action)
+{
+    if (identical(rtype, "auto")) {
         test <- startsWith(fpath, "http") || startsWith(fpath, "ftp")
         if (test)
             rtype <- "web"
-        else
+        else if (action == "asis")
             rtype <- "local"
+        else
+            rtype <- "relative"
+    } else if (rtype != "local" && action == "asis") {
+        warning(
+            "action = 'asis' requires rtype = 'local'; ",
+            "setting rtype = 'local'"
+        )
+        rtype <- "local"
     }
 
     rtype
