@@ -191,8 +191,8 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
     .sql_update_time(x, i)
     .sql_set_rpath(x, i, value)
-    if (.sql_get_rtype(x, i) == "relative"){
-        warning("Updating rpath. Changing rtype='local'")
+    if (identical(.sql_get_rtype(x, i), "relative")) {
+        warning("updating rpath, changing rtype to 'local'")
         .sql_set_rtype(x, i, "local")
     }
     x
@@ -484,7 +484,7 @@ setMethod("bfcupdate", "BiocFileCache",
                 )
             .sql_set_rpath(x, rids[i], rpath[i])
             if (.sql_get_rtype(x, rids[i]) == "relative"){
-                warning("Updating rpath. Changing rtype='local'")
+                warning("updating rpath, changing rtype to 'local'")
                 .sql_set_rtype(x, rids[i], "local")
             }
         }
