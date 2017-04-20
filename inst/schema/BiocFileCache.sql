@@ -44,6 +44,10 @@ WHERE rid = '%s';
 UPDATE resource
 SET rname = '%s', access_time = CURRENT_TIMESTAMP
 WHERE rid = '%s';
+-- UPDATE_RTYPE
+UPDATE resource
+SET rtype = '%s', access_time = CURRENT_TIMESTAMP
+WHERE rid = '%s';
 -- UPDATE_MODIFIED
 UPDATE resource
 SET last_modified_time  = '%s', access_time = CURRENT_TIMESTAMP

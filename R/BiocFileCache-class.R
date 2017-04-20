@@ -51,8 +51,8 @@
 #'     is updated or accessed}
 #'   \item{'rpath': }{resource path. This is the path to the local
 #'     (on-disk) file}
-#'   \item{'rtype': }{resource type. Either "local" or "web",
-#'     indicating if the resource has a remote origin}
+#'   \item{'rtype': }{resource type. Either "relative", "local", or
+#'     "web", indicating if the resource has a remote origin}
 #'   \item{'fpath': }{If rtype is "web", this is the link to the
 #'     remote resource. It will be utilized to download or update the
 #'     remote data}
@@ -191,12 +191,17 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
     .sql_update_time(x, i)
     .sql_set_rpath(x, i, value)
+    if (identical(.sql_get_rtype(x, i), "relative")) {
+        warning("updating rpath, changing rtype to 'local'")
+        .sql_set_rtype(x, i, "local")
+    }
     x
 })
 
 #' @export
 setGeneric("bfcnew",
-    function(x, rname) standardGeneric("bfcnew"),
+    function(x, rname, rtype=c("relative", "local"))
+    standardGeneric("bfcnew"),
     signature="x"
 )
 
@@ -212,11 +217,12 @@ setGeneric("bfcnew",
 #' @aliases bfcnew
 #' @exportMethod bfcnew
 setMethod("bfcnew", "BiocFileCache",
-    function(x, rname)
+    function(x, rname, rtype=c("relative", "local"))
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
+    rtype <- match.arg(rtype)
 
-    rid <- .sql_new_resource(x, rname, "local", NA_character_)
+    rid <- .sql_new_resource(x, rname, rtype, NA_character_)
     rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
@@ -224,7 +230,7 @@ setMethod("bfcnew", "BiocFileCache",
 #' @export
 setGeneric("bfcadd",
     function(
-        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
     ) standardGeneric("bfcadd"),
     signature="x"
@@ -235,12 +241,16 @@ setGeneric("bfcadd",
 #'     location or remote web resource. If none is given, the rname is
 #'     assumed to also be the path location. For bfcupdate()
 #'     character() vector of replacement web resources.
-#' @param rtype character(1) Local or web indicating if the resource
-#'     is a local file or a web resource.
+#' @param rtype character(1) 'local', 'relative', or 'web' indicating
+#'     if the resource is a local file, a relative path in the cache,
+#'     or a web resource. For \code{bfcnew}: local or relative are
+#'     only options. For \code{bfcadd}, the default 'auto' creates
+#'     relative or web paths, based on the path prefix.
 #' @param action character(1) How to handle the file: create a
 #'     \code{copy} of \code{fpath} in the cache directory; \code{move}
 #'     the file to the cache directory; or \code{asis} leave the file
-#'     in current location but save the path in the cache.
+#'     in current location but save the path in the cache. If 'rtype
+#'     == "relative"', action can not be "asis".
 #' @param proxy character(1) (Optional) proxy server.
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
@@ -254,7 +264,7 @@ setGeneric("bfcadd",
 #' fl2 <- tempfile(); file.create(fl2)
 #' bfcadd(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+#' add3 <- bfcadd(bfc0, "Test3", fl3, rtype="local", action="asis")  # reference
 #' rid3 <- names(add3)
 #'
 #' bfc0
@@ -269,24 +279,28 @@ setGeneric("bfcadd",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath = rname, rtype=c("auto", "local", "web"),
+        x, rname, fpath = rname, rtype = c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
     stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
-    rtype <- .util_standardize_rtype(rtype, fpath)
-    stopifnot(rtype == "web" || file.exists(fpath))
     action <- match.arg(action)
+    rtype <- match.arg(rtype)
+    rtype <- .util_standardize_rtype(rtype, fpath, action)
+    stopifnot(rtype == "web" || file.exists(fpath))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
     rid <- .sql_new_resource(x, rname, rtype, fpath)
     rpath <- bfcrpath(x, rids = rid)
-    if (rtype == "local") {
+    if (rtype %in% c("local", "relative")) {
         switch(
             action,
             copy = file.copy(fpath, rpath, ...),
             move = file.rename(fpath, rpath),
-            asis = .sql_set_rpath(x, rid, fpath)
+            asis = {
+                .sql_set_rpath(x, rid, fpath)
+                rpath <- bfcrpath(x, rids = rid)
+            }
         )
     } else {                            # rtype == "web"
         .util_download(x, rid, proxy, "bfcadd()")
@@ -469,8 +483,11 @@ setMethod("bfcupdate", "BiocFileCache",
                     "\n  reason: rpath does not exist.",
                     call.=FALSE
                 )
-
             .sql_set_rpath(x, rids[i], rpath[i])
+            if (.sql_get_rtype(x, rids[i]) == "relative"){
+                warning("updating rpath, changing rtype to 'local'")
+                .sql_set_rtype(x, rids[i], "local")
+            }
         }
 
         if (!is.null(fpath)) {
