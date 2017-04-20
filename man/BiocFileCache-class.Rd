@@ -260,7 +260,7 @@ information:
     is updated or accessed}
   \item{'rpath': }{resource path. This is the path to the local
     (on-disk) file}
-  \item{'rtype': }{resource type. Either "local", "relative", or
+  \item{'rtype': }{resource type. Either "relative", "local", or
     "web", indicating if the resource has a remote origin}
   \item{'fpath': }{If rtype is "web", this is the link to the
     remote resource. It will be utilized to download or update the
@@ -347,7 +347,7 @@ bfcadd(bfc0, "Test1", fl1)                 # copy
 fl2 <- tempfile(); file.create(fl2)
 bfcadd(bfc0, "Test2", fl2, action="move")         # move
 fl3 <- tempfile(); file.create(fl3)
-add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+add3 <- bfcadd(bfc0, "Test3", fl3, rtype="local", action="asis")  # reference
 rid3 <- names(add3)
 
 bfc0

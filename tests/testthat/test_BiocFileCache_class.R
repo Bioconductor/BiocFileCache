@@ -21,7 +21,7 @@ test_that("bfcadd and bfcnew works", {
     expect_true(file.exists(fl))
 
     # test file add and location not in cache
-    path <- bfcadd(bfc, 'test-2', fl, action='asis')
+    path <- bfcadd(bfc, 'test-2', fl, rtype='local', action='asis')
     rid <- names(path)
     expect_identical(length(bfc), 2L)
     expect_true(file.exists(fl))
@@ -49,7 +49,7 @@ test_that("bfcadd and bfcnew works", {
     # test out of bounds and file not found
     expect_error(bfc[[7]])
     expect_error(bfcadd(bfc, 'test-6', "http://jibberish", rtype="web"))
-    expect_error(bfcadd(bfc, 'test-2', fl, action='asis'))
+    expect_error(bfcadd(bfc, 'test-2', fl, rtype='local', action='asis'))
 
     # test no fpath given
     url <- "http://httpbin.org/get"
@@ -83,7 +83,7 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(BiocFileCache:::.sql_get_rpath(bfc,names(path)), temp)
     expect_true(!file.exists(fl))
     fl <- tempfile(); file.create(fl)
-    expect_error(bfcadd(bfc, fl, rtype = "relative", action="asis"))
+    expect_warning(bfcadd(bfc, fl, rtype = "relative", action="asis"))
 })
 
 #
@@ -93,7 +93,7 @@ bfc <- BiocFileCache(tempfile())
 fl <- tempfile(); file.create(fl)
 add1 <- bfcadd(bfc, 'test-1', fl)
 rid1 <- names(add1)
-add2 <- bfcadd(bfc, 'test-2', fl, action='asis')
+add2 <- bfcadd(bfc, 'test-2', fl, rtype='local', action='asis')
 rid2 <- names(add2)
 url <- "http://httpbin.org/get"
 add3 <- bfcadd(bfc, 'test-3', url, rtype="web")
@@ -161,7 +161,10 @@ test_that("check_rtype works", {
     expect_identical(fun("auto", "ftp://somepath.com"), "web")
 
     # test not web type
-    expect_identical(fun("auto", "not/a/web/path"), "local")
+    expect_identical(fun("auto", "not/a/web/path"), "relative")
+
+    # expect noopt
+    expect_identical(fun("local", "some/path"), "local")
 })
 
 test_that("subsetting works", {
@@ -273,7 +276,7 @@ test_that("bfcsync and bfcremove works", {
     fl <- tempfile(); file.create(fl)
     add1 <- bfcadd(bfc2, 'test-1', fl)
     rid1 <- names(add1)
-    add2 <- bfcadd(bfc2, 'test-2', fl, action='asis')
+    add2 <- bfcadd(bfc2, 'test-2', fl, rtype='local', action='asis')
     rid2 <- names(add2)
     url <- "http://httpbin.org/get"
     add3 <- bfcadd(bfc2, 'test-3', url, rtype="web")
@@ -281,11 +284,11 @@ test_that("bfcsync and bfcremove works", {
     path <- bfcnew(bfc2, 'test-4')
     rid4 <- names(path)
     bfcupdate(bfc2, rid1, rpath=add3)
-    add5 <- bfcnew(bfc2, "relative", rtype="relative")
+    add5 <- bfcnew(bfc2, "test-5", rtype="relative")
     rid5 <- names(add5)
-    add6 <- bfcadd(bfc2, "relative2", fl, rtype="relative")
+    add6 <- bfcadd(bfc2, "test-6", fl, rtype="relative")
     rid6 <- names(add6)
-    
+
     # test sync
     expect_message(bfcsync(bfc2))
     expect_false(bfcsync(bfc2, FALSE))

@@ -191,6 +191,10 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
     .sql_update_time(x, i)
     .sql_set_rpath(x, i, value)
+    if (.sql_get_rtype(x, i) == "relative"){
+        warning("Updating rpath. Changing rtype='local'")
+        .sql_set_rtype(x, i, "local")
+    }
     x
 })
 
@@ -260,7 +264,7 @@ setGeneric("bfcadd",
 #' fl2 <- tempfile(); file.create(fl2)
 #' bfcadd(bfc0, "Test2", fl2, action="move")         # move
 #' fl3 <- tempfile(); file.create(fl3)
-#' add3 <- bfcadd(bfc0, "Test3", fl3, action="asis")         # reference
+#' add3 <- bfcadd(bfc0, "Test3", fl3, rtype="local", action="asis")  # reference
 #' rid3 <- names(add3)
 #'
 #' bfc0
@@ -284,8 +288,10 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(rtype == "web" || file.exists(fpath))
     action <- match.arg(action)
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
-    stopifnot(!(rtype == "relative" && action == "asis"))
-
+    if (action == "asis" && rtype != "local"){
+        warning("The selected action='asis' requires rtype='local'.\n Changing rtype='local'")
+        rtype = "local"
+    }
     rid <- .sql_new_resource(x, rname, rtype, fpath)
     rpath <- bfcrpath(x, rids = rid)
     if (rtype %in% c("local", "relative")) {
@@ -476,8 +482,11 @@ setMethod("bfcupdate", "BiocFileCache",
                     "\n  reason: rpath does not exist.",
                     call.=FALSE
                 )
-
             .sql_set_rpath(x, rids[i], rpath[i])
+            if (.sql_get_rtype(x, rids[i]) == "relative"){
+                warning("Updating rpath. Changing rtype='local'")
+                .sql_set_rtype(x, rids[i], "local")
+            }
         }
 
         if (!is.null(fpath)) {

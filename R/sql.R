@@ -178,6 +178,13 @@
     .sql_get_query(bfc, sql)
 }
 
+.sql_set_rtype <-
+    function(bfc, rid, value)
+{
+    sql <- .sql_sprintf("-- UPDATE_RTYPE", value, rid)
+    .sql_get_query(bfc, sql)
+}
+
 .sql_clean_cache <-
     function(bfc, days)
 {
