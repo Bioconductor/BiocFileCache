@@ -315,9 +315,12 @@ test_that("bfcsync and bfcremove works", {
     # normalizePath on windows
     # can't across platform - no opt on linux but added hidden (private)
     # on mac
-    if (tolower(.Platform$OS.type) == "windows")
+    paths <- BiocFileCache:::.get_all_rpath(bfc2)
+    if (tolower(.Platform$OS.type) == "windows"){
         files = normalizePath(files)
-    untracked <- setdiff(files, BiocFileCache:::.get_all_rpath(bfc2))
+        paths = normalizePath(paths)
+    }
+    untracked <- setdiff(files, paths)
     unlink(untracked)
     expect_true(bfcsync(bfc2, FALSE))
 
