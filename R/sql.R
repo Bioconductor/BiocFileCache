@@ -156,8 +156,6 @@
     rpath <- .sql_get_field(bfc, rid, "rpath")
     if (identical(rtype, "relative"))
         rpath <- file.path(bfccache(bfc), rpath)
-    if (tolower(.Platform$OS.type) == "windows")
-        rpath = normalizePath(rpath)
     rpath
 }
 
