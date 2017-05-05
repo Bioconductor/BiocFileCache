@@ -93,6 +93,9 @@
     if (is.na(fpath))
         fpath <- fname
 
+    add_ext <- basename(fpath)
+    fname <- paste(fname, add_ext, sep="_")
+
     sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }

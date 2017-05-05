@@ -64,7 +64,9 @@ test_that("bfcadd and bfcnew works", {
     temp <- file.path(BiocFileCache::bfccache(bfc),
         BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"))
     expect_identical(BiocFileCache:::.sql_get_rpath(bfc,names(path)), temp)
-    expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rpath"),
+    basename <- strsplit(BiocFileCache:::.sql_get_field(bfc,
+                         names(path), "rpath"), split="_")[[1]][2]
+    expect_identical(basename,
                      BiocFileCache:::.sql_get_field(bfc,names(path), "fpath"))
 
     fl <- tempfile(); file.create(fl)
