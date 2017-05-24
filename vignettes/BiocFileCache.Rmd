@@ -128,10 +128,11 @@ should be utilized when a file already exists or a remote resource is being
 accessed.
 
 `bfcnew` takes the `BiocFileCache` object and a user specified `rname` and
-returns a path location to save data to:
+returns a path location to save data to. (optionally) you can add the file
+extension if you know the type of file that will be saved:
 
 ```{r}
-savepath <- bfcnew(bfc, "NewResource")
+savepath <- bfcnew(bfc, "NewResource", extension="RData")
 savepath
 
 ## now we can use that path in any save function
