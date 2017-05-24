@@ -7,7 +7,7 @@ CREATE TABLE metadata (
 -- INSERT_METADATA
 INSERT INTO metadata (
     key, value
-) VALUES (%s);
+) VALUES (:k, :v);
 -- SELECT_METADATA
 SELECT * FROM metadata;
 -- TABLE
@@ -25,37 +25,35 @@ CREATE TABLE resource (
 -- INSERT
 INSERT INTO resource (
     rname, rpath, rtype, fpath
-) VALUES (
-    '%s', '%s', '%s', '%s'
-);
+) VALUES (:rn, :rp, :rt, :fp);
 UPDATE resource SET rid = "BFC" || id WHERE ROWID = last_insert_rowid();
 SELECT rid FROM resource WHERE ROWID = last_insert_rowid();
 -- REMOVE
-DELETE FROM resource WHERE rid IN (%s);
+DELETE FROM resource WHERE rid = :rids;
 -- UPDATE_PATH
 UPDATE resource
-SET rpath = '%s', access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+SET rpath = :rpath, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rids;
 -- UPDATE_TIME
 UPDATE resource
 SET access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+WHERE rid = :rids;
 -- UPDATE_RNAME
 UPDATE resource
-SET rname = '%s', access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+SET rname = :rname, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rids;
 -- UPDATE_RTYPE
 UPDATE resource
-SET rtype = '%s', access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+SET rtype = :rtype, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rids;
 -- UPDATE_MODIFIED
 UPDATE resource
-SET last_modified_time  = '%s', access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+SET last_modified_time  = :mt, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rids;
 -- UPDATE_FPATH
 UPDATE resource
-SET fpath = '%s', access_time = CURRENT_TIMESTAMP
-WHERE rid = '%s';
+SET fpath = :fpath, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rids;
 -- QUERY_NAMES
 SELECT rid FROM resource
 WHERE rname || rpath || fpath
