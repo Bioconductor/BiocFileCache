@@ -86,19 +86,19 @@
 .sql_new_resource <-
     function(bfc, rname, rtype, fpath, ext=NA_character_)
 {
-    fname <- path.expand(tempfile("", bfccache(bfc)))
+    rpath <- path.expand(tempfile("", bfccache(bfc)))
     if (identical(rtype, "relative"))
-        fname <- basename(fname)
+        rpath <- basename(rpath)
 
     if (is.na(fpath))
-        fpath <- fname
+        fpath <- rpath
 
     add_ext <- basename(fpath)
-    fname <- paste(fname, add_ext, sep="_")
+    rpath <- paste(rpath, add_ext, sep="_")
     if (!is.na(ext))
-        fname <- paste(fname, ext, sep=".")
+        rpath <- paste(rpath, ext, sep=".")
 
-    sql <- .sql_sprintf("-- INSERT", rname, fname, rtype, fpath)
+    sql <- .sql_sprintf("-- INSERT", rname, rpath, rtype, fpath)
     .sql_get_query(bfc, sql)[[1]]
 }
 
