@@ -92,9 +92,8 @@
 
     if (is.na(fpath))
         fpath <- rpath
+    rpath <- paste(rpath, basename(fpath), sep="_")
 
-    add_ext <- basename(fpath)
-    rpath <- paste(rpath, add_ext, sep="_")
     if (!is.na(ext))
         rpath <- paste(rpath, ext, sep=".")
 
