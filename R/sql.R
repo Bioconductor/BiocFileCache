@@ -60,6 +60,16 @@
     result
 }
 
+.sql_send_query <- function(bfc, sql, ...) {
+    params <- list(...)
+    sqlfile <- .sql_dbfile(bfc)
+    con <- dbConnect(SQLite(), sqlfile)
+    rs <- dbSendStatement(con, sql)
+    dbBind(rs, params)
+    dbClearResult(rs)
+    dbDisconnect(con)
+}
+
 .sql_create_db <-
     function(bfc)
 {
@@ -125,16 +135,6 @@
 {
     sql <- .sql_cmd("-- REMOVE")
     .sql_send_query(bfc, sql, rid = rid)
-}
-
-.sql_send_query <- function(bfc, sql, ...) {
-    params <- list(...)
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    rs <- dbSendStatement(con, sql)
-    dbBind(rs, params)
-    dbClearResult(rs)
-    dbDisconnect(con)
 }
 
 .sql_get_resource_table <-
