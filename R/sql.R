@@ -138,19 +138,19 @@
 }
 
 .sql_get_resource_table <-
-    function(bfc, i)
+    function(bfc, rids)
 {
     src <- src_sqlite(.sql_dbfile(bfc))
     tbl <- tbl(src, "resource")
 
-    if (missing(i)) {
+    if (missing(rids)) {
         ## tbl <- tbl
-    } else if (length(i) == 0) {
+    } else if (length(rids) == 0) {
         tbl <- tbl %>% filter_(~ rid == NA_character_)
-    } else if (length(i) == 1) {
-        tbl <- tbl %>% filter_(~ rid == i)
+    } else if (length(rids) == 1) {
+        tbl <- tbl %>% filter_(~ rid == rids)
     } else {
-        tbl <- tbl %>% filter_(~ rid %in% i)
+        tbl <- tbl %>% filter_(~ rid %in% rids)
     }
 
     class(tbl) <- c("tbl_bfc", class(tbl))
