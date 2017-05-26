@@ -347,7 +347,7 @@ test_that("cleanbfc works", {
     sql<- sprintf(
         "UPDATE resource SET access_time = '2016-01-01' WHERE rid = '%s'", rid1
     )
-    sqlfile <- BiocFileCache:::.sql_getQuery(bfc,sql)
+    sqlfile <- BiocFileCache:::.sql_get_query(bfc,sql)
     expect_identical(BiocFileCache:::.sql_clean_cache(bfc, 1), rid1)
 })
 

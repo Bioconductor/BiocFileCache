@@ -1,3 +1,6 @@
+#' @import RSQLite
+#' @import DBI
+
 .sql_file <-
     function(bfc, file)
 {
@@ -13,8 +16,8 @@
 .sql_cmd <-
     function(cmd_name, add=FALSE, ...)
 {
-    sql_cmd_file <- system.file(
-        package="BiocFileCache", "schema", "BiocFileCache.sql")
+    sql_cmd_file <-
+        system.file(package="BiocFileCache", "schema", "BiocFileCache.sql")
     sql_cmds <- readLines(sql_cmd_file)
     grps <- cumsum(grepl("^--", sql_cmds))
     cmds <- split(sql_cmds, grps)
@@ -44,13 +47,13 @@
         )
 }
 
-.sql_dbExecute <- function(bfc, sql, param){
+.sql_db_execute <- function(bfc, sql, param){
 
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
-    if (missing(param) || is.null(param)){
+    if (missing(param) || is.null(param)) {
         result <- dbExecute(con, sql)
-    } else{
+    } else {
         result <- dbExecute(con, sql, params = param)
     }
     dbDisconnect(con)
@@ -64,16 +67,18 @@
     if (!file.exists(fl)) {
         ## update metadata table
         sql <- .sql_cmd("-- METADATA")
-        .sql_dbExecute(bfc, sql)
+        .sql_db_execute(bfc, sql)
         sql <- .sql_cmd("-- INSERT_METADATA")
-        param <- list(k = c('schema_version', 'package_version'),
-                      v = c(.CURRENT_SCHEMA_VERSION,
-                          as.character(packageVersion("BiocFileCache"))))
-        .sql_dbExecute(bfc, sql, param)
+        package_version <- as.character(packageVersion("BiocFileCache"))
+        param <- list(
+            key = c('schema_version', 'package_version'),
+            value = c(.CURRENT_SCHEMA_VERSION, package_version)
+        )
+        .sql_db_execute(bfc, sql, param)
 
         ## create new resource table
         sql <- .sql_cmd("-- TABLE")
-        .sql_dbExecute(bfc, sql)
+        .sql_db_execute(bfc, sql)
     }
     .sql_validate_version(bfc)
     fl
@@ -82,15 +87,15 @@
 .sql_new_resource <-
     function(bfc, rname, rtype, fpath)
 {
-    fname <- path.expand(tempfile("", bfccache(bfc)))
+    rpath <- path.expand(tempfile("", bfccache(bfc)))
     if (identical(rtype, "relative"))
-        fname <- basename(fname)
+        rpath <- basename(rpath)
 
     if (is.na(fpath))
-        fpath <- fname
+        fpath <- rpath
 
     add_ext <- basename(fpath)
-    fname <- paste(fname, add_ext, sep="_")
+    rpath <- paste(rpath, add_ext, sep="_")
 
     # insert is special case need last_insert_rowid()
     # can't use dbExecute because auto clear destroys use case
@@ -100,7 +105,7 @@
     con <- dbConnect(SQLite(), sqlfile)
     for(i in seq_along(sqls)){
         if (i == 1){
-            param = list(rn=rname, rp=fname, rt=rtype, fp=fpath)
+            param = list(rname=rname, rpath=rpath, rtype=rtype, fpath=fpath)
             temp <- dbSendQuery(con, sqls[i])
             dbBind(temp, param)
             result <- dbFetch(temp)
@@ -116,10 +121,10 @@
 }
 
 .sql_remove_resource <-
-    function(bfc, rids)
+    function(bfc, rid)
 {
     sql <- .sql_cmd("-- REMOVE")
-    param <- list(rids = rids)
+    param <- list(rid = rid)
     .sql_sendQuery(bfc, sql, param)
 }
 
@@ -188,38 +193,35 @@
 }
 
 .sql_set_rpath <-
-    function(bfc, rid, path)
+    function(bfc, rid, rpath)
 {
     sql <- .sql_cmd("-- UPDATE_PATH")
-    param <- list(rpath = path,
-                  rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid, rpath = rpath)
+    .sql_db_execute(bfc, sql, param)
 }
 
 .sql_update_time <-
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- UPDATE_TIME")
-    param <- list(rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid)
+    .sql_db_execute(bfc, sql, param)
 }
 
 .sql_set_rname <-
-    function(bfc, rid, value)
+    function(bfc, rid, rname)
 {
     sql <- .sql_cmd("-- UPDATE_RNAME")
-    param <- list(rname = value,
-                  rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid, rname = rname)
+    .sql_db_execute(bfc, sql, param)
 }
 
 .sql_set_rtype <-
-    function(bfc, rid, value)
+    function(bfc, rid, rtype)
 {
     sql <- .sql_cmd("-- UPDATE_RTYPE")
-    param <- list(rtype = value,
-                  rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid, rtype = rtype)
+    .sql_db_execute(bfc, sql, param)
 }
 
 .sql_clean_cache <-
@@ -259,24 +261,22 @@
 }
 
 .sql_set_last_modified <-
-    function(bfc, rid, value)
+    function(bfc, rid, last_modified_time)
 {
     sql <- .sql_cmd("-- UPDATE_MODIFIED")
-    param <- list(mt = value,
-                  rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid, last_modified_time = last_modified_time)
+    .sql_db_execute(bfc, sql, param)
 }
 
 .sql_set_fpath <-
-    function(bfc, rid, value)
+    function(bfc, rid, fpath)
 {
     sql <- .sql_cmd("-- UPDATE_FPATH")
-    param <- list(fpath = value,
-                  rids = rid)
-    .sql_dbExecute(bfc, sql, param)
+    param <- list(rid = rid, fpath = fpath)
+    .sql_db_execute(bfc, sql, param)
 }
 
-.sql_getQuery <-
+.sql_get_query <-
     function(bfc, sql)
 {
     sqlfile <- .sql_dbfile(bfc)
@@ -291,7 +291,7 @@
 {
     helperFun <- function(bfc0, vl) {
         sql <- .sql_cmd("-- QUERY_NAMES", add=TRUE, vl)
-        .sql_getQuery(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
+        .sql_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
             `[[`("rid")
     }
     res <- lapply(value, FUN=helperFun, bfc0=bfc)
