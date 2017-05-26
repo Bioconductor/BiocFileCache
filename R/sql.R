@@ -124,15 +124,15 @@
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- REMOVE")
-    param <- list(rid = rid)
-    .sql_sendQuery(bfc, sql, param)
+    .sql_send_query(bfc, sql, rid = rid)
 }
 
-.sql_sendQuery <- function(bfc, sql, param){
+.sql_send_query <- function(bfc, sql, ...) {
+    params <- list(...)
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
     rs <- dbSendStatement(con, sql)
-    dbBind(rs, param)
+    dbBind(rs, params)
     dbClearResult(rs)
     dbDisconnect(con)
 }
