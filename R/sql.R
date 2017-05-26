@@ -74,13 +74,18 @@
     dbDisconnect(con)
 }
 
-.sql_db_get_query <-
-    function(bfc, sql)
+.sql_db_fetch_query <-
+    function(bfc, sql, ...)
 {
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    result <- dbGetQuery(con, sql)
+    params <- list(...)
+
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+    rs <- dbSendStatement(con, sql)
+    dbBind(rs, params)
+    result <- dbFetch(rs)
+    dbClearResult(rs)
     dbDisconnect(con)
+
     result
 }
 
@@ -291,12 +296,12 @@
 .sql_query_resource <-
     function(bfc, value)
 {
-    helperFun <- function(bfc0, vl) {
-        sql <- .sql_cmd("-- QUERY_NAMES", add=TRUE, vl)
-        .sql_db_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
-            `[[`("rid")
+    helperFun <- function(bfc, value) {
+        sql <- .sql_cmd("-- QUERY_NAMES")
+        .sql_db_fetch_query(bfc, sql, value = value) %>%
+            select_("rid") %>% collect(Inf) %>% `[[`("rid")
     }
-    res <- lapply(value, FUN=helperFun, bfc0=bfc)
+    res <- lapply(value, FUN=helperFun, bfc=bfc)
     Reduce(intersect, res)
 }
 

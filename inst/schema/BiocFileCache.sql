@@ -57,4 +57,4 @@ WHERE rid = :rid;
 -- QUERY_NAMES
 SELECT rid FROM resource
 WHERE rname || rpath || fpath
-LIKE '%%%s%%';
+LIKE '%' || :value || '%';
