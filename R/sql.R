@@ -47,10 +47,13 @@
         )
 }
 
-.sql_db_execute <- function(bfc, sql, ...) {
+## R / RSQLite, DBI interface
+
+.sql_db_execute <-
+    function(bfc, sql, ...)
+{
     params <- list(...)
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     if (length(params) == 0L) {
         result <- dbExecute(con, sql)
     } else {
@@ -60,15 +63,28 @@
     result
 }
 
-.sql_send_query <- function(bfc, sql, ...) {
+.sql_db_send_query <-
+    function(bfc, sql, ...)
+{
     params <- list(...)
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     rs <- dbSendStatement(con, sql)
     dbBind(rs, params)
     dbClearResult(rs)
     dbDisconnect(con)
 }
+
+.sql_db_get_query <-
+    function(bfc, sql)
+{
+    sqlfile <- .sql_dbfile(bfc)
+    con <- dbConnect(SQLite(), sqlfile)
+    result <- dbGetQuery(con, sql)
+    dbDisconnect(con)
+    result
+}
+
+## BiocFileCache / RSQLite interface
 
 .sql_create_db <-
     function(bfc)
@@ -134,7 +150,7 @@
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- REMOVE")
-    .sql_send_query(bfc, sql, rid = rid)
+    .sql_db_send_query(bfc, sql, rid = rid)
 }
 
 .sql_get_resource_table <-
@@ -272,22 +288,12 @@
     .sql_db_execute(bfc, sql, rid = rid, fpath = fpath)
 }
 
-.sql_get_query <-
-    function(bfc, sql)
-{
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    result <- dbGetQuery(con, sql)
-    dbDisconnect(con)
-    result
-}
-
 .sql_query_resource <-
     function(bfc, value)
 {
     helperFun <- function(bfc0, vl) {
         sql <- .sql_cmd("-- QUERY_NAMES", add=TRUE, vl)
-        .sql_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
+        .sql_db_get_query(bfc0, sql) %>% select_("rid") %>% collect(Inf) %>%
             `[[`("rid")
     }
     res <- lapply(value, FUN=helperFun, bfc0=bfc)
