@@ -47,14 +47,14 @@
         )
 }
 
-.sql_db_execute <- function(bfc, sql, param){
-
+.sql_db_execute <- function(bfc, sql, ...) {
+    params <- list(...)
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
-    if (missing(param) || is.null(param)) {
+    if (length(params) == 0L) {
         result <- dbExecute(con, sql)
     } else {
-        result <- dbExecute(con, sql, params = param)
+        result <- dbExecute(con, sql, params = params)
     }
     dbDisconnect(con)
     result
@@ -70,11 +70,11 @@
         .sql_db_execute(bfc, sql)
         sql <- .sql_cmd("-- INSERT_METADATA")
         package_version <- as.character(packageVersion("BiocFileCache"))
-        param <- list(
+        .sql_db_execute(
+            bfc, sql,
             key = c('schema_version', 'package_version'),
             value = c(.CURRENT_SCHEMA_VERSION, package_version)
         )
-        .sql_db_execute(bfc, sql, param)
 
         ## create new resource table
         sql <- .sql_cmd("-- TABLE")
@@ -196,32 +196,28 @@
     function(bfc, rid, rpath)
 {
     sql <- .sql_cmd("-- UPDATE_PATH")
-    param <- list(rid = rid, rpath = rpath)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(bfc, sql, rid = rid, rpath = rpath)
 }
 
 .sql_update_time <-
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- UPDATE_TIME")
-    param <- list(rid = rid)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(bfc, sql, rid = rid)
 }
 
 .sql_set_rname <-
     function(bfc, rid, rname)
 {
     sql <- .sql_cmd("-- UPDATE_RNAME")
-    param <- list(rid = rid, rname = rname)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(bfc, sql, rid = rid, rname = rname)
 }
 
 .sql_set_rtype <-
     function(bfc, rid, rtype)
 {
     sql <- .sql_cmd("-- UPDATE_RTYPE")
-    param <- list(rid = rid, rtype = rtype)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(bfc, sql, rid = rid, rtype = rtype)
 }
 
 .sql_clean_cache <-
@@ -264,16 +260,16 @@
     function(bfc, rid, last_modified_time)
 {
     sql <- .sql_cmd("-- UPDATE_MODIFIED")
-    param <- list(rid = rid, last_modified_time = last_modified_time)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(
+        bfc, sql, rid = rid, last_modified_time = last_modified_time
+    )
 }
 
 .sql_set_fpath <-
     function(bfc, rid, fpath)
 {
     sql <- .sql_cmd("-- UPDATE_FPATH")
-    param <- list(rid = rid, fpath = fpath)
-    .sql_db_execute(bfc, sql, param)
+    .sql_db_execute(bfc, sql, rid = rid, fpath = fpath)
 }
 
 .sql_get_query <-
