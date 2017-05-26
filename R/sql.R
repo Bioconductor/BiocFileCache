@@ -1,5 +1,5 @@
 #' @import RSQLite
-#' @import DBI
+#' @importFrom DBI dbExecute dbSendStatement
 
 .sql_file <-
     function(bfc, file)
