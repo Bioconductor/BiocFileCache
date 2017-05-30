@@ -208,8 +208,9 @@ setGeneric("bfcnew",
 #' @describeIn BiocFileCache Add a resource to the database
 #' @param rname character(1) Name of object in file cache. For
 #'     'bfcupdate' a character vector of replacement rnames.
-#' @param extension A file extension to add to the local copy of the file (i.e
-#' sqlite, txt, tar.gz)
+#' @param extension character(1) A file extension to add to the local
+#'     copy of the file (e.g., \sQuote{sqlite}, \sQuote{txt},
+#'     \sQuote{tar.gz}).
 #' @return For 'bfcnew': named character(1), the path to save your
 #'     object / file.  The name of the return value is the unique rid
 #'     for the resource.
