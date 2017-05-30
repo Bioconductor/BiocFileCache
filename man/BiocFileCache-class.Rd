@@ -70,7 +70,8 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 \S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
   ...) <- value
 
-\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"))
+\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"),
+  extension = NA_character_)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
@@ -129,6 +130,9 @@ if the resource is a local file, a relative path in the cache,
 or a web resource. For \code{bfcnew}: local or relative are
 only options. For \code{bfcadd}, the default 'auto' creates
 relative or web paths, based on the path prefix.}
+
+\item{extension}{A file extension to add to the local copy of the file (i.e
+sqlite, txt, tar.gz)}
 
 \item{fpath}{For bfcadd(), character(1) path to current file
 location or remote web resource. If none is given, the rname is
