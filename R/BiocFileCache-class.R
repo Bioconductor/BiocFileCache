@@ -1,5 +1,4 @@
 #' @import methods
-#' @import RSQLite
 #' @import dplyr
 #' @import httr
 #' @import rappdirs

@@ -344,10 +344,8 @@ test_that("cleanbfc works", {
     expect_true(length(BiocFileCache:::.sql_clean_cache(bfc, 1)) == 0L)
 
     # manually change access_time so longer than a day
-    sql<- sprintf(
-        "UPDATE resource SET access_time = '2016-01-01' WHERE rid = '%s'", rid1
-    )
-    sqlfile <- BiocFileCache:::.sql_get_query(bfc,sql)
+    sql<- "UPDATE resource SET access_time = '2016-01-01' WHERE rid = :rid"
+    sqlfile <- BiocFileCache:::.sql_db_fetch_query(bfc, sql, rid = rid1)
     expect_identical(BiocFileCache:::.sql_clean_cache(bfc, 1), rid1)
 })
 
