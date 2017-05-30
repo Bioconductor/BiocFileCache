@@ -200,7 +200,7 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
 #' @export
 setGeneric("bfcnew",
-    function(x, rname, rtype=c("relative", "local"), extension=NA_character_)
+    function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
     standardGeneric("bfcnew"),
     signature="x"
 )
@@ -208,7 +208,7 @@ setGeneric("bfcnew",
 #' @describeIn BiocFileCache Add a resource to the database
 #' @param rname character(1) Name of object in file cache. For
 #'     'bfcupdate' a character vector of replacement rnames.
-#' @param extension character(1) A file extension to add to the local
+#' @param ext character(1) A file extension to add to the local
 #'     copy of the file (e.g., \sQuote{sqlite}, \sQuote{txt},
 #'     \sQuote{tar.gz}).
 #' @return For 'bfcnew': named character(1), the path to save your
@@ -220,13 +220,13 @@ setGeneric("bfcnew",
 #' @aliases bfcnew
 #' @exportMethod bfcnew
 setMethod("bfcnew", "BiocFileCache",
-    function(x, rname, rtype=c("relative", "local"), extension=NA_character_)
+    function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
 {
     stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
-    stopifnot(length(extension) == 1L, is.character(extension))
+    stopifnot(length(ext) == 1L, is.character(ext))
     rtype <- match.arg(rtype)
 
-    rid <- .sql_new_resource(x, rname, rtype, NA_character_, extension)
+    rid <- .sql_new_resource(x, rname, rtype, NA_character_, ext)
     rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
