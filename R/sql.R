@@ -177,6 +177,7 @@
     }
 
     class(tbl) <- c("tbl_bfc", class(tbl))
+    #FIXME: This errors on empty (initialized but none added)
     tbl %>% select_(~ -id)
 }
 

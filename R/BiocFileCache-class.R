@@ -1,7 +1,8 @@
 #' @import methods
-#' @import dplyr
+#' @import dbplyr
 #' @import httr
 #' @import rappdirs
+#' @importFrom dplyr %>% src_sqlite tbl select_ collect filter_ count
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
     slots=c(cache="character")
