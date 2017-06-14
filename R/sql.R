@@ -176,9 +176,8 @@
         tbl <- tbl %>% filter_(~ rid %in% rids)
     }
 
+    class(tbl) <- c("tbl_bfc", class(tbl))
     tbl <- tbl %>% select_(~ -id)
-    if (.sql_get_nrows(tbl) != 0L)
-        class(tbl) <- c("tbl_bfc", class(tbl))
     tbl
 }
 

@@ -337,15 +337,6 @@ setMethod("bfcinfo", "BiocFileCacheBase",
     .sql_get_resource_table(x, rids)
 })
 
-#' @export
-dim.tbl_bfc <-
-    function(x)
-{
-    result <- NextMethod("dim")
-    result[1] <- .sql_get_nrows(x)
-    result
-}
-
 setOldClass("tbl_bfc")
 
 #' @describeIn BiocFileCache Get the rids of the object
