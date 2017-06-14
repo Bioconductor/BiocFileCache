@@ -327,6 +327,7 @@ bfcinfo(bfc, "BFC1")
 Now let's update a web resource
 
 ```{r}
+library(dplyr)
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 bfcupdate(bfc, "BFC6", fpath=url, rname="Duplicate")
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
