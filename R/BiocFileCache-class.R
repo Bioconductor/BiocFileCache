@@ -508,7 +508,8 @@ setGeneric("bfcquery", function(x, query) standardGeneric("bfcquery"))
 #' @describeIn BiocFileCache query resource
 #' @param query character() Pattern(s) to match in resource. It will
 #'     match the pattern against rname, rpath, and fpath using SQL
-#'     \code{LIKE}, using \code{&&} logic across query elements.
+#'     \code{LIKE}, using \code{&&} logic across query elements. In queryCount,
+#'     the query object to get counts. 
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
 #'     the database whose rname, rpath, or fpath contained query. If
 #'     multiple values are given, the resource must contain all of the
@@ -526,6 +527,22 @@ setMethod("bfcquery", "BiocFileCacheBase",
     rids <- intersect(.sql_query_resource(x, query), bfcrid(x))
     .sql_get_resource_table(x, rids)
 })
+
+#' @export
+setGeneric("queryCount", function(query) standardGeneric("queryCount"))
+
+#' @describeIn BiocFileCache get counts of query
+#' @return Length of 'bfcquery'
+#' @examples
+#' queryCount(bfcquery(bfc0, "test"))
+#' @aliases queryCount
+#' @exportMethod queryCount
+setMethod("queryCount", "tbl_bfc",
+    function(query)
+{
+    .sql_get_nrows(query)
+})
+
 
 #' @export
 setGeneric("bfcneedsupdate",

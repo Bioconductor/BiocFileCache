@@ -212,8 +212,7 @@ that you have added some time ago.
  * `bfcquery()`
 
 `bfcquery()` will take in a key word and search across the `rname`, `rpath`, and
-`fpath` for any matching. It will return a subset of the `BiocFileCache` object,
-listing all entries that contained the key word or `NA` if it cannot be found.
+`fpath` for any matching. 
 
 ```{r}
 bfcquery(bfc, "Web")
@@ -225,10 +224,16 @@ q1
 class(q1)
 ```
 
-As you can see above `bfcquery()`, returns an object of class `tbl_sqlite` /
-`tbl_sql` and can be investiaged further utilizing methods for these classes,
-such as the package `dplyr` methods. The `rid` can be seen in the first column
-of the table to be used in other functions.
+As you can see above `bfcquery()`, returns an object of class `tbl_sql` and can
+be investiaged further utilizing methods for these classes, such as the package
+`dplyr` methods. The `rid` can be seen in the first column of the table to be
+used in other functions. To get a quick count of how many objects in the cache
+matched the query, use `queryCount()`. 
+
+```{r}
+queryCount(q1)
+```
+
 
  * `[`
 
@@ -524,7 +529,7 @@ url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh3
 # check if url is being tracked
 res <- bfcquery(bfc, url)
 
-if (dim(res)[1] == 0L) {
+if (queryCount(res) == 0L) {
 
     # if it is not in cache, add
     ans <- bfcadd(bfc, rname="ensembl, homo sapien", fpath=url)
