@@ -48,7 +48,9 @@ test_that("bfcadd and bfcnew works", {
 
     # test out of bounds and file not found
     expect_error(bfc[[7]])
-    expect_error(bfcadd(bfc, 'test-6', "http://jibberish", rtype="web"))
+    expect_error(bfcadd(
+        bfc, 'test-6', "https://httpbin.org/status/404", rtype="web"
+    ))
     expect_error(bfcadd(bfc, 'test-2', fl, rtype='local', action='asis'))
 
     # test no fpath given

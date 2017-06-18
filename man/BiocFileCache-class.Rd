@@ -7,9 +7,9 @@
 \alias{bfccache,BiocFileCacheBase-method}
 \alias{bfccache}
 \alias{length,BiocFileCacheBase-method}
+\alias{bfcrid}
 \alias{bfcrid,BiocFileCacheReadOnly-method}
 \alias{bfcrid,BiocFileCache-method}
-\alias{bfcrid}
 \alias{[,BiocFileCache,character,missing-method}
 \alias{[,BiocFileCacheReadOnly,character,missing-method}
 \alias{[,BiocFileCache,missing,missing-method}
@@ -31,8 +31,9 @@
 \alias{bfcupdate}
 \alias{bfcquery,BiocFileCacheBase-method}
 \alias{bfcquery}
-\alias{bfccount,tbl_bfc-method}
+\alias{bfccount,BiocFileCacheBase-method}
 \alias{bfccount}
+\alias{bfccount,tbl_bfc-method}
 \alias{bfcneedsupdate,BiocFileCacheBase-method}
 \alias{bfcneedsupdate}
 \alias{bfcdownload,BiocFileCache-method}
@@ -53,6 +54,8 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 \S4method{bfccache}{BiocFileCacheBase}(x)
 
 \S4method{length}{BiocFileCacheBase}(x)
+
+bfcrid(x)
 
 \S4method{bfcrid}{BiocFileCacheReadOnly}(x)
 
@@ -91,6 +94,8 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
   fpath = NULL, proxy = "")
 
 \S4method{bfcquery}{BiocFileCacheBase}(x, query)
+
+\S4method{bfccount}{BiocFileCacheBase}(x)
 
 \S4method{bfccount}{tbl_bfc}(x)
 
@@ -291,17 +296,9 @@ information:
 \item \code{length}: Get the number of objects in the file
 cache.
 
-\item \code{bfcrid}: Get the rids of the object
-
-\item \code{bfcrid}: Get the rids of the object
+\item \code{bfcrid}: Get the rids of the object.
 
 \item \code{[}: Subset a BiocFileCache object.
-
-\item \code{[}: Subset a BiocFileCache object
-
-\item \code{[}: Subset a BiocFileCache object
-
-\item \code{[}: Subset a BiocFileCache object
 
 \item \code{[[}: Get a file path for select resources from
 the cache.

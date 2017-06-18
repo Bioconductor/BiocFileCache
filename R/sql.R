@@ -1,7 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
-#' @importFrom dplyr %>% src_sqlite tbl select_ collect summarize filter_
+#' @importFrom dplyr %>% src_sqlite tbl select_ collect summarize filter_ n
 
 .sql_file <-
     function(bfc, file)

@@ -106,15 +106,18 @@ setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
 #' @exportMethod length
 setMethod("length", "BiocFileCacheBase", function(x) length(bfcrid(x)))
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcrid
 #' @export
 setGeneric("bfcrid", function(x) standardGeneric("bfcrid"))
 
-#' @describeIn BiocFileCache Get the rids of the object
+#' @describeIn BiocFileCache Get the rids of the object.
+#' @aliases bfcrid,BiocFileCacheReadOnly-method
 #' @exportMethod bfcrid
 setMethod("bfcrid", "BiocFileCacheReadOnly", function(x) x@rid)
 
-#' @describeIn BiocFileCache Get the rids of the object
-#' @aliases bfcrid
+#' @rdname BiocFileCache-class
+#' @aliases bfcrid,BiocFileCache-method
 #' @exportMethod bfcrid
 setMethod("bfcrid", "BiocFileCache", function(x) .get_all_rids(x))
 
@@ -131,7 +134,8 @@ setMethod("[", c("BiocFileCache", "character", "missing"),
     .BiocFileCacheReadOnly(x, rid=as.character(i))
 })
 
-#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @rdname BiocFileCache-class
+#' @aliases [,BiocFileCacheReadOnly,character,missing-method
 #' @exportMethod [
 setMethod("[", c("BiocFileCacheReadOnly", "character", "missing"),
     function(x, i, j, ..., drop=TRUE)
@@ -142,7 +146,8 @@ setMethod("[", c("BiocFileCacheReadOnly", "character", "missing"),
     initialize(x, rid=as.character(i))
 })
 
-#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @rdname BiocFileCache-class
+#' @aliases [,BiocFileCache,missing,missing-method
 #' @exportMethod [
 setMethod("[", c("BiocFileCache", "missing", "missing"),
     function(x, i, j, ..., drop=TRUE)
@@ -152,7 +157,8 @@ setMethod("[", c("BiocFileCache", "missing", "missing"),
     .BiocFileCacheReadOnly(x, rid=bfcrid(x))
 })
 
-#' @describeIn BiocFileCache Subset a BiocFileCache object
+#' @rdname BiocFileCache-class
+#' @aliases [,BiocFileCacheReadOnly,missing,missing-method
 #' @exportMethod [
 setMethod("[", c("BiocFileCacheReadOnly", "missing", "missing"),
     function(x, i, j, ..., drop=TRUE)
@@ -537,17 +543,19 @@ setGeneric("bfccount", function(x) standardGeneric("bfccount"))
 #' bfccount(bfcquery(bfc0, "test"))
 #' @aliases bfccount
 #' @exportMethod bfccount
-setMethod("bfccount", "tbl_bfc",
-    function(x)
-{
-    .sql_get_nrows(x)
-})
-
-#' @exportMethod bfccount
 setMethod("bfccount", "BiocFileCacheBase",
     function(x)
 {
     bfccount(bfcinfo(x))
+})
+
+#' @rdname BiocFileCache-class
+#' @aliases bfccount,tbl_bfc-method
+#' @exportMethod bfccount
+setMethod("bfccount", "tbl_bfc",
+    function(x)
+{
+    .sql_get_nrows(x)
 })
 
 #' @export
