@@ -506,8 +506,7 @@ setGeneric("bfcquery", function(x, query) standardGeneric("bfcquery"))
 #' @describeIn BiocFileCache query resource
 #' @param query character() Pattern(s) to match in resource. It will
 #'     match the pattern against rname, rpath, and fpath using SQL
-#'     \code{LIKE}, using \code{&&} logic across query elements. In queryCount,
-#'     the query object to get counts. 
+#'     \code{LIKE}, using \code{&&} logic across query elements.
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
 #'     the database whose rname, rpath, or fpath contained query. If
 #'     multiple values are given, the resource must contain all of the
@@ -527,20 +526,29 @@ setMethod("bfcquery", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric("queryCount", function(query) standardGeneric("queryCount"))
+setGeneric("bfccount", function(x) standardGeneric("bfccount"))
 
-#' @describeIn BiocFileCache get counts of query
-#' @return Length of 'bfcquery'
+#' @describeIn BiocFileCache Get the number of objects in the file
+#'     cache or query.
+#' @return For 'bfccount': integer(1) Number of objects in the cache
+#'     or query.
 #' @examples
-#' queryCount(bfcquery(bfc0, "test"))
-#' @aliases queryCount
-#' @exportMethod queryCount
-setMethod("queryCount", "tbl_bfc",
-    function(query)
+#' bfccount(bfc0)
+#' bfccount(bfcquery(bfc0, "test"))
+#' @aliases bfccount
+#' @exportMethod bfccount
+setMethod("bfccount", "tbl_bfc",
+    function(x)
 {
-    .sql_get_nrows(query)
+    .sql_get_nrows(x)
 })
 
+#' @exportMethod bfccount
+setMethod("bfccount", "BiocFileCacheBase",
+    function(x)
+{
+    bfccount(bfcinfo(x))
+})
 
 #' @export
 setGeneric("bfcneedsupdate",
@@ -769,7 +777,7 @@ setMethod("show", "BiocFileCacheBase",
 {
     cat("class: ", class(object), "\n",
         "bfccache: ", bfccache(object), "\n",
-        "length: ", length(object), "\n",
+        "bfccount: ", bfccount(object), "\n",
         "For more information see: bfcinfo() or bfcquery()\n",
         sep="")
 })

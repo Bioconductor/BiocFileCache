@@ -243,7 +243,7 @@ test_that("bfcquery works", {
     expect_identical(dim(q2), c(2L,8L))
 
     # query not found
-    expect_identical(queryCount(bfcquery(bfc, "nothere")), 0L)
+    expect_identical(bfccount(bfcquery(bfc, "nothere")), 0L)
 
     # multiple value all found
     path <- file.path(bfccache(bfc), "myFile")
@@ -254,7 +254,7 @@ test_that("bfcquery works", {
     expect_identical(q3$rid, rid3)
 
     # multi value some not found
-    expect_identical(queryCount(bfcquery(bfc, c("prep", "not"))), 0L)
+    expect_identical(bfccount(bfcquery(bfc, c("prep", "not"))), 0L)
 })
 
 test_that("bfcneedsupdate works", {
