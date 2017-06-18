@@ -96,7 +96,7 @@ setGeneric("bfccache", function(x) standardGeneric("bfccache"))
 #' @exportMethod bfccache
 setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
 
-#' @describeIn BiocFileCache Get the number of object in the file
+#' @describeIn BiocFileCache Get the number of objects in the file
 #'     cache.
 #' @return For 'length': integer(1) Number of objects in the file
 #'     cache.

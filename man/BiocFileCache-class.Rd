@@ -289,7 +289,7 @@ information:
 \itemize{
 \item \code{bfccache}: Get the location of the on-disk cache.
 
-\item \code{length}: Get the number of object in the file
+\item \code{length}: Get the number of objects in the file
 cache.
 
 \item \code{bfcrid}: Get the rids of the object
