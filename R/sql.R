@@ -1,5 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
+#' @import dbplyr
+#' @importFrom dplyr %>% src_sqlite tbl select_ collect summarize filter_
 
 .sql_file <-
     function(bfc, file)
@@ -177,14 +179,13 @@
     }
 
     class(tbl) <- c("tbl_bfc", class(tbl))
-    tbl <- tbl %>% select_(~ -id)
-    tbl
+    tbl %>% select_(~ -id)
 }
 
 .sql_get_nrows <-
-    function(x)
+    function(bfc)
 {
-    x %>% count() %>% collect(Inf) %>% `[[`('n')
+    summarize(bfc, n=n()) %>% collect %>% `[[`("n")
 }
 
 .sql_get_field <-
