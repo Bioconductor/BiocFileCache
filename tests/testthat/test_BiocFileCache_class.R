@@ -48,7 +48,9 @@ test_that("bfcadd and bfcnew works", {
 
     # test out of bounds and file not found
     expect_error(bfc[[7]])
-    expect_error(bfcadd(bfc, 'test-6', "http://jibberish", rtype="web"))
+    expect_error(bfcadd(
+        bfc, 'test-6', "https://httpbin.org/status/404", rtype="web"
+    ))
     expect_error(bfcadd(bfc, 'test-2', fl, rtype='local', action='asis'))
 
     # test no fpath given
@@ -108,7 +110,7 @@ test_that("bfcinfo works", {
     # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
                      c(4L, 8L))
-    expect_is(bfcinfo(bfc), "tbl_sqlite")
+    expect_is(bfcinfo(bfc), "tbl_sql")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
                      c(3L, 8L))
@@ -243,7 +245,7 @@ test_that("bfcquery works", {
     expect_identical(dim(q2), c(2L,8L))
 
     # query not found
-    expect_identical(nrow(bfcquery(bfc, "nothere")), 0L)
+    expect_identical(bfccount(bfcquery(bfc, "nothere")), 0L)
 
     # multiple value all found
     path <- file.path(bfccache(bfc), "myFile")
@@ -254,7 +256,7 @@ test_that("bfcquery works", {
     expect_identical(q3$rid, rid3)
 
     # multi value some not found
-    expect_identical(nrow(bfcquery(bfc, c("prep", "not"))), 0L)
+    expect_identical(bfccount(bfcquery(bfc, c("prep", "not"))), 0L)
 })
 
 test_that("bfcneedsupdate works", {
