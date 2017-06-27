@@ -206,7 +206,7 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 setGeneric("bfcnew",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
     standardGeneric("bfcnew"),
-    signature="x"
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache Add a resource to the database
@@ -241,7 +241,7 @@ setGeneric("bfcadd",
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
     ) standardGeneric("bfcadd"),
-    signature="x"
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -320,7 +320,7 @@ setMethod("bfcadd", "BiocFileCache",
 #' @export
 setGeneric("bfcinfo",
     function(x, rids) standardGeneric("bfcinfo"),
-    signature="x"
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache list resources in database
@@ -348,7 +348,11 @@ setOldClass("tbl_bfc")
 setMethod("bfcrid", "tbl_bfc", function(x) .get_tbl_rid(x))
 
 #' @export
-setGeneric("bfcpath", function(x, rid) standardGeneric("bfcpath"))
+setGeneric(
+    "bfcpath",
+    function(x, rid) standardGeneric("bfcpath"),
+    signature = "x"
+)
 
 #' @describeIn BiocFileCache display paths of resource
 #' @param rid character(1) Unique resource id.
@@ -374,7 +378,11 @@ setMethod("bfcpath", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric("bfcrpath", function(x, rnames, ..., rids) standardGeneric("bfcrpath"))
+setGeneric(
+    "bfcrpath",
+    function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
+    signature = "x"
+)
 
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
 #'     in the cache the path is returned, if it is not it will try to
@@ -436,8 +444,8 @@ setMethod("bfcrpath", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcupdate",
-    function(x, rids, value, colID, ...) standardGeneric("bfcupdate"),
-    signature="x"
+    function(x, rids, value, ...) standardGeneric("bfcupdate"),
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache Update a resource in the cache
@@ -507,7 +515,12 @@ setMethod("bfcupdate", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcquery", function(x, query) standardGeneric("bfcquery"))
+setGeneric(
+    "bfcquery",
+    function(x, query) standardGeneric("bfcquery"),
+    signature = "x"
+)
+
 
 #' @describeIn BiocFileCache query resource
 #' @param query character() Pattern(s) to match in resource. It will
@@ -559,8 +572,10 @@ setMethod("bfccount", "tbl_bfc",
 })
 
 #' @export
-setGeneric("bfcneedsupdate",
-    function(x, rids) standardGeneric("bfcneedsupdate")
+setGeneric(
+    "bfcneedsupdate",
+    function(x, rids) standardGeneric("bfcneedsupdate"),
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
@@ -601,8 +616,10 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric("bfcdownload",
-    function(x, rid, proxy="") standardGeneric("bfcdownload")
+setGeneric(
+    "bfcdownload",
+    function(x, rid, proxy="") standardGeneric("bfcdownload"),
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
@@ -626,7 +643,12 @@ setMethod("bfcdownload", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcremove", function(x, rids) standardGeneric("bfcremove"))
+setGeneric(
+    "bfcremove",
+    function(x, rids) standardGeneric("bfcremove"),
+    signature = "x"
+)
+
 
 #' @describeIn BiocFileCache Remove a resource to the database.  If
 #'     the local file is located in \code{bfccache(x)}, the file will
@@ -652,7 +674,11 @@ setMethod("bfcremove", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcsync", function(x, verbose=TRUE) standardGeneric("bfcsync"))
+setGeneric(
+    "bfcsync",
+    function(x, verbose=TRUE) standardGeneric("bfcsync"),
+    signature = "x"
+)
 
 #' @describeIn BiocFileCache sync cache and resource.
 #' @param verbose logical(1) If descriptive message and list of issues
@@ -713,7 +739,7 @@ setMethod("bfcsync", "BiocFileCache",
 #' @export
 setGeneric("cleanbfc",
     function(x, days = 120, ask = TRUE) standardGeneric("cleanbfc"),
-    signature="x"
+    signature = "x"
 )
 
 #' @describeIn BiocFileCache Remove old/unused files in
