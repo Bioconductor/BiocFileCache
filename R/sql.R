@@ -1,7 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
-#' @importFrom dplyr %>% src_sqlite tbl select_ collect summarize filter_ n
+#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n
 
 .sql_file <-
     function(bfc, file)
@@ -133,23 +133,28 @@
         rpath <- paste(rpath, ext, sep=".")
 
     # insert is special case need last_insert_rowid()
-    # can't use dbExecute because auto clear destroys use case
     sql <- .sql_cmd("-- INSERT")
     sqls <- strsplit(sql, ";", fixed=TRUE)[[1]]
     sqlfile <- .sql_dbfile(bfc)
     con <- dbConnect(SQLite(), sqlfile)
     for(i in seq_along(sqls)){
-        if (i == 1){
-            param = list(rname=rname, rpath=rpath, rtype=rtype, fpath=fpath)
-            temp <- dbSendQuery(con, sqls[i])
-            dbBind(temp, param)
-            result <- dbFetch(temp)
-            dbClearResult(temp)
-        } else {
-            temp <- dbSendQuery(con, sqls[i])
-            result <- dbFetch(temp)
-            dbClearResult(temp)
-        }
+        # 1 = INSERT
+        # 2 = UPDATE ID
+        # 3 = SELECT last_insert_rowid()
+        switch(i,
+               "1" = {
+                   param = list(rname=rname, rpath=rpath,
+                       rtype=rtype, fpath=fpath)
+                   result <- dbExecute(con, sqls[i], param)
+               },
+               "2" = {
+                   result <- dbExecute(con, sqls[i])
+               },
+               "3" = {
+                   temp <- dbSendQuery(con, sqls[i])
+                   result <- dbFetch(temp)
+                   dbClearResult(temp)
+               })
     }
     dbDisconnect(con)
     result[[1]]
@@ -165,11 +170,11 @@
 .sql_get_resource_table <-
     function(bfc, rids)
 {
-    src <- src_sqlite(.sql_dbfile(bfc))
-    tbl <- tbl(src, "resource")
+
+    con = DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    tbl = tbl(con, "resource")
 
     if (missing(rids)) {
-        ## tbl <- tbl
     } else if (length(rids) == 0) {
         tbl <- tbl %>% filter_(~ rid == NA_character_)
     } else if (length(rids) == 1) {
@@ -177,6 +182,8 @@
     } else {
         tbl <- tbl %>% filter_(~ rid %in% rids)
     }
+    tbl = collect(tbl)
+    dbDisconnect(con)
 
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)

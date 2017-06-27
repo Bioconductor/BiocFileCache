@@ -110,7 +110,7 @@ test_that("bfcinfo works", {
     # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
                      c(4L, 8L))
-    expect_is(bfcinfo(bfc), "tbl_sql")
+    expect_is(bfcinfo(bfc), "tbl_df")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
                      c(3L, 8L))
