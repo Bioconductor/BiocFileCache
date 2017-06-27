@@ -6,8 +6,10 @@
 \alias{BiocFileCache}
 \alias{bfccache,BiocFileCacheBase-method}
 \alias{bfccache}
+\alias{bfccache,missing-method}
 \alias{length,BiocFileCacheBase-method}
 \alias{bfcrid}
+\alias{bfcrid,missing-method}
 \alias{bfcrid,BiocFileCacheReadOnly-method}
 \alias{bfcrid,BiocFileCache-method}
 \alias{[,BiocFileCache,character,missing-method}
@@ -16,34 +18,48 @@
 \alias{[,BiocFileCacheReadOnly,missing,missing-method}
 \alias{[[,BiocFileCacheBase,character,missing-method}
 \alias{[[<-,BiocFileCache,character,missing,character-method}
+\alias{bfcnew,missing-method}
 \alias{bfcnew,BiocFileCache-method}
 \alias{bfcnew}
+\alias{bfcadd,missing-method}
 \alias{bfcadd,BiocFileCache-method}
 \alias{bfcadd}
+\alias{bfcinfo,missing-method}
 \alias{bfcinfo,BiocFileCacheBase-method}
 \alias{bfcinfo}
 \alias{bfcrid,tbl_bfc-method}
+\alias{bfcpath,missing-method}
 \alias{bfcpath,BiocFileCacheBase-method}
 \alias{bfcpath}
+\alias{bfcrpath,missing-method}
 \alias{bfcrpath,BiocFileCacheBase-method}
 \alias{bfcrpath}
+\alias{bfcupdate,missing-method}
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
+\alias{bfcquery,missing-method}
 \alias{bfcquery,BiocFileCacheBase-method}
 \alias{bfcquery}
+\alias{bfccount,missing-method}
 \alias{bfccount,BiocFileCacheBase-method}
 \alias{bfccount}
 \alias{bfccount,tbl_bfc-method}
+\alias{bfcneedsupdate,missing-method}
 \alias{bfcneedsupdate,BiocFileCacheBase-method}
 \alias{bfcneedsupdate}
+\alias{bfcdownload,missing-method}
 \alias{bfcdownload,BiocFileCache-method}
 \alias{bfcdownload}
+\alias{bfcremove,missing-method}
 \alias{bfcremove,BiocFileCache-method}
 \alias{bfcremove}
+\alias{bfcsync,missing-method}
 \alias{bfcsync,BiocFileCache-method}
 \alias{bfcsync}
+\alias{cleanbfc,missing-method}
 \alias{cleanbfc,BiocFileCache-method}
 \alias{cleanbfc}
+\alias{removebfc,missing-method}
 \alias{removebfc,BiocFileCache-method}
 \alias{removebfc}
 \alias{show,BiocFileCacheBase-method}
@@ -53,9 +69,13 @@ BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
 
 \S4method{bfccache}{BiocFileCacheBase}(x)
 
+\S4method{bfccache}{missing}(x)
+
 \S4method{length}{BiocFileCacheBase}(x)
 
 bfcrid(x)
+
+\S4method{bfcrid}{missing}(x)
 
 \S4method{bfcrid}{BiocFileCacheReadOnly}(x)
 
@@ -75,39 +95,70 @@ bfcrid(x)
 \S4method{[[}{BiocFileCache,character,missing,character}(x, i, j,
   ...) <- value
 
+\S4method{bfcnew}{missing}(x, rname, rtype = c("relative", "local"),
+  ext = NA_character_)
+
 \S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"),
   ext = NA_character_)
+
+\S4method{bfcadd}{missing}(x, rname, fpath = rname, rtype = c("auto",
+  "relative", "local", "web"), action = c("copy", "move", "asis"),
+  proxy = "", ...)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
   proxy = "", ...)
 
+\S4method{bfcinfo}{missing}(x, rids)
+
 \S4method{bfcinfo}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcrid}{tbl_bfc}(x)
 
+\S4method{bfcpath}{missing}(x, rid)
+
 \S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
+\S4method{bfcrpath}{missing}(x, rnames, ..., rids)
+
 \S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids)
+
+\S4method{bfcupdate}{missing}(x, rids, value, ...)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   fpath = NULL, proxy = "")
 
+\S4method{bfcquery}{missing}(x, query)
+
 \S4method{bfcquery}{BiocFileCacheBase}(x, query)
+
+\S4method{bfccount}{missing}(x)
 
 \S4method{bfccount}{BiocFileCacheBase}(x)
 
 \S4method{bfccount}{tbl_bfc}(x)
 
+\S4method{bfcneedsupdate}{missing}(x, rids)
+
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
+
+\S4method{bfcdownload}{missing}(x, rid, proxy = "")
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "")
 
+\S4method{bfcremove}{missing}(x, rids)
+
 \S4method{bfcremove}{BiocFileCache}(x, rids)
+
+\S4method{bfcsync}{missing}(x, verbose = TRUE)
 
 \S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE)
 
+\S4method{cleanbfc}{missing}(x, days = 120, ask = TRUE)
+
 \S4method{cleanbfc}{BiocFileCache}(x, days = 120, ask = TRUE)
+
+\S4method{removebfc}{missing}(x, ask = TRUE)
 
 \S4method{removebfc}{BiocFileCache}(x, ask = TRUE)
 
@@ -117,7 +168,8 @@ bfcrid(x)
 \item{cache}{character(1) On-disk location (directory path) of
 cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.}
 
-\item{x}{A \code{BiocFileCache} instance.}
+\item{x}{A \code{BiocFileCache} instance or, if missing, the result
+of \code{BiocFileCache()}.}
 
 \item{i}{character() 'rid' identifiers.}
 

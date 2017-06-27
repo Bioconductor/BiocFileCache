@@ -87,7 +87,8 @@ BiocFileCache <-
 setGeneric("bfccache", function(x) standardGeneric("bfccache"))
 
 #' @describeIn BiocFileCache Get the location of the on-disk cache.
-#' @param x A \code{BiocFileCache} instance.
+#' @param x A \code{BiocFileCache} instance or, if missing, the result
+#'     of \code{BiocFileCache()}.
 #' @return For 'bfccache': character(1) location of the directory
 #'     containing the cache.
 #' @examples
@@ -95,6 +96,11 @@ setGeneric("bfccache", function(x) standardGeneric("bfccache"))
 #' @aliases bfccache
 #' @exportMethod bfccache
 setMethod("bfccache", "BiocFileCacheBase", function(x) x@cache)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfccache,missing-method
+#' @exportMethod bfccache
+setMethod("bfccache", "missing", function(x) bfccache(BiocFileCache()))
 
 #' @describeIn BiocFileCache Get the number of objects in the file
 #'     cache.
@@ -110,6 +116,11 @@ setMethod("length", "BiocFileCacheBase", function(x) length(bfcrid(x)))
 #' @aliases bfcrid
 #' @export
 setGeneric("bfcrid", function(x) standardGeneric("bfcrid"))
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcrid,missing-method
+#' @exportMethod bfcrid
+setMethod("bfcrid", "missing", function(x) bfcrid(BiocFileCache()))
 
 #' @describeIn BiocFileCache Get the rids of the object.
 #' @aliases bfcrid,BiocFileCacheReadOnly-method
@@ -209,6 +220,15 @@ setGeneric("bfcnew",
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcnew,missing-method
+#' @exportMethod bfcnew
+setMethod("bfcnew", "missing",
+    function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
+{
+    bfcnew(BiocFileCache(), rname, rtype, ext)
+})
+
 #' @describeIn BiocFileCache Add a resource to the database
 #' @param rname character(1) Name of object in file cache. For
 #'     'bfcupdate' a character vector of replacement rnames.
@@ -243,6 +263,19 @@ setGeneric("bfcadd",
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcadd,missing-method
+#' @exportMethod bfcadd
+setMethod(
+    "bfcadd", "missing",
+    function(
+        x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
+        action=c("copy", "move", "asis"), proxy="", ...
+    )
+{
+    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy, ...)
+})
 
 #' @describeIn BiocFileCache Add an existing resource to the database
 #' @param fpath For bfcadd(), character(1) path to current file
@@ -323,6 +356,16 @@ setGeneric("bfcinfo",
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcinfo,missing-method
+#' @exportMethod bfcinfo
+setMethod(
+    "bfcinfo", "missing",
+    function(x, rids)
+{
+    bfcinfo(BiocFileCache(), rids)
+})
+
 #' @describeIn BiocFileCache list resources in database
 #' @param rids character() Vector of rids.
 #' @return For 'bfcinfo': A \code{bfc_tbl} of current resources in the
@@ -354,6 +397,16 @@ setGeneric(
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcpath,missing-method
+#' @exportMethod bfcpath
+setMethod(
+    "bfcpath", "missing",
+    function(x, rid)
+{
+    bfcpath(BiocFileCache(), rid)
+})
+
 #' @describeIn BiocFileCache display paths of resource
 #' @param rid character(1) Unique resource id.
 #' @return For 'bfcpath': the file path location to load and original
@@ -383,6 +436,16 @@ setGeneric(
     function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
     signature = "x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcrpath,missing-method
+#' @exportMethod bfcrpath
+setMethod(
+    "bfcrpath", "missing",
+    function(x, rnames, ..., rids)
+{
+    bfcrpath(BiocFileCache(), rnames, ..., rids)
+})
 
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
 #'     in the cache the path is returned, if it is not it will try to
@@ -447,6 +510,16 @@ setGeneric("bfcupdate",
     function(x, rids, value, ...) standardGeneric("bfcupdate"),
     signature = "x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcupdate,missing-method
+#' @exportMethod bfcupdate
+setMethod(
+    "bfcupdate", "missing",
+    function(x, rids, value, ...)
+{
+    bfcupdate(BiocFileCache(), rids, value, ...)
+})
 
 #' @describeIn BiocFileCache Update a resource in the cache
 #' @param rpath character() vector of replacement rpaths.
@@ -521,6 +594,15 @@ setGeneric(
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcquery,missing-method
+#' @exportMethod bfcquery
+setMethod(
+    "bfcquery", "missing",
+    function(x, query)
+{
+    bfcquery(BiocFileCache(), query)
+})
 
 #' @describeIn BiocFileCache query resource
 #' @param query character() Pattern(s) to match in resource. It will
@@ -546,6 +628,16 @@ setMethod("bfcquery", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfccount", function(x) standardGeneric("bfccount"))
+
+#' @rdname BiocFileCache-class
+#' @aliases bfccount,missing-method
+#' @exportMethod bfccount
+setMethod(
+    "bfccount", "missing",
+    function(x)
+{
+    bfccount(BiocFileCache())
+})
 
 #' @describeIn BiocFileCache Get the number of objects in the file
 #'     cache or query.
@@ -577,6 +669,16 @@ setGeneric(
     function(x, rids) standardGeneric("bfcneedsupdate"),
     signature = "x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcneedsupdate,missing-method
+#' @exportMethod bfcneedsupdate
+setMethod(
+    "bfcneedsupdate", "missing",
+    function(x, rids)
+{
+    bfcneedsupdate(BiocFileCache(), rids)
+})
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return For 'bfcneedsupdate': named logical vector if resource
@@ -622,6 +724,16 @@ setGeneric(
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcdownload,missing-method
+#' @exportMethod bfcdownload
+setMethod(
+    "bfcdownload", "missing",
+    function(x, rid, proxy="")
+{
+    bfcdownload(BiocFileCache(), rid, proxy)
+})
+
 #' @describeIn BiocFileCache Redownload resource to location in cache
 #' @return For 'bfcdownload': character(1) path to downloaded resource
 #'     in cache.
@@ -649,6 +761,15 @@ setGeneric(
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcremove,missing-method
+#' @exportMethod bfcremove
+setMethod(
+    "bfcremove", "missing",
+    function(x, rids)
+{
+    bfcremove(BiocFileCache(), rids)
+})
 
 #' @describeIn BiocFileCache Remove a resource to the database.  If
 #'     the local file is located in \code{bfccache(x)}, the file will
@@ -679,6 +800,16 @@ setGeneric(
     function(x, verbose=TRUE) standardGeneric("bfcsync"),
     signature = "x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcsync,missing-method
+#' @exportMethod bfcsync
+setMethod(
+    "bfcsync", "missing",
+    function(x, verbose=TRUE)
+{
+    bfcsync(BiocFileCache(), verbose)
+})
 
 #' @describeIn BiocFileCache sync cache and resource.
 #' @param verbose logical(1) If descriptive message and list of issues
@@ -742,6 +873,16 @@ setGeneric("cleanbfc",
     signature = "x"
 )
 
+#' @rdname BiocFileCache-class
+#' @aliases cleanbfc,missing-method
+#' @exportMethod cleanbfc
+setMethod(
+    "cleanbfc", "missing",
+    function(x, days = 120, ask = TRUE)
+{
+    cleanbfc(BiocFileCache(), days, ask)
+})
+
 #' @describeIn BiocFileCache Remove old/unused files in
 #'     BiocFileCache. If file to be removed is not in the bfccache
 #'     location it will not be deleted.
@@ -784,6 +925,16 @@ setGeneric("removebfc",
     function(x, ask = TRUE) standardGeneric("removebfc"),
     signature="x"
 )
+
+#' @rdname BiocFileCache-class
+#' @aliases removebfc,missing-method
+#' @exportMethod removebfc
+setMethod(
+    "removebfc", "missing",
+    function(x, ask = TRUE)
+{
+    removebfc(BiocFileCache(), ask)
+})
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
 #' @return For 'removebfc': TRUE if successfully removed.
