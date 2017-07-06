@@ -966,3 +966,141 @@ setMethod("show", "BiocFileCacheBase",
         "For more information see: bfcinfo() or bfcquery()\n",
         sep="")
 })
+
+
+#' @export
+setGeneric("bfcaddmeta",
+    function(x, meta, name, ...) standardGeneric("bfcaddmeta"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcaddmeta,missing-method
+#' @exportMethod bfcaddmeta
+setMethod(
+    "bfcaddmeta", "missing",
+    function(x, meta, name="resourcedata", ...)
+{
+    bfcaddmeta(BiocFileCache(), meta, name, ...)
+})
+
+#' @describeIn BiocFileCache add meta data table in database
+#' @param meta data.frame of meta data
+#' @param name character() name of metadata table to add to database
+#' @return For 'bfcaddmeta': updated BiocFileCache, invisibly
+#' @aliases bfcaddmeta
+#' @exportMethod bfcaddmeta
+setMethod("bfcaddmeta", "BiocFileCacheBase",
+    function(x, meta, name="resourcedata", ...)
+{
+    stopifnot(("rid" %in% colnames(meta)))
+    rids = meta$rid
+    stopifnot(all(substring(rids, 1, 3) == "BFC"))
+    stopifnot(all(rids %in% bfcrid(x)))
+    if (missing(name)) name = "resourcedata"
+    stopifnot(is.character(name), length(name) == 1L, !is.na(name))
+    if (name %in% c("metadata","resource","sqlite_sequence"))
+        stop("'metadata', 'resource', and 'sqlite_sequence' cannot be used for table name")
+
+    nocols = c("id", "rname", "create_time", "access_time", "rpath",
+      "rtype", "fpath", "last_modified_time")
+
+    if (any(colnames(meta) %in% nocols))
+        stop("metadata cannot contain colnames: ",
+             paste(nocols, collapse= ", "))
+    
+    .sql_add_metadata(x, meta, name, ...)
+    
+    invisible(x)
+})
+
+#' @export
+setGeneric("bfcremovemeta",
+    function(x, name, ...) standardGeneric("bfcremovemeta"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcremovemeta,missing-method
+#' @exportMethod bfcremovemeta
+setMethod(
+    "bfcremovemeta", "missing",
+    function(x, name, ...)
+{
+    bfcremovemeta(BiocFileCache(), name, ...)
+})
+
+#' @describeIn BiocFileCache remove meta data table in database
+#' @return For 'bfcremovemeta': updated BiocFileCache, invisibly
+#' @aliases bfcremovemeta
+#' @exportMethod bfcremovemeta
+setMethod("bfcremovemeta", "BiocFileCacheBase",
+    function(x, name, ...)
+{
+    stopifnot(!missing(name), is.character(name),
+              length(name) == 1L, !is.na(name))
+    if (name %in% c("metadata","resource","sqlite_sequence"))
+        stop("'metadata', 'resource', and 'sqlite_sequence' cannot be removed")
+    
+    .sql_remove_metadata(x, name, ...)
+    
+    invisible(x)
+})
+
+#' @export
+setGeneric("bfcgetmeta",
+    function(x, name, ...) standardGeneric("bfcgetmeta"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcgetmeta,missing-method
+#' @exportMethod bfcgetmeta
+setMethod(
+    "bfcgetmeta", "missing",
+    function(x, name, ...)
+{
+    bfcgetmeta(BiocFileCache(), name, ...)
+})
+
+#' @describeIn BiocFileCache retrieve metadata table
+#' @return For 'bfcgetmeta': 
+#' @aliases bfcgetmeta
+#' @exportMethod bfcgetmeta
+setMethod("bfcgetmeta", "BiocFileCacheBase",
+    function(x, name, ...)
+{
+    stopifnot(!missing(name), is.character(name),
+              length(name) == 1L, !is.na(name))
+    
+    .sql_get_metadata(x, name, ...)
+    
+})
+
+
+#' @export
+setGeneric("bfclistmeta",
+    function(x) standardGeneric("bfclistmeta"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfclistmeta,missing-method
+#' @exportMethod bfclistmeta
+setMethod(
+    "bfclistmeta", "missing",
+    function(x)
+{
+    bfclistmeta(BiocFileCache())
+})
+
+#' @describeIn BiocFileCache retrieve list of metadata table
+#' @return For 'bfclistmeta': 
+#' @aliases bfclistmeta
+#' @exportMethod bfclistmeta
+setMethod("bfclistmeta", "BiocFileCacheBase",
+    function(x)
+{
+    .sql_list_metadata(x)
+    
+})

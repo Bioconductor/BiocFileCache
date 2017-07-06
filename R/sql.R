@@ -1,7 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
-#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n
+#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n left_join
 
 .sql_file <-
     function(bfc, file)
@@ -183,6 +183,18 @@
         tbl <- tbl %>% filter_(~ rid %in% rids)
     }
     tbl = collect(tbl)
+
+    meta = setdiff(dbListTables(con),
+        c("metadata", "resource", "sqlite_sequence"))
+    if (length(meta) != 0L){
+
+        for (m in meta){
+            addtbl = dbReadTable(con, m)
+            if (any(addtbl$rid %in% tbl$rid))
+                tbl = left_join(tbl, addtbl, by="rid")
+        }
+    }
+    
     dbDisconnect(con)
 
     class(tbl) <- c("tbl_bfc", class(tbl))
@@ -352,4 +364,40 @@
 
     stopifnot(!missing(rnames))
     unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
+}
+
+.sql_add_metadata <- function(bfc, meta, name, ...){
+
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    dbWriteTable(con, name, meta, ...)
+    dbDisconnect(con)
+}
+
+.sql_remove_metadata <- function(bfc, name, ...){
+
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    if (dbExistsTable(con, name))
+        dbRemoveTable(con, name, ...)
+    dbDisconnect(con)
+}
+
+.sql_get_metadata <- function(bfc, name, ...){
+
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    if (dbExistsTable(con, name)){
+        tbl <- dbReadTable(con, name, ...)
+    } else {
+        dbDisconnect(con)
+        stop(paste("'", name, "' Not found in database", sep=""))
+    }
+    dbDisconnect(con)
+    tbl
+}
+
+.sql_list_metadata <- function(bfc){
+
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    res <- dbListTables(con)
+    dbDisconnect(con)
+    setdiff(res, c("metadata", "resource", "sqlite_sequence"))
 }

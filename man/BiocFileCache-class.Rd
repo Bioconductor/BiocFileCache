@@ -63,6 +63,18 @@
 \alias{removebfc,BiocFileCache-method}
 \alias{removebfc}
 \alias{show,BiocFileCacheBase-method}
+\alias{bfcaddmeta,missing-method}
+\alias{bfcaddmeta,BiocFileCacheBase-method}
+\alias{bfcaddmeta}
+\alias{bfcremovemeta,missing-method}
+\alias{bfcremovemeta,BiocFileCacheBase-method}
+\alias{bfcremovemeta}
+\alias{bfcgetmeta,missing-method}
+\alias{bfcgetmeta,BiocFileCacheBase-method}
+\alias{bfcgetmeta}
+\alias{bfclistmeta,missing-method}
+\alias{bfclistmeta,BiocFileCacheBase-method}
+\alias{bfclistmeta}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
@@ -163,6 +175,22 @@ bfcrid(x)
 \S4method{removebfc}{BiocFileCache}(x, ask = TRUE)
 
 \S4method{show}{BiocFileCacheBase}(object)
+
+\S4method{bfcaddmeta}{missing}(x, meta, name = "resourcedata", ...)
+
+\S4method{bfcaddmeta}{BiocFileCacheBase}(x, meta, name = "resourcedata", ...)
+
+\S4method{bfcremovemeta}{missing}(x, name, ...)
+
+\S4method{bfcremovemeta}{BiocFileCacheBase}(x, name, ...)
+
+\S4method{bfcgetmeta}{missing}(x, name, ...)
+
+\S4method{bfcgetmeta}{BiocFileCacheBase}(x, name, ...)
+
+\S4method{bfclistmeta}{missing}(x)
+
+\S4method{bfclistmeta}{BiocFileCacheBase}(x)
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
@@ -231,6 +259,10 @@ currentDate; if exceeded entry will be deleted.}
 files.}
 
 \item{object}{A \code{BiocFileCache} instance.}
+
+\item{meta}{data.frame of meta data}
+
+\item{name}{character() name of metadata table to add to database}
 }
 \value{
 For 'BiocFileCache': a \code{BiocFileCache} instance.
@@ -296,6 +328,14 @@ For 'bfcsync': logical(1) indicating whether the cache is
 For 'cleanbfc': updated BiocFileCache, invisibly.
 
 For 'removebfc': TRUE if successfully removed.
+
+For 'bfcaddmeta': updated BiocFileCache, invisibly
+
+For 'bfcremovemeta': updated BiocFileCache, invisibly
+
+For 'bfcgetmeta':
+
+For 'bfclistmeta':
 }
 \description{
 This class represents the location of files stored on disk. Use the
@@ -396,6 +436,14 @@ location it will not be deleted.
 \item \code{removebfc}: Completely remove the BiocFileCache
 
 \item \code{show}: Display a \code{BiocFileCache} instance.
+
+\item \code{bfcaddmeta}: add meta data table in database
+
+\item \code{bfcremovemeta}: remove meta data table in database
+
+\item \code{bfcgetmeta}: retrieve metadata table
+
+\item \code{bfclistmeta}: retrieve list of metadata table
 }}
 
 \examples{
