@@ -83,7 +83,8 @@
 
     con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     rs <- dbSendStatement(con, sql)
-    dbBind(rs, params)
+    if (length(params) != 0L)
+        dbBind(rs, params)
     result <- dbFetch(rs)
     dbClearResult(rs)
     dbDisconnect(con)
@@ -318,14 +319,36 @@
 }
 
 .sql_query_resource <-
-    function(bfc, value)
+    function(bfc, value, field, exact)
 {
-    helperFun <- function(bfc, value) {
-        sql <- .sql_cmd("-- QUERY_NAMES")
-        .sql_db_fetch_query(bfc, sql, value = value) %>%
-            select_("rid") %>% collect(Inf) %>% `[[`("rid")
+
+    if (length(field) != 1L){
+        field = paste(field, collapse=" || ")
     }
-    res <- lapply(value, FUN=helperFun, bfc=bfc)
+
+    # make temporary table here of all join - will disappear after disconnect
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+    tempTbl = as.data.frame(.sql_get_resource_table(bfc))
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+    DBI::dbWriteTable(con, "BFCtempTable", tempTbl, temporary=TRUE)
+    
+    helperFun <- function(bfc, value, field, exact) {
+        if (!exact)
+            sql <- paste("SELECT rid FROM BFCtempTable WHERE ",field, " LIKE '%",
+                         value, "%'", sep="")
+        else
+            sql <- paste("SELECT rid FROM BFCtempTable WHERE ",field, " LIKE '",
+                         value, "'", sep="")
+
+        # call here to prevent trying to open connection again
+        rs <- dbSendStatement(con, sql)
+        result <- dbFetch(rs)
+        dbClearResult(rs)
+        result %>% select_("rid") %>% collect(Inf) %>% `[[`("rid")        
+    }
+    
+    res <- lapply(value, FUN=helperFun, bfc=bfc, field=field, exact=exact)
+    dbDisconnect(con)
     Reduce(intersect, res)
 }
 
@@ -351,19 +374,12 @@
 .fix_rnames <- function(bfc, rnames){
 
     stopifnot(!missing(rnames))
-    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
+    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc,
+                  field=c("rname", "rpath", "fpath"), exact=FALSE))
 }
 
-.get_tbl_rid <-
-    function(tbl)
-{
-    tbl %>% collect(Inf) %>% `[[`("rid")
-}
-
-.fix_rnames <- function(bfc, rnames){
-
-    stopifnot(!missing(rnames))
-    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
+.get_all_colnames <- function(bfc){
+    colnames(.sql_get_resource_table(bfc))
 }
 
 .sql_add_metadata <- function(bfc, meta, name, ...){

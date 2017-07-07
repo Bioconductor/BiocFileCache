@@ -75,6 +75,9 @@
 \alias{bfclistmeta,missing-method}
 \alias{bfclistmeta,BiocFileCacheBase-method}
 \alias{bfclistmeta}
+\alias{bfcquerycols,missing-method}
+\alias{bfcquerycols,BiocFileCacheBase-method}
+\alias{bfcquery}
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
@@ -140,9 +143,11 @@ bfcrid(x)
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   fpath = NULL, proxy = "")
 
-\S4method{bfcquery}{missing}(x, query)
+\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
+  exact = FALSE)
 
-\S4method{bfcquery}{BiocFileCacheBase}(x, query)
+\S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
+  "fpath"), exact = FALSE)
 
 \S4method{bfccount}{missing}(x)
 
@@ -191,6 +196,10 @@ bfcrid(x)
 \S4method{bfclistmeta}{missing}(x)
 
 \S4method{bfclistmeta}{BiocFileCacheBase}(x)
+
+\S4method{bfcquerycols}{missing}(x)
+
+\S4method{bfcquerycols}{BiocFileCacheBase}(x)
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
@@ -246,8 +255,15 @@ in current location but save the path in the cache. If 'rtype
 \item{rpath}{character() vector of replacement rpaths.}
 
 \item{query}{character() Pattern(s) to match in resource. It will
-match the pattern against rname, rpath, and fpath using SQL
-\code{LIKE}, using \code{&&} logic across query elements.}
+match the pattern against \code{fields}, using \code{&&} logic
+across query element.}
+
+\item{field}{character() column names in resource to query, using
+\code{||} logic across multiple field elements. By default, matches
+pattern agains rname, rpath, and fpath.}
+
+\item{exact}{logical(1) By default \code{FALSE} matches patterns using
+SQL \code{LIKE}, else uses exact matching.}
 
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}
@@ -300,7 +316,7 @@ For 'bfcupdate': an updated \code{BiocFileCache} object,
     invisibly.
 
 For 'bfcquery': A \code{bfc_tbl} of current resources in
-    the database whose rname, rpath, or fpath contained query. If
+    the database whose \code{field} contained query. If
     multiple values are given, the resource must contain all of the
     patterns. A tbl with zero rows is returned when no resources
     match the query.
@@ -336,6 +352,8 @@ For 'bfcremovemeta': updated BiocFileCache, invisibly
 For 'bfcgetmeta':
 
 For 'bfclistmeta':
+
+For 'bfcquerycols': character() all columns in database tables
 }
 \description{
 This class represents the location of files stored on disk. Use the
@@ -444,6 +462,8 @@ location it will not be deleted.
 \item \code{bfcgetmeta}: retrieve metadata table
 
 \item \code{bfclistmeta}: retrieve list of metadata table
+
+\item \code{bfcquerycols}: Get all the possible columns to query
 }}
 
 \examples{
@@ -488,4 +508,5 @@ bfcremove(bfc0, "BFC1")
 bfcsync(bfc0, FALSE)
 \dontrun{cleanbfc(bfc, ask=FALSE)}
 \dontrun{removebfc(bfc, ask=FALSE)}
+bfcquerycols(bfc0)
 }

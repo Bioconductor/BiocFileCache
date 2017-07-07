@@ -590,7 +590,8 @@ setMethod("bfcupdate", "BiocFileCache",
 #' @export
 setGeneric(
     "bfcquery",
-    function(x, query) standardGeneric("bfcquery"),
+    function(x, query, field=c("rname", "rpath", "fpath"),
+             exact=FALSE) standardGeneric("bfcquery"),
     signature = "x"
 )
 
@@ -599,17 +600,22 @@ setGeneric(
 #' @exportMethod bfcquery
 setMethod(
     "bfcquery", "missing",
-    function(x, query)
+    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
 {
-    bfcquery(BiocFileCache(), query)
+    bfcquery(BiocFileCache(), query, field, exact)
 })
 
 #' @describeIn BiocFileCache query resource
 #' @param query character() Pattern(s) to match in resource. It will
-#'     match the pattern against rname, rpath, and fpath using SQL
-#'     \code{LIKE}, using \code{&&} logic across query elements.
+#'     match the pattern against \code{fields}, using \code{&&} logic
+#'     across query element.
+#' @param field character() column names in resource to query, using
+#'     \code{||} logic across multiple field elements. By default, matches
+#'     pattern agains rname, rpath, and fpath.
+#' @param exact logical(1) By default \code{FALSE} matches patterns using
+#'     SQL \code{LIKE}, else uses exact matching. 
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
-#'     the database whose rname, rpath, or fpath contained query. If
+#'     the database whose \code{field} contained query. If
 #'     multiple values are given, the resource must contain all of the
 #'     patterns. A tbl with zero rows is returned when no resources
 #'     match the query.
@@ -618,11 +624,13 @@ setMethod(
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
-    function(x, query)
+    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
 {
     stopifnot(is.character(query))
+    stopifnot(all(field %in% .get_all_colnames(x)))
+    stopifnot(is.logical(exact), length(exact) == 1L, !is.na(exact))
 
-    rids <- intersect(.sql_query_resource(x, query), bfcrid(x))
+    rids <- intersect(.sql_query_resource(x, query, field, exact), bfcrid(x))
     .sql_get_resource_table(x, rids)
 })
 
@@ -1103,4 +1111,29 @@ setMethod("bfclistmeta", "BiocFileCacheBase",
 {
     .sql_list_metadata(x)
     
+})
+
+#' @export
+setGeneric("bfcquerycols", function(x) standardGeneric("bfcquerycols"))
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcquerycols,missing-method
+#' @exportMethod bfcquerycols
+setMethod(
+    "bfcquerycols", "missing",
+    function(x)
+{
+    bfcquerycols(BiocFileCache())
+})
+
+#' @describeIn BiocFileCache Get all the possible columns to query
+#' @return For 'bfcquerycols': character() all columns in database tables
+#' @examples
+#' bfcquerycols(bfc0)
+#' @aliases bfcquery
+#' @exportMethod bfcquery
+setMethod("bfcquerycols", "BiocFileCacheBase",
+    function(x)
+{
+    .get_all_colnames(x)
 })
