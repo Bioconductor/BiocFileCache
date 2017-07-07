@@ -54,7 +54,3 @@ WHERE rid = :rid;
 UPDATE resource
 SET fpath = :fpath, access_time = CURRENT_TIMESTAMP
 WHERE rid = :rid;
--- QUERY_NAMES
-SELECT rid FROM resource
-WHERE rname || rpath || fpath
-LIKE '%' || :value || '%';
