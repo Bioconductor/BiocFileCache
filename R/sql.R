@@ -195,7 +195,7 @@
                 tbl = left_join(tbl, addtbl, by="rid")
         }
     }
-    
+
     dbDisconnect(con)
 
     class(tbl) <- c("tbl_bfc", class(tbl))
@@ -331,7 +331,7 @@
     tempTbl = as.data.frame(.sql_get_resource_table(bfc))
     con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     DBI::dbWriteTable(con, "BFCtempTable", tempTbl, temporary=TRUE)
-    
+
     helperFun <- function(bfc, value, field, exact) {
         if (!exact)
             sql <- paste("SELECT rid FROM BFCtempTable WHERE ",field, " LIKE '%",
@@ -344,9 +344,9 @@
         rs <- dbSendStatement(con, sql)
         result <- dbFetch(rs)
         dbClearResult(rs)
-        result %>% select_("rid") %>% collect(Inf) %>% `[[`("rid")        
+        result %>% select_("rid") %>% collect(Inf) %>% `[[`("rid")
     }
-    
+
     res <- lapply(value, FUN=helperFun, bfc=bfc, field=field, exact=exact)
     dbDisconnect(con)
     Reduce(intersect, res)
