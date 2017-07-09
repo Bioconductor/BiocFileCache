@@ -621,15 +621,18 @@ setMethod("bfcaddmeta", "BiocFileCacheBase",
     stopifnot(all(substring(rids, 1, 3) == "BFC"))
     stopifnot(all(rids %in% bfcrid(x)))
     stopifnot(is.character(name), length(name) == 1L, !is.na(name))
-    if (name %in% c("metadata","resource","sqlite_sequence"))
-        stop("'metadata', 'resource', and 'sqlite_sequence' cannot be used for table name")
 
-    nocols = c("id", "rname", "create_time", "access_time", "rpath",
-      "rtype", "fpath", "last_modified_time")
+    if (name %in% .RESERVED$TABLES)
+        stop(
+            "metadata 'name' cannot be ",
+            paste(sQuote(.RESERVED$TABLES), collapse=", ")
+        )
 
-    if (any(colnames(meta) %in% nocols))
-        stop("metadata cannot contain colnames: ",
-             paste(nocols, collapse= ", "))
+    if (any(colnames(meta) %in% .RESERVED$COLUMNS))
+        stop(
+            "metadata cannot contain colnames ",
+            paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
+        )
 
     .sql_add_metadata(x, meta, name, ...)
 
@@ -663,8 +666,8 @@ setMethod("bfcremovemeta", "BiocFileCacheBase",
 {
     stopifnot(!missing(name), is.character(name),
               length(name) == 1L, !is.na(name))
-    if (name %in% c("metadata","resource","sqlite_sequence"))
-        stop("'metadata', 'resource', and 'sqlite_sequence' cannot be removed")
+    if (name %in% .RESERVED$TABLES)
+        stop("reserved table '", name, "' cannot be removed")
 
     .sql_remove_metadata(x, name, ...)
 

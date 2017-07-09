@@ -15,6 +15,13 @@
     .sql_file(bfc, .CACHE_FILE)
 }
 
+.sql_tables <-
+    function()
+{
+    sql_cmd_file <-
+        system.file(package="BiocFileCache", "schema", "BiocFileCache.sql")
+}
+
 .sql_cmd <-
     function(cmd_name, add=FALSE, ...)
 {
@@ -185,8 +192,7 @@
     }
     tbl = collect(tbl)
 
-    meta = setdiff(dbListTables(con),
-        c("metadata", "resource", "sqlite_sequence"))
+    meta = setdiff(dbListTables(con), .RESERVED$TABLES)
     if (length(meta) != 0L){
 
         for (m in meta){
@@ -415,5 +421,5 @@
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     res <- dbListTables(con)
     dbDisconnect(con)
-    setdiff(res, c("metadata", "resource", "sqlite_sequence"))
+    setdiff(res, .RESERVED$TABLES)
 }
