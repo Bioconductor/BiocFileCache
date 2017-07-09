@@ -15,13 +15,6 @@
     .sql_file(bfc, .CACHE_FILE)
 }
 
-.sql_tables <-
-    function()
-{
-    sql_cmd_file <-
-        system.file(package="BiocFileCache", "schema", "BiocFileCache.sql")
-}
-
 .sql_cmd <-
     function(cmd_name, add=FALSE, ...)
 {
