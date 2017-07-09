@@ -588,32 +588,32 @@ setMethod("bfcupdate", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcaddmeta",
-    function(x, meta, name="resourcedata", ...) standardGeneric("bfcaddmeta"),
+setGeneric("bfcmetaadd",
+    function(x, meta, name="resourcedata", ...) standardGeneric("bfcmetaadd"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcaddmeta,missing-method
-#' @exportMethod bfcaddmeta
+#' @aliases bfcmetaadd,missing-method
+#' @exportMethod bfcmetaadd
 setMethod(
-    "bfcaddmeta", "missing",
+    "bfcmetaadd", "missing",
     function(x, meta, name="resourcedata", ...)
 {
-    bfcaddmeta(BiocFileCache(), meta, name, ...)
+    bfcmetaadd(BiocFileCache(), meta, name, ...)
 })
 
 #' @describeIn BiocFileCache add meta data table in database
 #' @param meta data.frame of meta data
 #' @param name character() name of metadata table to add to database
-#' @return For 'bfcaddmeta': updated BiocFileCache, invisibly
+#' @return For 'bfcmetaadd': updated BiocFileCache, invisibly
 #' @examples
 #' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
 #'                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
-#' bfcaddmeta(bfc0, meta)
-#' @aliases bfcaddmeta
-#' @exportMethod bfcaddmeta
-setMethod("bfcaddmeta", "BiocFileCacheBase",
+#' bfcmetaadd(bfc0, meta)
+#' @aliases bfcmetaadd
+#' @exportMethod bfcmetaadd
+setMethod("bfcmetaadd", "BiocFileCacheBase",
     function(x, meta, name="resourcedata", ...)
 {
     stopifnot(("rid" %in% colnames(meta)))
@@ -634,34 +634,34 @@ setMethod("bfcaddmeta", "BiocFileCacheBase",
             paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
         )
 
-    .sql_add_metadata(x, meta, name, ...)
+    .sql_meta_add(x, meta, name, ...)
 
     invisible(x)
 })
 
 #' @export
-setGeneric("bfcremovemeta",
-    function(x, name, ...) standardGeneric("bfcremovemeta"),
+setGeneric("bfcmetaremove",
+    function(x, name, ...) standardGeneric("bfcmetaremove"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcremovemeta,missing-method
-#' @exportMethod bfcremovemeta
+#' @aliases bfcmetaremove,missing-method
+#' @exportMethod bfcmetaremove
 setMethod(
-    "bfcremovemeta", "missing",
+    "bfcmetaremove", "missing",
     function(x, name, ...)
 {
-    bfcremovemeta(BiocFileCache(), name, ...)
+    bfcmetaremove(BiocFileCache(), name, ...)
 })
 
 #' @describeIn BiocFileCache remove meta data table in database
-#' @return For 'bfcremovemeta': updated BiocFileCache, invisibly
+#' @return For 'bfcmetaremove': updated BiocFileCache, invisibly
 #' @examples
-#' \dontrun{bfcremovemeta(bfc0, "resourcedata")}
-#' @aliases bfcremovemeta
-#' @exportMethod bfcremovemeta
-setMethod("bfcremovemeta", "BiocFileCacheBase",
+#' \dontrun{bfcmetaremove(bfc0, "resourcedata")}
+#' @aliases bfcmetaremove
+#' @exportMethod bfcmetaremove
+setMethod("bfcmetaremove", "BiocFileCacheBase",
     function(x, name, ...)
 {
     stopifnot(!missing(name), is.character(name),
@@ -669,73 +669,73 @@ setMethod("bfcremovemeta", "BiocFileCacheBase",
     if (name %in% .RESERVED$TABLES)
         stop("reserved table '", name, "' cannot be removed")
 
-    .sql_remove_metadata(x, name, ...)
+    .sql_meta_remove(x, name, ...)
 
     invisible(x)
 })
 
 #' @export
-setGeneric("bfclistmeta",
-    function(x) standardGeneric("bfclistmeta"),
+setGeneric("bfcmetalist",
+    function(x) standardGeneric("bfcmetalist"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfclistmeta,missing-method
-#' @exportMethod bfclistmeta
+#' @aliases bfcmetalist,missing-method
+#' @exportMethod bfcmetalist
 setMethod(
-    "bfclistmeta", "missing",
+    "bfcmetalist", "missing",
     function(x)
 {
-    bfclistmeta(BiocFileCache())
+    bfcmetalist(BiocFileCache())
 })
 
 #' @describeIn BiocFileCache retrieve list of metadata table
-#' @return For 'bfclistmeta': returns a character() of all metadata tables
+#' @return For 'bfcmetalist': returns a character() of all metadata tables
 #'     currently in the database. If no metadata tables are available returns
 #'     character(0)
 #' @examples
-#' bfclistmeta(bfc0)
-#' @aliases bfclistmeta
-#' @exportMethod bfclistmeta
-setMethod("bfclistmeta", "BiocFileCacheBase",
+#' bfcmetalist(bfc0)
+#' @aliases bfcmetalist
+#' @exportMethod bfcmetalist
+setMethod("bfcmetalist", "BiocFileCacheBase",
     function(x)
 {
-    .sql_list_metadata(x)
+    .sql_meta_list(x)
 
 })
 
 #' @export
-setGeneric("bfcgetmeta",
-    function(x, name, ...) standardGeneric("bfcgetmeta"),
+setGeneric("bfcmetaget",
+    function(x, name, ...) standardGeneric("bfcmetaget"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcgetmeta,missing-method
-#' @exportMethod bfcgetmeta
+#' @aliases bfcmetaget,missing-method
+#' @exportMethod bfcmetaget
 setMethod(
-    "bfcgetmeta", "missing",
+    "bfcmetaget", "missing",
     function(x, name, ...)
 {
-    bfcgetmeta(BiocFileCache(), name, ...)
+    bfcmetaget(BiocFileCache(), name, ...)
 })
 
 #' @describeIn BiocFileCache retrieve metadata table
-#' @return For 'bfcgetmeta': returns a data.frame representation of database
+#' @return For 'bfcmetaget': returns a data.frame representation of database
 #'     table
 #' @examples
-#' tbl = bfcgetmeta(bfc0, "resourcedata")
+#' tbl = bfcmetaget(bfc0, "resourcedata")
 #' tbl
-#' @aliases bfcgetmeta
-#' @exportMethod bfcgetmeta
-setMethod("bfcgetmeta", "BiocFileCacheBase",
+#' @aliases bfcmetaget
+#' @exportMethod bfcmetaget
+setMethod("bfcmetaget", "BiocFileCacheBase",
     function(x, name, ...)
 {
     stopifnot(!missing(name), is.character(name),
               length(name) == 1L, !is.na(name))
 
-    .sql_get_metadata(x, name, ...)
+    .sql_meta_get(x, name, ...)
 
 })
 

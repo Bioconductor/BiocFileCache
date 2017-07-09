@@ -388,14 +388,18 @@
     colnames(.sql_get_resource_table(bfc))
 }
 
-.sql_add_metadata <- function(bfc, meta, name, ...){
+##
+## .sql_meta_*
+##
+
+.sql_meta_add <- function(bfc, meta, name, ...){
 
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     dbWriteTable(con, name, meta, ...)
     dbDisconnect(con)
 }
 
-.sql_remove_metadata <- function(bfc, name, ...){
+.sql_meta_remove <- function(bfc, name, ...){
 
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     if (dbExistsTable(con, name))
@@ -403,7 +407,7 @@
     dbDisconnect(con)
 }
 
-.sql_get_metadata <- function(bfc, name, ...){
+.sql_meta_get <- function(bfc, name, ...){
 
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     if (dbExistsTable(con, name)){
@@ -416,7 +420,7 @@
     tbl
 }
 
-.sql_list_metadata <- function(bfc){
+.sql_meta_list <- function(bfc){
 
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     res <- dbListTables(con)
