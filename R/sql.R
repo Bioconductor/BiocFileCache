@@ -309,40 +309,6 @@
     .sql_db_execute(bfc, sql, rid = rid, fpath = fpath)
 }
 
-.sql_query_resource <-
-    function(bfc, value, field, exact)
-{
-
-    if (length(field) != 1L){
-        field = paste(field, collapse=" || ")
-    }
-
-    # make temporary table here of all join - will disappear after disconnect
-    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
-    tempTbl = as.data.frame(.sql_get_resource_table(bfc))
-    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
-    DBI::dbWriteTable(con, "BFCtempTable", tempTbl, temporary=TRUE)
-
-    helperFun <- function(bfc, value, field, exact) {
-        if (!exact)
-            sql <- paste("SELECT rid FROM BFCtempTable WHERE ",field, " LIKE '%",
-                         value, "%'", sep="")
-        else
-            sql <- paste("SELECT rid FROM BFCtempTable WHERE ",field, " LIKE '",
-                         value, "'", sep="")
-
-        # call here to prevent trying to open connection again
-        rs <- dbSendStatement(con, sql)
-        result <- dbFetch(rs)
-        dbClearResult(rs)
-        result %>% select_("rid") %>% collect(Inf) %>% `[[`("rid")
-    }
-
-    res <- lapply(value, FUN=helperFun, bfc=bfc, field=field, exact=exact)
-    dbDisconnect(con)
-    Reduce(intersect, res)
-}
-
 .get_all_rpath <-
     function(bfc)
 {

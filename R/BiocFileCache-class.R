@@ -764,7 +764,7 @@ setMethod("bfcquerycols", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcquery",
-    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
+    function(x, query, field=c("rname", "rpath", "fpath"))
         standardGeneric("bfcquery"),
     signature = "x"
 )
@@ -799,14 +799,17 @@ setMethod("bfcquery", "missing",
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
-    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
+    function(x, query, field=c("rname", "rpath", "fpath"))
 {
     stopifnot(is.character(query))
     stopifnot(all(field %in% .get_all_colnames(x)))
-    stopifnot(is.logical(exact), length(exact) == 1L, !is.na(exact))
-    if (exact) stopifnot(length(field) == 1L)
 
-    rids <- intersect(.sql_query_resource(x, query, field, exact), bfcrid(x))
+    name <- basename(tempfile(""))
+    tbl <- .sql_get_resource_table(bfc) %>% collect
+    keep <- TRUE
+    for (q in query)
+        keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q))
+    rids <- intersect(tbl$rid[keep], bfcrid(x))
     .sql_get_resource_table(x, rids)
 })
 
