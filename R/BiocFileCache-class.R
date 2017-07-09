@@ -765,8 +765,8 @@ setMethod("bfcquerycols", "BiocFileCacheBase",
 #' @export
 setGeneric(
     "bfcquery",
-    function(x, query, field=c("rname", "rpath", "fpath"),
-             exact=FALSE) standardGeneric("bfcquery"),
+    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
+        standardGeneric("bfcquery"),
     signature = "x"
 )
 
