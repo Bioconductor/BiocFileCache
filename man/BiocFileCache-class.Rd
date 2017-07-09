@@ -37,18 +37,18 @@
 \alias{bfcupdate,missing-method}
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
-\alias{bfcaddmeta,missing-method}
-\alias{bfcaddmeta,BiocFileCacheBase-method}
-\alias{bfcaddmeta}
-\alias{bfcremovemeta,missing-method}
-\alias{bfcremovemeta,BiocFileCacheBase-method}
-\alias{bfcremovemeta}
-\alias{bfclistmeta,missing-method}
-\alias{bfclistmeta,BiocFileCacheBase-method}
-\alias{bfclistmeta}
-\alias{bfcgetmeta,missing-method}
-\alias{bfcgetmeta,BiocFileCacheBase-method}
-\alias{bfcgetmeta}
+\alias{bfcmeta<-}
+\alias{bfcmeta<-,missing-method}
+\alias{bfcmeta<-,BiocFileCacheBase-method}
+\alias{bfcmetaremove,missing-method}
+\alias{bfcmetaremove,BiocFileCacheBase-method}
+\alias{bfcmetaremove}
+\alias{bfcmetalist,missing-method}
+\alias{bfcmetalist,BiocFileCacheBase-method}
+\alias{bfcmetalist}
+\alias{bfcmeta,missing-method}
+\alias{bfcmeta,BiocFileCacheBase-method}
+\alias{bfcmeta}
 \alias{bfcquerycols,missing-method}
 \alias{bfcquerycols,BiocFileCacheBase-method}
 \alias{bfcquerycols}
@@ -143,21 +143,23 @@ bfcrid(x)
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   fpath = NULL, proxy = "")
 
-\S4method{bfcaddmeta}{missing}(x, meta, name = "resourcedata", ...)
+bfcmeta(x, name, ...) <- value
 
-\S4method{bfcaddmeta}{BiocFileCacheBase}(x, meta, name = "resourcedata", ...)
+\S4method{bfcmeta}{missing}(x, name, ...) <- value
 
-\S4method{bfcremovemeta}{missing}(x, name, ...)
+\S4method{bfcmeta}{BiocFileCacheBase}(x, name, ...) <- value
 
-\S4method{bfcremovemeta}{BiocFileCacheBase}(x, name, ...)
+\S4method{bfcmetaremove}{missing}(x, name, ...)
 
-\S4method{bfclistmeta}{missing}(x)
+\S4method{bfcmetaremove}{BiocFileCacheBase}(x, name, ...)
 
-\S4method{bfclistmeta}{BiocFileCacheBase}(x)
+\S4method{bfcmetalist}{missing}(x)
 
-\S4method{bfcgetmeta}{missing}(x, name, ...)
+\S4method{bfcmetalist}{BiocFileCacheBase}(x)
 
-\S4method{bfcgetmeta}{BiocFileCacheBase}(x, name, ...)
+\S4method{bfcmeta}{missing}(x, name, ...)
+
+\S4method{bfcmeta}{BiocFileCacheBase}(x, name, ...)
 
 \S4method{bfcquerycols}{missing}(x)
 
@@ -254,9 +256,7 @@ in current location but save the path in the cache. If 'rtype
 
 \item{rpath}{character() vector of replacement rpaths.}
 
-\item{meta}{data.frame of meta data}
-
-\item{name}{character() name of metadata table to add to database}
+\item{name}{character(1) name of metadata table.}
 
 \item{query}{character() Pattern(s) to match in resource. It will
 match the pattern against \code{fields}, using \code{&&} logic
@@ -280,6 +280,8 @@ currentDate; if exceeded entry will be deleted.}
 files.}
 
 \item{object}{A \code{BiocFileCache} instance.}
+
+\item{meta}{\code{data.frame} of meta data.}
 }
 \value{
 For 'BiocFileCache': a \code{BiocFileCache} instance.
@@ -316,15 +318,15 @@ For 'bfcrpath': The local file path location to load.
 For 'bfcupdate': an updated \code{BiocFileCache} object,
     invisibly.
 
-For 'bfcaddmeta': updated BiocFileCache, invisibly
+For 'bfcmetaadd': updated BiocFileCache, invisibly
 
-For 'bfcremovemeta': updated BiocFileCache, invisibly
+For 'bfcmetaremove': updated BiocFileCache, invisibly
 
-For 'bfclistmeta': returns a character() of all metadata tables
+For 'bfcmetalist': returns a character() of all metadata tables
     currently in the database. If no metadata tables are available returns
     character(0)
 
-For 'bfcgetmeta': returns a data.frame representation of database
+For 'bfcmeta': returns a data.frame representation of database
     table
 
 For 'bfcquerycols': character() all columns in all database tables
@@ -437,13 +439,13 @@ add it to the cache with 'bfcadd'
 
 \item \code{bfcupdate}: Update a resource in the cache
 
-\item \code{bfcaddmeta}: add meta data table in database
+\item \code{bfcmeta<-}: add meta data table in database
 
-\item \code{bfcremovemeta}: remove meta data table in database
+\item \code{bfcmetaremove}: remove meta data table in database
 
-\item \code{bfclistmeta}: retrieve list of metadata table
+\item \code{bfcmetalist}: retrieve list of metadata table
 
-\item \code{bfcgetmeta}: retrieve metadata table
+\item \code{bfcmeta}: retrieve metadata table
 
 \item \code{bfcquerycols}: Get all the possible columns to query
 
@@ -504,10 +506,10 @@ bfc0[[rid3]] = fl1
 bfcupdate(bfc0, "BFC5", fpath="http://google.com")
 meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
-bfcaddmeta(bfc0, meta)
-\dontrun{bfcremovemeta(bfc0, "resourcedata")}
-bfclistmeta(bfc0)
-tbl = bfcgetmeta(bfc0, "resourcedata")
+bfcmetaadd(bfc0, meta)
+\dontrun{bfcmetaremove(bfc0, "resourcedata")}
+bfcmetalist(bfc0)
+tbl = bfcmeta(bfc0, "resourcedata")
 tbl
 bfcquerycols(bfc0)
 bfcquery(bfc0, "test")

@@ -773,24 +773,22 @@ setGeneric("bfcquery",
 #' @aliases bfcquery,missing-method
 #' @exportMethod bfcquery
 setMethod("bfcquery", "missing",
-    function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
+    function(x, query, field=c("rname", "rpath", "fpath"))
 {
-    bfcquery(BiocFileCache(), query, field, exact)
+    bfcquery(BiocFileCache(), query, field)
 })
 
 #' @describeIn BiocFileCache query resource
-#' @param query character() Pattern(s) to match in resource. It will
-#'     match the pattern against \code{fields}, using \code{&&} logic
-#'     across query element.
+#' @param query character() Regular expression pattern(s) to match in
+#'     resource. It will match the pattern against \code{fields},
+#'     using \code{&} logic across query element.
 #' @param field character() column names in resource to query, using
-#'     \code{||} logic across multiple field elements. By default, matches
-#'     pattern agains rname, rpath, and fpath. If exact matching, may only
-#'     be a single value.
-#' @param exact logical(1) By default \code{FALSE} matches patterns using
-#'     SQL \code{LIKE}, else uses exact matching.
+#'     \code{||} logic across multiple field elements. By default,
+#'     matches pattern agains rname, rpath, and fpath. If exact
+#'     matching, may only be a single value.
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
-#'     the database whose \code{field} contained query. If
-#'     multiple values are given, the resource must contain all of the
+#'     the database whose \code{field} contained query. If multiple
+#'     values are given, the resource must contain all of the
 #'     patterns. A tbl with zero rows is returned when no resources
 #'     match the query.
 #' @examples

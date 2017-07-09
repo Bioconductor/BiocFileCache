@@ -1,3 +1,18 @@
+CHANGES IN VERSION 1.1
+----------------------
+
+NEW FEATURES
+
+    o (v. 1.1.7) bfcmeta() and friends allows arbitrary metadata on
+      records.
+
+USER-VISIBLE CHANGES
+
+    o (v. 1.1.7) bfcquery() syntax changed to grep(), rather than SQL
+      'LIKE'.
+
+    o (v. 1.1.7) bfcquery() supports user-specified 'fields='.
+
 CHANGES IN VERSION 0.99.0
 -------------------------
 
