@@ -396,41 +396,37 @@
 ##
 
 .sql_meta_gets <-
-    function(bfc, name, ..., value)
+    function(bfc, name, value, ...)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
     dbWriteTable(con, name, value, ...)
-    dbDisconnect(con)
 }
 
 .sql_meta_remove <-
     function(bfc, name, ...)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
     if (dbExistsTable(con, name))
         dbRemoveTable(con, name, ...)
-    dbDisconnect(con)
 }
 
 .sql_meta <-
     function(bfc, name, ...)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    if (dbExistsTable(con, name)){
-        tbl <- dbReadTable(con, name, ...)
-    } else {
-        dbDisconnect(con)
+    on.exit(dbDisconnect(con))
+    if (!dbExistsTable(con, name))
         stop("'", name, "' not found in database")
-    }
-    dbDisconnect(con)
-    tbl
+    dbReadTable(con, name, ...)
 }
 
 .sql_meta_list <-
     function(bfc)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
     res <- dbListTables(con)
-    dbDisconnect(con)
     setdiff(res, .RESERVED$TABLES)
 }
