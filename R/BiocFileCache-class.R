@@ -582,18 +582,20 @@ setMethod("bfcupdate", "BiocFileCache",
     invisible(x)
 })
 
+#' @rdname BiocFileCache-class
+#' @aliases bfcmeta<-
 #' @export
 setGeneric("bfcmeta<-",
-    function(x, name = "resourcedata", ..., value)
+    function(x, name, ..., value)
         standardGeneric("bfcmeta<-"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcmetaadd,missing-method
-#' @exportMethod bfcmetaadd
+#' @aliases bfcmeta<-,missing-method
+#' @exportMethod bfcmeta<-,missing
 setReplaceMethod("bfcmeta", "missing",
-    function(x, name = "resourcedata", ..., value)
+    function(x, name, ..., value)
 {
     bfcmeta(BiocFileCache(), name, ...) <- value
 })
@@ -606,12 +608,12 @@ setReplaceMethod("bfcmeta", "missing",
 #' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
 #'                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
 #' bfcmetaadd(bfc0, meta)
-#' @aliases bfcmetaadd
-#' @exportMethod bfcmetaadd
+#' @aliases bfcmeta<-,BiocFileCacheBase-method
+#' @exportMethod bfcmeta<-,BiocFileCacheBase
 setReplaceMethod("bfcmeta", "BiocFileCacheBase",
-    function(x, name = "resourcedata", ..., value)
+    function(x, name, ..., value)
 {
-    stopifnot(("rid" %in% colnames(value)))
+    stopifnot("rid" %in% colnames(value))
     rids <- value$rid
     stopifnot(all(rids %in% bfcrid(x)))
     stopifnot(is.character(name), length(name) == 1L, !is.na(name))
@@ -722,9 +724,13 @@ setMethod("bfcmeta", "missing",
 setMethod("bfcmeta", "BiocFileCacheBase",
     function(x, name, ...)
 {
-    stopifnot(
-        !missing(name), is.character(name), length(name) == 1L, !is.na(name)
-    )
+    if (missing(name)) {
+        tbls <- paste(sQuote(bfcmetalist(x)), collapse=", ")
+        if (!nzchar(tbls))
+            tbls <- NA_character_
+        stop("metadata table 'name' missing, possible values: ", tbls)
+    }
+    stopifnot(is.character(name), length(name) == 1L, !is.na(name))
 
     .sql_meta(x, name, ...)
 })
