@@ -84,7 +84,9 @@ BiocFileCache <-
 }
 
 #' @export
-setGeneric("bfccache", function(x) standardGeneric("bfccache"))
+setGeneric("bfccache",
+    function(x) standardGeneric("bfccache")
+)
 
 #' @describeIn BiocFileCache Get the location of the on-disk cache.
 #' @param x A \code{BiocFileCache} instance or, if missing, the result
@@ -267,8 +269,7 @@ setGeneric("bfcadd",
 #' @rdname BiocFileCache-class
 #' @aliases bfcadd,missing-method
 #' @exportMethod bfcadd
-setMethod(
-    "bfcadd", "missing",
+setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
@@ -359,8 +360,7 @@ setGeneric("bfcinfo",
 #' @rdname BiocFileCache-class
 #' @aliases bfcinfo,missing-method
 #' @exportMethod bfcinfo
-setMethod(
-    "bfcinfo", "missing",
+setMethod("bfcinfo", "missing",
     function(x, rids)
 {
     bfcinfo(BiocFileCache(), rids)
@@ -391,8 +391,7 @@ setOldClass("tbl_bfc")
 setMethod("bfcrid", "tbl_bfc", function(x) .get_tbl_rid(x))
 
 #' @export
-setGeneric(
-    "bfcpath",
+setGeneric("bfcpath",
     function(x, rid) standardGeneric("bfcpath"),
     signature = "x"
 )
@@ -400,8 +399,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcpath,missing-method
 #' @exportMethod bfcpath
-setMethod(
-    "bfcpath", "missing",
+setMethod("bfcpath", "missing",
     function(x, rid)
 {
     bfcpath(BiocFileCache(), rid)
@@ -431,8 +429,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric(
-    "bfcrpath",
+setGeneric("bfcrpath",
     function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
     signature = "x"
 )
@@ -440,8 +437,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcrpath,missing-method
 #' @exportMethod bfcrpath
-setMethod(
-    "bfcrpath", "missing",
+setMethod("bfcrpath", "missing",
     function(x, rnames, ..., rids)
 {
     bfcrpath(BiocFileCache(), rnames, ..., rids)
@@ -514,8 +510,7 @@ setGeneric("bfcupdate",
 #' @rdname BiocFileCache-class
 #' @aliases bfcupdate,missing-method
 #' @exportMethod bfcupdate
-setMethod(
-    "bfcupdate", "missing",
+setMethod("bfcupdate", "missing",
     function(x, rids, value, ...)
 {
     bfcupdate(BiocFileCache(), rids, value, ...)
@@ -596,8 +591,7 @@ setGeneric("bfcmetaadd",
 #' @rdname BiocFileCache-class
 #' @aliases bfcmetaadd,missing-method
 #' @exportMethod bfcmetaadd
-setMethod(
-    "bfcmetaadd", "missing",
+setMethod("bfcmetaadd", "missing",
     function(x, meta, name="resourcedata", ...)
 {
     bfcmetaadd(BiocFileCache(), meta, name, ...)
@@ -648,8 +642,7 @@ setGeneric("bfcmetaremove",
 #' @rdname BiocFileCache-class
 #' @aliases bfcmetaremove,missing-method
 #' @exportMethod bfcmetaremove
-setMethod(
-    "bfcmetaremove", "missing",
+setMethod("bfcmetaremove", "missing",
     function(x, name, ...)
 {
     bfcmetaremove(BiocFileCache(), name, ...)
@@ -683,8 +676,7 @@ setGeneric("bfcmetalist",
 #' @rdname BiocFileCache-class
 #' @aliases bfcmetalist,missing-method
 #' @exportMethod bfcmetalist
-setMethod(
-    "bfcmetalist", "missing",
+setMethod("bfcmetalist", "missing",
     function(x)
 {
     bfcmetalist(BiocFileCache())
@@ -702,7 +694,6 @@ setMethod("bfcmetalist", "BiocFileCacheBase",
     function(x)
 {
     .sql_meta_list(x)
-
 })
 
 #' @export
@@ -714,8 +705,7 @@ setGeneric("bfcmeta",
 #' @rdname BiocFileCache-class
 #' @aliases bfcmeta,missing-method
 #' @exportMethod bfcmeta
-setMethod(
-    "bfcmeta", "missing",
+setMethod("bfcmeta", "missing",
     function(x, name, ...)
 {
     bfcmeta(BiocFileCache(), name, ...)
@@ -736,17 +726,17 @@ setMethod("bfcmeta", "BiocFileCacheBase",
               length(name) == 1L, !is.na(name))
 
     .sql_meta(x, name, ...)
-
 })
 
 #' @export
-setGeneric("bfcquerycols", function(x) standardGeneric("bfcquerycols"))
+setGeneric("bfcquerycols",
+    function(x) standardGeneric("bfcquerycols")
+)
 
 #' @rdname BiocFileCache-class
 #' @aliases bfcquerycols,missing-method
 #' @exportMethod bfcquerycols
-setMethod(
-    "bfcquerycols", "missing",
+setMethod("bfcquerycols", "missing",
     function(x)
 {
     bfcquerycols(BiocFileCache())
@@ -766,8 +756,7 @@ setMethod("bfcquerycols", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric(
-    "bfcquery",
+setGeneric("bfcquery",
     function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
         standardGeneric("bfcquery"),
     signature = "x"
@@ -776,8 +765,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcquery,missing-method
 #' @exportMethod bfcquery
-setMethod(
-    "bfcquery", "missing",
+setMethod("bfcquery", "missing",
     function(x, query, field=c("rname", "rpath", "fpath"), exact=FALSE)
 {
     bfcquery(BiocFileCache(), query, field, exact)
@@ -816,13 +804,14 @@ setMethod("bfcquery", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric("bfccount", function(x) standardGeneric("bfccount"))
+setGeneric("bfccount",
+    function(x) standardGeneric("bfccount")
+)
 
 #' @rdname BiocFileCache-class
 #' @aliases bfccount,missing-method
 #' @exportMethod bfccount
-setMethod(
-    "bfccount", "missing",
+setMethod("bfccount", "missing",
     function(x)
 {
     bfccount(BiocFileCache())
@@ -853,8 +842,7 @@ setMethod("bfccount", "tbl_bfc",
 })
 
 #' @export
-setGeneric(
-    "bfcneedsupdate",
+setGeneric("bfcneedsupdate",
     function(x, rids) standardGeneric("bfcneedsupdate"),
     signature = "x"
 )
@@ -862,8 +850,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcneedsupdate,missing-method
 #' @exportMethod bfcneedsupdate
-setMethod(
-    "bfcneedsupdate", "missing",
+setMethod("bfcneedsupdate", "missing",
     function(x, rids)
 {
     bfcneedsupdate(BiocFileCache(), rids)
@@ -907,8 +894,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric(
-    "bfcdownload",
+setGeneric("bfcdownload",
     function(x, rid, proxy="") standardGeneric("bfcdownload"),
     signature = "x"
 )
@@ -916,8 +902,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcdownload,missing-method
 #' @exportMethod bfcdownload
-setMethod(
-    "bfcdownload", "missing",
+setMethod("bfcdownload", "missing",
     function(x, rid, proxy="")
 {
     bfcdownload(BiocFileCache(), rid, proxy)
@@ -944,8 +929,7 @@ setMethod("bfcdownload", "BiocFileCache",
 })
 
 #' @export
-setGeneric(
-    "bfcremove",
+setGeneric("bfcremove",
     function(x, rids) standardGeneric("bfcremove"),
     signature = "x"
 )
@@ -953,8 +937,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcremove,missing-method
 #' @exportMethod bfcremove
-setMethod(
-    "bfcremove", "missing",
+setMethod("bfcremove", "missing",
     function(x, rids)
 {
     bfcremove(BiocFileCache(), rids)
@@ -985,8 +968,7 @@ setMethod("bfcremove", "BiocFileCache",
 })
 
 #' @export
-setGeneric(
-    "bfcsync",
+setGeneric("bfcsync",
     function(x, verbose=TRUE) standardGeneric("bfcsync"),
     signature = "x"
 )
@@ -994,8 +976,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcsync,missing-method
 #' @exportMethod bfcsync
-setMethod(
-    "bfcsync", "missing",
+setMethod("bfcsync", "missing",
     function(x, verbose=TRUE)
 {
     bfcsync(BiocFileCache(), verbose)
@@ -1066,8 +1047,7 @@ setGeneric("cleanbfc",
 #' @rdname BiocFileCache-class
 #' @aliases cleanbfc,missing-method
 #' @exportMethod cleanbfc
-setMethod(
-    "cleanbfc", "missing",
+setMethod("cleanbfc", "missing",
     function(x, days = 120, ask = TRUE)
 {
     cleanbfc(BiocFileCache(), days, ask)
@@ -1119,8 +1099,7 @@ setGeneric("removebfc",
 #' @rdname BiocFileCache-class
 #' @aliases removebfc,missing-method
 #' @exportMethod removebfc
-setMethod(
-    "removebfc", "missing",
+setMethod("removebfc", "missing",
     function(x, ask = TRUE)
 {
     removebfc(BiocFileCache(), ask)

@@ -377,14 +377,17 @@
     tbl %>% collect(Inf) %>% `[[`("rid")
 }
 
-.fix_rnames <- function(bfc, rnames){
-
+.fix_rnames <-
+    function(bfc, rnames)
+{
     stopifnot(!missing(rnames))
     unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc,
                   field=c("rname", "rpath", "fpath"), exact=FALSE))
 }
 
-.get_all_colnames <- function(bfc){
+.get_all_colnames <-
+    function(bfc)
+{
     colnames(.sql_get_resource_table(bfc))
 }
 
@@ -392,23 +395,26 @@
 ## .sql_meta_*
 ##
 
-.sql_meta_add <- function(bfc, meta, name, ...){
-
+.sql_meta_add <-
+    function(bfc, meta, name, ...)
+{
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     dbWriteTable(con, name, meta, ...)
     dbDisconnect(con)
 }
 
-.sql_meta_remove <- function(bfc, name, ...){
-
+.sql_meta_remove <-
+    function(bfc, name, ...)
+{
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     if (dbExistsTable(con, name))
         dbRemoveTable(con, name, ...)
     dbDisconnect(con)
 }
 
-.sql_meta <- function(bfc, name, ...){
-
+.sql_meta <-
+    function(bfc, name, ...)
+{
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     if (dbExistsTable(con, name)){
         tbl <- dbReadTable(con, name, ...)
@@ -420,8 +426,9 @@
     tbl
 }
 
-.sql_meta_list <- function(bfc){
-
+.sql_meta_list <-
+    function(bfc)
+{
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     res <- dbListTables(con)
     dbDisconnect(con)
