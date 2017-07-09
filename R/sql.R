@@ -396,31 +396,31 @@
 ##
 
 .sql_meta_gets <-
-    function(bfc, tbl, ..., value)
+    function(bfc, name, ..., value)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    dbWriteTable(con, tbl, value, ...)
+    dbWriteTable(con, name, value, ...)
     dbDisconnect(con)
 }
 
 .sql_meta_remove <-
-    function(bfc, tbl, ...)
+    function(bfc, name, ...)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    if (dbExistsTable(con, tbl))
-        dbRemoveTable(con, tbl, ...)
+    if (dbExistsTable(con, name))
+        dbRemoveTable(con, name, ...)
     dbDisconnect(con)
 }
 
 .sql_meta <-
-    function(bfc, tbl, ...)
+    function(bfc, name, ...)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    if (dbExistsTable(con, tbl)){
-        tbl <- dbReadTable(con, tbl, ...)
+    if (dbExistsTable(con, name)){
+        tbl <- dbReadTable(con, name, ...)
     } else {
         dbDisconnect(con)
-        stop("'", tbl, "' not found in database")
+        stop("'", name, "' not found in database")
     }
     dbDisconnect(con)
     tbl

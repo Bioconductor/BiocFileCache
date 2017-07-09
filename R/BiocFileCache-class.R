@@ -584,7 +584,7 @@ setMethod("bfcupdate", "BiocFileCache",
 
 #' @export
 setGeneric("bfcmeta<-",
-    function(x, tbl = "resourcedata", ..., value)
+    function(x, name = "resourcedata", ..., value)
         standardGeneric("bfcmeta<-"),
     signature = "x"
 )
@@ -593,14 +593,14 @@ setGeneric("bfcmeta<-",
 #' @aliases bfcmetaadd,missing-method
 #' @exportMethod bfcmetaadd
 setReplaceMethod("bfcmeta", "missing",
-    function(x, tbl = "resourcedata", ..., value)
+    function(x, name = "resourcedata", ..., value)
 {
-    bfcmeta(BiocFileCache(), tbl, ...) <- value
+    bfcmeta(BiocFileCache(), name, ...) <- value
 })
 
 #' @describeIn BiocFileCache add meta data table in database
 #' @param meta \code{data.frame} of meta data.
-#' @param tbl character(1) name of metadata table.
+#' @param name character(1) name of metadata table.
 #' @return For 'bfcmetaadd': updated BiocFileCache, invisibly
 #' @examples
 #' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
@@ -609,16 +609,16 @@ setReplaceMethod("bfcmeta", "missing",
 #' @aliases bfcmetaadd
 #' @exportMethod bfcmetaadd
 setReplaceMethod("bfcmeta", "BiocFileCacheBase",
-    function(x, tbl = "resourcedata", ..., value)
+    function(x, name = "resourcedata", ..., value)
 {
     stopifnot(("rid" %in% colnames(value)))
     rids <- value$rid
     stopifnot(all(rids %in% bfcrid(x)))
-    stopifnot(is.character(tbl), length(tbl) == 1L, !is.na(tbl))
+    stopifnot(is.character(name), length(name) == 1L, !is.na(name))
 
-    if (tbl %in% .RESERVED$TABLES)
+    if (name %in% .RESERVED$TABLES)
         stop(
-            "'", tbl, "' cannot be added; reserved table names: ",
+            "'", name, "' cannot be added; reserved table names: ",
             paste(sQuote(.RESERVED$TABLES), collapse=", ")
         )
 
@@ -628,14 +628,14 @@ setReplaceMethod("bfcmeta", "BiocFileCacheBase",
             paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
         )
 
-    .sql_meta_gets(x, tbl, ..., value)
+    .sql_meta_gets(x, name, ..., value)
 
     invisible(x)
 })
 
 #' @export
 setGeneric("bfcmetaremove",
-    function(x, tbl, ...) standardGeneric("bfcmetaremove"),
+    function(x, name, ...) standardGeneric("bfcmetaremove"),
     signature = "x"
 )
 
@@ -643,9 +643,9 @@ setGeneric("bfcmetaremove",
 #' @aliases bfcmetaremove,missing-method
 #' @exportMethod bfcmetaremove
 setMethod("bfcmetaremove", "missing",
-    function(x, tbl, ...)
+    function(x, name, ...)
 {
-    bfcmetaremove(BiocFileCache(), tbl, ...)
+    bfcmetaremove(BiocFileCache(), name, ...)
 })
 
 #' @describeIn BiocFileCache remove meta data table in database
@@ -655,13 +655,15 @@ setMethod("bfcmetaremove", "missing",
 #' @aliases bfcmetaremove
 #' @exportMethod bfcmetaremove
 setMethod("bfcmetaremove", "BiocFileCacheBase",
-    function(x, tbl, ...)
+    function(x, name, ...)
 {
-    stopifnot(!missing(tbl), is.character(tbl), length(tbl) == 1L, !is.na(tbl))
-    if (tbl %in% .RESERVED$TABLES)
-        stop("reserved table '", tbl, "' cannot be removed")
+    stopifnot(
+        !missing(name), is.character(name), length(name) == 1L, !is.na(name)
+    )
+    if (name %in% .RESERVED$TABLES)
+        stop("reserved table '", name, "' cannot be removed")
 
-    .sql_meta_remove(x, tbl, ...)
+    .sql_meta_remove(x, name, ...)
 
     invisible(x)
 })
@@ -697,7 +699,7 @@ setMethod("bfcmetalist", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcmeta",
-    function(x, tbl, ...) standardGeneric("bfcmeta"),
+    function(x, name, ...) standardGeneric("bfcmeta"),
     signature = "x"
 )
 
@@ -705,9 +707,9 @@ setGeneric("bfcmeta",
 #' @aliases bfcmeta,missing-method
 #' @exportMethod bfcmeta
 setMethod("bfcmeta", "missing",
-    function(x, tbl, ...)
+    function(x, name, ...)
 {
-    bfcmeta(BiocFileCache(), tbl, ...)
+    bfcmeta(BiocFileCache(), name, ...)
 })
 
 #' @describeIn BiocFileCache retrieve metadata table
@@ -719,11 +721,13 @@ setMethod("bfcmeta", "missing",
 #' @aliases bfcmeta
 #' @exportMethod bfcmeta
 setMethod("bfcmeta", "BiocFileCacheBase",
-    function(x, tbl, ...)
+    function(x, name, ...)
 {
-    stopifnot(!missing(tbl), is.character(tbl), length(tbl) == 1L, !is.na(tbl))
+    stopifnot(
+        !missing(name), is.character(name), length(name) == 1L, !is.na(name)
+    )
 
-    .sql_meta(x, tbl, ...)
+    .sql_meta(x, name, ...)
 })
 
 #' @export
