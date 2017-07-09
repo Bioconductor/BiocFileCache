@@ -171,9 +171,9 @@
 .sql_get_resource_table <-
     function(bfc, rids)
 {
-
-    con = DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    tbl = tbl(con, "resource")
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    src <- src_dbi(con)
+    tbl <- tbl(src, "resource")
 
     if (missing(rids)) {
     } else if (length(rids) == 0) {
@@ -183,19 +183,11 @@
     } else {
         tbl <- tbl %>% filter_(~ rid %in% rids)
     }
-    tbl = collect(tbl)
 
-    meta = setdiff(dbListTables(con), .RESERVED$TABLES)
-    if (length(meta) != 0L){
-
-        for (m in meta){
-            addtbl = dbReadTable(con, m)
-            if (any(addtbl$rid %in% tbl$rid))
-                tbl = left_join(tbl, addtbl, by="rid")
-        }
-    }
-
-    dbDisconnect(con)
+    ## join metadata
+    meta <- setdiff(dbListTables(con), .RESERVED$TABLES)
+    for (m in meta)
+        tbl <- left_join(tbl, tbl(src, m), by="rid")
 
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
