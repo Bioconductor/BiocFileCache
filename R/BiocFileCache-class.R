@@ -583,19 +583,19 @@ setMethod("bfcupdate", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcmetaadd",
-    function(x, meta, tbl = "resourcedata", ...)
-        standardGeneric("bfcmetaadd"),
+setGeneric("bfcmeta<-",
+    function(x, tbl = "resourcedata", ..., value)
+        standardGeneric("bfcmeta<-"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
 #' @aliases bfcmetaadd,missing-method
 #' @exportMethod bfcmetaadd
-setMethod("bfcmetaadd", "missing",
-    function(x, meta, tbl = "resourcedata", ...)
+setReplaceMethod("bfcmeta", "missing",
+    function(x, tbl = "resourcedata", ..., value)
 {
-    bfcmetaadd(BiocFileCache(), meta, tbl, ...)
+    bfcmeta(BiocFileCache(), tbl, ...) <- value
 })
 
 #' @describeIn BiocFileCache add meta data table in database
@@ -608,12 +608,11 @@ setMethod("bfcmetaadd", "missing",
 #' bfcmetaadd(bfc0, meta)
 #' @aliases bfcmetaadd
 #' @exportMethod bfcmetaadd
-setMethod("bfcmetaadd", "BiocFileCacheBase",
-    function(x, meta, tbl = "resourcedata", ...)
+setReplaceMethod("bfcmeta", "BiocFileCacheBase",
+    function(x, tbl = "resourcedata", ..., value)
 {
-    stopifnot(("rid" %in% colnames(meta)))
-    rids = meta$rid
-    stopifnot(all(substring(rids, 1, 3) == "BFC"))
+    stopifnot(("rid" %in% colnames(value)))
+    rids <- value$rid
     stopifnot(all(rids %in% bfcrid(x)))
     stopifnot(is.character(tbl), length(tbl) == 1L, !is.na(tbl))
 
@@ -623,13 +622,13 @@ setMethod("bfcmetaadd", "BiocFileCacheBase",
             paste(sQuote(.RESERVED$TABLES), collapse=", ")
         )
 
-    if (any(colnames(meta) %in% .RESERVED$COLUMNS))
+    if (any(colnames(value) %in% .RESERVED$COLUMNS))
         stop(
             "metadata cannot contain colnames ",
             paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
         )
 
-    .sql_meta_add(x, meta, tbl, ...)
+    .sql_meta_gets(x, tbl, ..., value)
 
     invisible(x)
 })

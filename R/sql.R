@@ -395,11 +395,11 @@
 ## .sql_meta_*
 ##
 
-.sql_meta_add <-
-    function(bfc, meta, tbl, ...)
+.sql_meta_gets <-
+    function(bfc, tbl, ..., value)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    dbWriteTable(con, tbl, meta, ...)
+    dbWriteTable(con, tbl, value, ...)
     dbDisconnect(con)
 }
 
