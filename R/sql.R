@@ -407,7 +407,7 @@
     dbDisconnect(con)
 }
 
-.sql_meta_get <- function(bfc, name, ...){
+.sql_meta <- function(bfc, name, ...){
 
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     if (dbExistsTable(con, name)){
