@@ -624,13 +624,12 @@ setReplaceMethod("bfcmeta", "BiocFileCacheBase",
 
     if (any(colnames(value) %in% .RESERVED$COLUMNS))
         stop(
-            "metadata cannot contain colnames ",
+            "'value' (metadata) cannot contain colnames ",
             paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
         )
 
-    .sql_meta_gets(x, name, ..., value)
-
-    invisible(x)
+    .sql_meta_gets(x, name, value, ...)
+    x
 })
 
 #' @export
