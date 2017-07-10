@@ -296,7 +296,8 @@ setMethod("bfcadd", "missing",
 #' @param proxy character(1) (Optional) proxy server.
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
-#'     Additional arguments passed to 'bfcadd'.
+#'     Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
+#'     arguments passed to \code{grepl}.
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -583,7 +584,6 @@ setMethod("bfcupdate", "BiocFileCache",
 })
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcmeta<-
 #' @export
 setGeneric("bfcmeta<-",
     function(x, name, ..., value)
@@ -592,24 +592,23 @@ setGeneric("bfcmeta<-",
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcmeta<-,missing-method
-#' @exportMethod bfcmeta<-,missing
+#' @exportMethod bfcmeta<-
 setReplaceMethod("bfcmeta", "missing",
     function(x, name, ..., value)
 {
-    bfcmeta(BiocFileCache(), name, ...) <- value
+    bfc <- BiocFileCache()
+    bfcmeta(bfc, name, ...) <- value
 })
 
 #' @describeIn BiocFileCache add meta data table in database
-#' @param meta \code{data.frame} of meta data.
 #' @param name character(1) name of metadata table.
 #' @return For 'bfcmeta': updated BiocFileCache, invisibly
 #' @examples
 #' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
 #'                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
 #' bfcmeta(bfc0, name="resourcedata") <- meta
-#' @aliases bfcmeta<-,BiocFileCacheBase-method
-#' @exportMethod bfcmeta<-,BiocFileCacheBase
+#' @aliases bfcmeta<-
+#' @exportMethod bfcmeta<-
 setReplaceMethod("bfcmeta", "BiocFileCacheBase",
     function(x, name, ..., value)
 {
@@ -764,7 +763,7 @@ setMethod("bfcquerycols", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcquery",
-    function(x, query, field=c("rname", "rpath", "fpath"))
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
         standardGeneric("bfcquery"),
     signature = "x"
 )
@@ -773,15 +772,15 @@ setGeneric("bfcquery",
 #' @aliases bfcquery,missing-method
 #' @exportMethod bfcquery
 setMethod("bfcquery", "missing",
-    function(x, query, field=c("rname", "rpath", "fpath"))
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
 {
-    bfcquery(BiocFileCache(), query, field)
+    bfcquery(BiocFileCache(), query, field, ...)
 })
 
 #' @describeIn BiocFileCache query resource
 #' @param query character() Regular expression pattern(s) to match in
 #'     resource. It will match the pattern against \code{fields},
-#'     using \code{&} logic across query element. Case sensitive!
+#'     using \code{&} logic across query element. By default, case sensitive.
 #' @param field character() column names in resource to query, using
 #'     \code{||} logic across multiple field elements. By default,
 #'     matches pattern agains rname, rpath, and fpath. If exact
@@ -797,7 +796,7 @@ setMethod("bfcquery", "missing",
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
-    function(x, query, field=c("rname", "rpath", "fpath"))
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
 {
     stopifnot(is.character(query))
     stopifnot(all(field %in% .get_all_colnames(x)))
@@ -806,7 +805,7 @@ setMethod("bfcquery", "BiocFileCacheBase",
     tbl <- .sql_get_resource_table(x)
     keep <- TRUE
     for (q in query)
-        keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q))
+        keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q, ...))
     rids <- intersect(tbl$rid[keep], bfcrid(x))
     .sql_get_resource_table(x, rids)
 })

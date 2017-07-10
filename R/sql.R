@@ -172,6 +172,7 @@
     function(bfc, rids)
 {
     con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
     src <- src_dbi(con)
     tbl <- tbl(src, "resource")
 
@@ -190,7 +191,6 @@
         tbl <- left_join(tbl, tbl(src, m), by="rid")
 
     tbl <- tbl %>% collect
-    dbDisconnect(con)
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
 

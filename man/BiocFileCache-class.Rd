@@ -40,6 +40,7 @@
 \alias{bfcmeta<-}
 \alias{bfcmeta<-,missing-method}
 \alias{bfcmeta<-,BiocFileCacheBase-method}
+\alias{bfcmeta<-}
 \alias{bfcmetaremove,missing-method}
 \alias{bfcmetaremove,BiocFileCacheBase-method}
 \alias{bfcmetaremove}
@@ -165,10 +166,11 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcquerycols}{BiocFileCacheBase}(x)
 
-\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"))
+\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
+  ...)
 
 \S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
-  "fpath"))
+  "fpath"), ...)
 
 \S4method{bfccount}{missing}(x)
 
@@ -215,7 +217,8 @@ of \code{BiocFileCache()}.}
 
 \item{...}{For 'bfcadd': For \code{action="copy"}, additional
 arguments passed to \code{file.copy}. For 'bfcrpaths':
-Additional arguments passed to 'bfcadd'.}
+Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
+arguments passed to \code{grepl}.}
 
 \item{drop}{Ignored.}
 
@@ -259,7 +262,7 @@ in current location but save the path in the cache. If 'rtype
 
 \item{query}{character() Regular expression pattern(s) to match in
 resource. It will match the pattern against \code{fields},
-using \code{&} logic across query element. Case sensitive!}
+using \code{&} logic across query element. By default, case sensitive.}
 
 \item{field}{character() column names in resource to query, using
 \code{||} logic across multiple field elements. By default,
@@ -276,8 +279,6 @@ currentDate; if exceeded entry will be deleted.}
 files.}
 
 \item{object}{A \code{BiocFileCache} instance.}
-
-\item{meta}{\code{data.frame} of meta data.}
 }
 \value{
 For 'BiocFileCache': a \code{BiocFileCache} instance.
