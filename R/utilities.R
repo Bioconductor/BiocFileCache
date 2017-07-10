@@ -1,14 +1,17 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
-.CURRENT_SCHEMA_VERSION <- "0.99.0"
-.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.0")
-
-.CURRENT_SCHEMA_VERSION <- "0.99.0"
-
-.SUPPORTED_SCHEMA_VERSIONS <- "0.99.0"
 
 .CURRENT_SCHEMA_VERSION <- "0.99.1"
 
 .SUPPORTED_SCHEMA_VERSIONS <- "0.99.1"
+
+.RESERVED <- list(                       # dynamically, in .onLoad?
+    TABLES = c("metadata", "resource", "sqlite_sequence"),
+    COLUMNS = c(
+        "id", "rname", "create_time", "access_time", "rpath", "rtype",
+        "fpath", "last_modified_time"
+    )
+)
+
 
 .util_standardize_rtype <-
     function(rtype, fpath, action)

@@ -37,6 +37,22 @@
 \alias{bfcupdate,missing-method}
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
+\alias{bfcmeta<-}
+\alias{bfcmeta<-,missing-method}
+\alias{bfcmeta<-,BiocFileCacheBase-method}
+\alias{bfcmeta<-}
+\alias{bfcmetaremove,missing-method}
+\alias{bfcmetaremove,BiocFileCacheBase-method}
+\alias{bfcmetaremove}
+\alias{bfcmetalist,missing-method}
+\alias{bfcmetalist,BiocFileCacheBase-method}
+\alias{bfcmetalist}
+\alias{bfcmeta,missing-method}
+\alias{bfcmeta,BiocFileCacheBase-method}
+\alias{bfcmeta}
+\alias{bfcquerycols,missing-method}
+\alias{bfcquerycols,BiocFileCacheBase-method}
+\alias{bfcquerycols}
 \alias{bfcquery,missing-method}
 \alias{bfcquery,BiocFileCacheBase-method}
 \alias{bfcquery}
@@ -128,9 +144,33 @@ bfcrid(x)
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
   fpath = NULL, proxy = "")
 
-\S4method{bfcquery}{missing}(x, query)
+bfcmeta(x, name, ...) <- value
 
-\S4method{bfcquery}{BiocFileCacheBase}(x, query)
+\S4method{bfcmeta}{missing}(x, name, ...) <- value
+
+\S4method{bfcmeta}{BiocFileCacheBase}(x, name, ...) <- value
+
+\S4method{bfcmetaremove}{missing}(x, name, ...)
+
+\S4method{bfcmetaremove}{BiocFileCacheBase}(x, name, ...)
+
+\S4method{bfcmetalist}{missing}(x)
+
+\S4method{bfcmetalist}{BiocFileCacheBase}(x)
+
+\S4method{bfcmeta}{missing}(x, name, ...)
+
+\S4method{bfcmeta}{BiocFileCacheBase}(x, name, ...)
+
+\S4method{bfcquerycols}{missing}(x)
+
+\S4method{bfcquerycols}{BiocFileCacheBase}(x)
+
+\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
+  ...)
+
+\S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
+  "fpath"), ...)
 
 \S4method{bfccount}{missing}(x)
 
@@ -177,7 +217,8 @@ of \code{BiocFileCache()}.}
 
 \item{...}{For 'bfcadd': For \code{action="copy"}, additional
 arguments passed to \code{file.copy}. For 'bfcrpaths':
-Additional arguments passed to 'bfcadd'.}
+Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
+arguments passed to \code{grepl}.}
 
 \item{drop}{Ignored.}
 
@@ -217,9 +258,16 @@ in current location but save the path in the cache. If 'rtype
 
 \item{rpath}{character() vector of replacement rpaths.}
 
-\item{query}{character() Pattern(s) to match in resource. It will
-match the pattern against rname, rpath, and fpath using SQL
-\code{LIKE}, using \code{&&} logic across query elements.}
+\item{name}{character(1) name of metadata table.}
+
+\item{query}{character() Regular expression pattern(s) to match in
+resource. It will match the pattern against \code{fields},
+using \code{&} logic across query element. By default, case sensitive.}
+
+\item{field}{character() column names in resource to query, using
+\code{||} logic across multiple field elements. By default,
+matches pattern agains rname, rpath, and fpath. If exact
+matching, may only be a single value.}
 
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}
@@ -267,9 +315,23 @@ For 'bfcrpath': The local file path location to load.
 For 'bfcupdate': an updated \code{BiocFileCache} object,
     invisibly.
 
+For 'bfcmeta': updated BiocFileCache, invisibly
+
+For 'bfcmetaremove': updated BiocFileCache, invisibly
+
+For 'bfcmetalist': returns a character() of all metadata tables
+    currently in the database. If no metadata tables are available returns
+    character(0)
+
+For 'bfcmeta': returns a data.frame representation of database
+    table
+
+For 'bfcquerycols': character() all columns in all database tables
+     available for query.
+
 For 'bfcquery': A \code{bfc_tbl} of current resources in
-    the database whose rname, rpath, or fpath contained query. If
-    multiple values are given, the resource must contain all of the
+    the database whose \code{field} contained query. If multiple
+    values are given, the resource must contain all of the
     patterns. A tbl with zero rows is returned when no resources
     match the query.
 
@@ -374,6 +436,16 @@ add it to the cache with 'bfcadd'
 
 \item \code{bfcupdate}: Update a resource in the cache
 
+\item \code{bfcmeta<-}: add meta data table in database
+
+\item \code{bfcmetaremove}: remove meta data table in database
+
+\item \code{bfcmetalist}: retrieve list of metadata table
+
+\item \code{bfcmeta}: retrieve metadata table
+
+\item \code{bfcquerycols}: Get all the possible columns to query
+
 \item \code{bfcquery}: query resource
 
 \item \code{bfccount}: Get the number of objects in the file
@@ -385,7 +457,8 @@ cache or query.
 
 \item \code{bfcremove}: Remove a resource to the database.  If
 the local file is located in \code{bfccache(x)}, the file will
-also be deleted.
+also be deleted. This will not delete information in any metadata
+table.
 
 \item \code{bfcsync}: sync cache and resource.
 
@@ -428,7 +501,19 @@ bfcrpath(bfc0, rids = rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
 bfcupdate(bfc0, "BFC5", fpath="http://google.com")
-bfcquery(bfc0, "test")
+meta = data.frame(list(rid = paste("BFC",seq_len(bfccount(bfc0)), sep=""),
+                       num=seq(bfccount(bfc0),1,-1),
+                       data=c(paste("Letter",
+                       letters[seq_len(bfccount(bfc0))]))),
+                  stringsAsFactors=FALSE)
+bfcmeta(bfc0, name="resourcedata") <- meta
+\dontrun{bfcmetaremove(bfc0, "resourcedata")}
+bfcmetalist(bfc0)
+tbl = bfcmeta(bfc0, "resourcedata")
+tbl
+bfcquerycols(bfc0)
+bfcquery(bfc0, "Test")
+bfcquery(bfc0, "^Test1$", field="rname")
 bfccount(bfc0)
 bfccount(bfcquery(bfc0, "test"))
 bfcneedsupdate(bfc0, "BFC5")

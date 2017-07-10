@@ -1,7 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
-#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n
+#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n left_join
 
 .sql_file <-
     function(bfc, file)
@@ -83,7 +83,8 @@
 
     con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     rs <- dbSendStatement(con, sql)
-    dbBind(rs, params)
+    if (length(params) != 0L)
+        dbBind(rs, params)
     result <- dbFetch(rs)
     dbClearResult(rs)
     dbDisconnect(con)
@@ -170,9 +171,10 @@
 .sql_get_resource_table <-
     function(bfc, rids)
 {
-
-    con = DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
-    tbl = tbl(con, "resource")
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    src <- src_dbi(con)
+    tbl <- tbl(src, "resource")
 
     if (missing(rids)) {
     } else if (length(rids) == 0) {
@@ -182,11 +184,16 @@
     } else {
         tbl <- tbl %>% filter_(~ rid %in% rids)
     }
-    tbl = collect(tbl)
-    dbDisconnect(con)
 
+    ## join metadata
+    meta <- setdiff(dbListTables(con), .RESERVED$TABLES)
+    for (m in meta)
+        tbl <- left_join(tbl, tbl(src, m), by="rid")
+
+    tbl <- tbl %>% collect
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
+
 }
 
 .sql_get_nrows <-
@@ -305,18 +312,6 @@
     .sql_db_execute(bfc, sql, rid = rid, fpath = fpath)
 }
 
-.sql_query_resource <-
-    function(bfc, value)
-{
-    helperFun <- function(bfc, value) {
-        sql <- .sql_cmd("-- QUERY_NAMES")
-        .sql_db_fetch_query(bfc, sql, value = value) %>%
-            select_("rid") %>% collect(Inf) %>% `[[`("rid")
-    }
-    res <- lapply(value, FUN=helperFun, bfc=bfc)
-    Reduce(intersect, res)
-}
-
 .get_all_rpath <-
     function(bfc)
 {
@@ -336,20 +331,56 @@
     tbl %>% collect(Inf) %>% `[[`("rid")
 }
 
-.fix_rnames <- function(bfc, rnames){
-
-    stopifnot(!missing(rnames))
-    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
-}
-
-.get_tbl_rid <-
-    function(tbl)
+.fix_rnames <-
+    function(bfc, rnames)
 {
-    tbl %>% collect(Inf) %>% `[[`("rid")
+    stopifnot(!missing(rnames))
+    unname(vapply(rnames, function(bfc, rnames){bfcrid(bfcquery(bfc, rnames))},
+                  character(1), bfc=bfc))
 }
 
-.fix_rnames <- function(bfc, rnames){
+.get_all_colnames <-
+    function(bfc)
+{
+    colnames(.sql_get_resource_table(bfc))
+}
 
-    stopifnot(!missing(rnames))
-    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc))
+##
+## .sql_meta_*
+##
+
+.sql_meta_gets <-
+    function(bfc, name, value, ...)
+{
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    dbWriteTable(con, name, value, ...)
+}
+
+.sql_meta_remove <-
+    function(bfc, name, ...)
+{
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    if (dbExistsTable(con, name))
+        dbRemoveTable(con, name, ...)
+}
+
+.sql_meta <-
+    function(bfc, name, ...)
+{
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    if (!dbExistsTable(con, name))
+        stop("'", name, "' not found in database")
+    dbReadTable(con, name, ...)
+}
+
+.sql_meta_list <-
+    function(bfc)
+{
+    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    res <- dbListTables(con)
+    setdiff(res, .RESERVED$TABLES)
 }

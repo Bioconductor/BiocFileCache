@@ -84,7 +84,9 @@ BiocFileCache <-
 }
 
 #' @export
-setGeneric("bfccache", function(x) standardGeneric("bfccache"))
+setGeneric("bfccache",
+    function(x) standardGeneric("bfccache")
+)
 
 #' @describeIn BiocFileCache Get the location of the on-disk cache.
 #' @param x A \code{BiocFileCache} instance or, if missing, the result
@@ -267,8 +269,7 @@ setGeneric("bfcadd",
 #' @rdname BiocFileCache-class
 #' @aliases bfcadd,missing-method
 #' @exportMethod bfcadd
-setMethod(
-    "bfcadd", "missing",
+setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="", ...
@@ -295,7 +296,8 @@ setMethod(
 #' @param proxy character(1) (Optional) proxy server.
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
-#'     Additional arguments passed to 'bfcadd'.
+#'     Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
+#'     arguments passed to \code{grepl}.
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -359,8 +361,7 @@ setGeneric("bfcinfo",
 #' @rdname BiocFileCache-class
 #' @aliases bfcinfo,missing-method
 #' @exportMethod bfcinfo
-setMethod(
-    "bfcinfo", "missing",
+setMethod("bfcinfo", "missing",
     function(x, rids)
 {
     bfcinfo(BiocFileCache(), rids)
@@ -391,8 +392,7 @@ setOldClass("tbl_bfc")
 setMethod("bfcrid", "tbl_bfc", function(x) .get_tbl_rid(x))
 
 #' @export
-setGeneric(
-    "bfcpath",
+setGeneric("bfcpath",
     function(x, rid) standardGeneric("bfcpath"),
     signature = "x"
 )
@@ -400,8 +400,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcpath,missing-method
 #' @exportMethod bfcpath
-setMethod(
-    "bfcpath", "missing",
+setMethod("bfcpath", "missing",
     function(x, rid)
 {
     bfcpath(BiocFileCache(), rid)
@@ -431,8 +430,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric(
-    "bfcrpath",
+setGeneric("bfcrpath",
     function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
     signature = "x"
 )
@@ -440,8 +438,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcrpath,missing-method
 #' @exportMethod bfcrpath
-setMethod(
-    "bfcrpath", "missing",
+setMethod("bfcrpath", "missing",
     function(x, rnames, ..., rids)
 {
     bfcrpath(BiocFileCache(), rnames, ..., rids)
@@ -514,8 +511,7 @@ setGeneric("bfcupdate",
 #' @rdname BiocFileCache-class
 #' @aliases bfcupdate,missing-method
 #' @exportMethod bfcupdate
-setMethod(
-    "bfcupdate", "missing",
+setMethod("bfcupdate", "missing",
     function(x, rids, value, ...)
 {
     bfcupdate(BiocFileCache(), rids, value, ...)
@@ -587,53 +583,245 @@ setMethod("bfcupdate", "BiocFileCache",
     invisible(x)
 })
 
+#' @rdname BiocFileCache-class
 #' @export
-setGeneric(
-    "bfcquery",
-    function(x, query) standardGeneric("bfcquery"),
+setGeneric("bfcmeta<-",
+    function(x, name, ..., value)
+        standardGeneric("bfcmeta<-"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @exportMethod bfcmeta<-
+setReplaceMethod("bfcmeta", "missing",
+    function(x, name, ..., value)
+{
+    bfc <- BiocFileCache()
+    bfcmeta(bfc, name, ...) <- value
+})
+
+#' @describeIn BiocFileCache add meta data table in database
+#' @param name character(1) name of metadata table.
+#' @return For 'bfcmeta': updated BiocFileCache, invisibly
+#' @examples
+#' meta = data.frame(list(rid = paste("BFC",seq_len(bfccount(bfc0)), sep=""),
+#'                        num=seq(bfccount(bfc0),1,-1),
+#'                        data=c(paste("Letter",
+#'                        letters[seq_len(bfccount(bfc0))]))),
+#'                   stringsAsFactors=FALSE)
+#' bfcmeta(bfc0, name="resourcedata") <- meta
+#' @aliases bfcmeta<-
+#' @exportMethod bfcmeta<-
+setReplaceMethod("bfcmeta", "BiocFileCacheBase",
+    function(x, name, ..., value)
+{
+    stopifnot("rid" %in% colnames(value))
+    rids <- value$rid
+    stopifnot(all(rids %in% bfcrid(x)))
+    stopifnot(is.character(name), length(name) == 1L, !is.na(name))
+
+    if (name %in% .RESERVED$TABLES)
+        stop(
+            "'", name, "' cannot be added; reserved table names: ",
+            paste(sQuote(.RESERVED$TABLES), collapse=", ")
+        )
+
+    if (any(colnames(value) %in% .RESERVED$COLUMNS))
+        stop(
+            "'value' (metadata) cannot contain colnames ",
+            paste(sQuote(.RESERVED$COLUMNS), collapse= ", ")
+        )
+
+    .sql_meta_gets(x, name, value, ...)
+    x
+})
+
+#' @export
+setGeneric("bfcmetaremove",
+    function(x, name, ...) standardGeneric("bfcmetaremove"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcmetaremove,missing-method
+#' @exportMethod bfcmetaremove
+setMethod("bfcmetaremove", "missing",
+    function(x, name, ...)
+{
+    bfcmetaremove(BiocFileCache(), name, ...)
+})
+
+#' @describeIn BiocFileCache remove meta data table in database
+#' @return For 'bfcmetaremove': updated BiocFileCache, invisibly
+#' @examples
+#' \dontrun{bfcmetaremove(bfc0, "resourcedata")}
+#' @aliases bfcmetaremove
+#' @exportMethod bfcmetaremove
+setMethod("bfcmetaremove", "BiocFileCacheBase",
+    function(x, name, ...)
+{
+    stopifnot(
+        !missing(name), is.character(name), length(name) == 1L, !is.na(name)
+    )
+    if (name %in% .RESERVED$TABLES)
+        stop("reserved table '", name, "' cannot be removed")
+
+    .sql_meta_remove(x, name, ...)
+
+    invisible(x)
+})
+
+#' @export
+setGeneric("bfcmetalist",
+    function(x) standardGeneric("bfcmetalist"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcmetalist,missing-method
+#' @exportMethod bfcmetalist
+setMethod("bfcmetalist", "missing",
+    function(x)
+{
+    bfcmetalist(BiocFileCache())
+})
+
+#' @describeIn BiocFileCache retrieve list of metadata table
+#' @return For 'bfcmetalist': returns a character() of all metadata tables
+#'     currently in the database. If no metadata tables are available returns
+#'     character(0)
+#' @examples
+#' bfcmetalist(bfc0)
+#' @aliases bfcmetalist
+#' @exportMethod bfcmetalist
+setMethod("bfcmetalist", "BiocFileCacheBase",
+    function(x)
+{
+    .sql_meta_list(x)
+})
+
+#' @export
+setGeneric("bfcmeta",
+    function(x, name, ...) standardGeneric("bfcmeta"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcmeta,missing-method
+#' @exportMethod bfcmeta
+setMethod("bfcmeta", "missing",
+    function(x, name, ...)
+{
+    bfcmeta(BiocFileCache(), name, ...)
+})
+
+#' @describeIn BiocFileCache retrieve metadata table
+#' @return For 'bfcmeta': returns a data.frame representation of database
+#'     table
+#' @examples
+#' tbl = bfcmeta(bfc0, "resourcedata")
+#' tbl
+#' @aliases bfcmeta
+#' @exportMethod bfcmeta
+setMethod("bfcmeta", "BiocFileCacheBase",
+    function(x, name, ...)
+{
+    if (missing(name)) {
+        tbls <- paste(sQuote(bfcmetalist(x)), collapse=", ")
+        if (!nzchar(tbls))
+            tbls <- NA_character_
+        stop("metadata table 'name' missing, possible values: ", tbls)
+    }
+    stopifnot(is.character(name), length(name) == 1L, !is.na(name))
+
+    .sql_meta(x, name, ...)
+})
+
+#' @export
+setGeneric("bfcquerycols",
+    function(x) standardGeneric("bfcquerycols")
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcquerycols,missing-method
+#' @exportMethod bfcquerycols
+setMethod("bfcquerycols", "missing",
+    function(x)
+{
+    bfcquerycols(BiocFileCache())
+})
+
+#' @describeIn BiocFileCache Get all the possible columns to query
+#' @return For 'bfcquerycols': character() all columns in all database tables
+#'      available for query.
+#' @examples
+#' bfcquerycols(bfc0)
+#' @aliases bfcquerycols
+#' @exportMethod bfcquerycols
+setMethod("bfcquerycols", "BiocFileCacheBase",
+    function(x)
+{
+    .get_all_colnames(x)
+})
+
+#' @export
+setGeneric("bfcquery",
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
+        standardGeneric("bfcquery"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
 #' @aliases bfcquery,missing-method
 #' @exportMethod bfcquery
-setMethod(
-    "bfcquery", "missing",
-    function(x, query)
+setMethod("bfcquery", "missing",
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
 {
-    bfcquery(BiocFileCache(), query)
+    bfcquery(BiocFileCache(), query, field, ...)
 })
 
 #' @describeIn BiocFileCache query resource
-#' @param query character() Pattern(s) to match in resource. It will
-#'     match the pattern against rname, rpath, and fpath using SQL
-#'     \code{LIKE}, using \code{&&} logic across query elements.
+#' @param query character() Regular expression pattern(s) to match in
+#'     resource. It will match the pattern against \code{fields},
+#'     using \code{&} logic across query element. By default, case sensitive.
+#' @param field character() column names in resource to query, using
+#'     \code{||} logic across multiple field elements. By default,
+#'     matches pattern agains rname, rpath, and fpath. If exact
+#'     matching, may only be a single value.
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
-#'     the database whose rname, rpath, or fpath contained query. If
-#'     multiple values are given, the resource must contain all of the
+#'     the database whose \code{field} contained query. If multiple
+#'     values are given, the resource must contain all of the
 #'     patterns. A tbl with zero rows is returned when no resources
 #'     match the query.
 #' @examples
-#' bfcquery(bfc0, "test")
+#' bfcquery(bfc0, "Test")
+#' bfcquery(bfc0, "^Test1$", field="rname")
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
-    function(x, query)
+    function(x, query, field=c("rname", "rpath", "fpath"), ...)
 {
     stopifnot(is.character(query))
+    stopifnot(all(field %in% .get_all_colnames(x)))
 
-    rids <- intersect(.sql_query_resource(x, query), bfcrid(x))
+    name <- basename(tempfile(""))
+    tbl <- .sql_get_resource_table(x)
+    keep <- TRUE
+    for (q in query)
+        keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q, ...))
+    rids <- intersect(tbl$rid[keep], bfcrid(x))
     .sql_get_resource_table(x, rids)
 })
 
 #' @export
-setGeneric("bfccount", function(x) standardGeneric("bfccount"))
+setGeneric("bfccount",
+    function(x) standardGeneric("bfccount")
+)
 
 #' @rdname BiocFileCache-class
 #' @aliases bfccount,missing-method
 #' @exportMethod bfccount
-setMethod(
-    "bfccount", "missing",
+setMethod("bfccount", "missing",
     function(x)
 {
     bfccount(BiocFileCache())
@@ -664,8 +852,7 @@ setMethod("bfccount", "tbl_bfc",
 })
 
 #' @export
-setGeneric(
-    "bfcneedsupdate",
+setGeneric("bfcneedsupdate",
     function(x, rids) standardGeneric("bfcneedsupdate"),
     signature = "x"
 )
@@ -673,8 +860,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcneedsupdate,missing-method
 #' @exportMethod bfcneedsupdate
-setMethod(
-    "bfcneedsupdate", "missing",
+setMethod("bfcneedsupdate", "missing",
     function(x, rids)
 {
     bfcneedsupdate(BiocFileCache(), rids)
@@ -718,8 +904,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 })
 
 #' @export
-setGeneric(
-    "bfcdownload",
+setGeneric("bfcdownload",
     function(x, rid, proxy="") standardGeneric("bfcdownload"),
     signature = "x"
 )
@@ -727,8 +912,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcdownload,missing-method
 #' @exportMethod bfcdownload
-setMethod(
-    "bfcdownload", "missing",
+setMethod("bfcdownload", "missing",
     function(x, rid, proxy="")
 {
     bfcdownload(BiocFileCache(), rid, proxy)
@@ -755,8 +939,7 @@ setMethod("bfcdownload", "BiocFileCache",
 })
 
 #' @export
-setGeneric(
-    "bfcremove",
+setGeneric("bfcremove",
     function(x, rids) standardGeneric("bfcremove"),
     signature = "x"
 )
@@ -764,8 +947,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcremove,missing-method
 #' @exportMethod bfcremove
-setMethod(
-    "bfcremove", "missing",
+setMethod("bfcremove", "missing",
     function(x, rids)
 {
     bfcremove(BiocFileCache(), rids)
@@ -773,7 +955,8 @@ setMethod(
 
 #' @describeIn BiocFileCache Remove a resource to the database.  If
 #'     the local file is located in \code{bfccache(x)}, the file will
-#'     also be deleted.
+#'     also be deleted. This will not delete information in any metadata
+#'     table.
 #' @return For 'bfcremove': updated BiocFileCache object, invisibly
 #' @examples
 #' bfcremove(bfc0, rid3)
@@ -795,8 +978,7 @@ setMethod("bfcremove", "BiocFileCache",
 })
 
 #' @export
-setGeneric(
-    "bfcsync",
+setGeneric("bfcsync",
     function(x, verbose=TRUE) standardGeneric("bfcsync"),
     signature = "x"
 )
@@ -804,8 +986,7 @@ setGeneric(
 #' @rdname BiocFileCache-class
 #' @aliases bfcsync,missing-method
 #' @exportMethod bfcsync
-setMethod(
-    "bfcsync", "missing",
+setMethod("bfcsync", "missing",
     function(x, verbose=TRUE)
 {
     bfcsync(BiocFileCache(), verbose)
@@ -876,8 +1057,7 @@ setGeneric("cleanbfc",
 #' @rdname BiocFileCache-class
 #' @aliases cleanbfc,missing-method
 #' @exportMethod cleanbfc
-setMethod(
-    "cleanbfc", "missing",
+setMethod("cleanbfc", "missing",
     function(x, days = 120, ask = TRUE)
 {
     cleanbfc(BiocFileCache(), days, ask)
@@ -929,8 +1109,7 @@ setGeneric("removebfc",
 #' @rdname BiocFileCache-class
 #' @aliases removebfc,missing-method
 #' @exportMethod removebfc
-setMethod(
-    "removebfc", "missing",
+setMethod("removebfc", "missing",
     function(x, ask = TRUE)
 {
     removebfc(BiocFileCache(), ask)
