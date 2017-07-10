@@ -14,10 +14,13 @@ test_that("BiocFileCache creation works", {
 test_that("bfcadd and bfcnew works", {
     bfc <- BiocFileCache(tempfile())
     fl <- tempfile(); file.create(fl)
+    expect_identical(length(bfc), 0L)
+    expect_identical(bfccount(bfcinfo(bfc)), 0L)
 
     # test file add and copy
     rid <- bfcadd(bfc, 'test-1', fl)
     expect_identical(length(bfc), 1L)
+    expect_identical(bfccount(bfcinfo(bfc)), 1L)
     expect_true(file.exists(fl))
 
     # test file add and location not in cache
@@ -42,6 +45,7 @@ test_that("bfcadd and bfcnew works", {
     # test add new (return path to save)
     path <- bfcnew(bfc, 'test-5')
     expect_identical(length(bfc), 5L)
+    expect_identical(bfccount(bfcinfo(bfc)), 5L)
     expect_true(!file.exists(path))
     expect_identical(unname(path),
                      bfc[[names(path)]])
@@ -151,6 +155,7 @@ test_that("bfcpath and bfcrpath works", {
     expect_identical(length(bfcrid(bfc)), 4L)
     expect_identical(length(bfcrpath(bfc, c("test-1", url, "test-3"))), 3L)
     expect_identical(length(bfcrid(bfc)), 5L)
+    expect_identical(bfccount(bfcinfo(bfc)), 5L)
     expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "rname"),
                      url)
     expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "fpath"),
@@ -234,15 +239,85 @@ test_that("bfcupdate works", {
     expect_error(bfcupdate(bfc, 1:7))
 })
 
-test_that("bfcquery works", {
+test_that("bfcmeta works", {
+
+    meta = data.frame(list(rid = paste("BFC",seq_len(bfccount(bfc)), sep=""),
+                  num=seq(bfccount(bfc),1,-1),
+        data=c(paste("Letter", letters[seq_len(bfccount(bfc))]))),
+        stringsAsFactors=FALSE)
+
+    # test no meta
+    expect_identical(bfcmetalist(bfc), character(0))
+    expect_identical(names(bfcinfo(bfc)),bfcquerycols(bfc))
+
+    # try add meta with bad rid
+    expect_error(bfcmeta(bfc, name="resourcedata") <- meta)
+    # add valid
+    meta$rid[5] = "BFC6"
+    metaOrig = meta
+    bfcmeta(bfc, name="resourcedata") <- meta
+    expect_identical(bfcmetalist(bfc),"resourcedata")
+    expect_true("resourcedata" %in% bfcmetalist(bfc))
+
+    # add additional
+    bfcmeta(bfc, name="table2") <- meta
+    expect_identical(length(bfcmetalist(bfc)), 2L)
+    expect_true("table2" %in% bfcmetalist(bfc))
+
+    # try and add same table name
+    meta$num = seq(1, bfccount(bfc), 1)
+    expect_error(bfcmeta(bfc, name="table2") <- meta)
+    bfcmeta(bfc, name="table2", overwrite=TRUE) <- meta
+    expect_identical(length(bfcmetalist(bfc)), 2L)
+
+    # try and add reserved table name
+    expect_error(bfcmeta(bfc, name="metadata") <- meta)
+
+    # try and add with reserved col name
+    names(meta)[2] = "rpath"
+    expect_error(bfcmeta(bfc, name="table3") <- meta)
+
+    # try add meta with missing column rid
+    names(meta)[1:2] = c("id", "num")
+    expect_error(bfcmeta(bfc, name="table3") <- meta)
+
+    # remove table
+    bfcmetaremove(bfc, "table2")
+    expect_identical(length(bfcmetalist(bfc)), 1L)
+    expect_true(!("table2" %in% bfcmetalist(bfc)))
+
+    # try and remove reserved table
+    expect_error(bfcmetaremove(bfc, "metadata"))
+
+    # retrieve table
+    metaGet <- bfcmeta(bfc, "resourcedata")
+    expect_true(all(metaGet == metaOrig))
+
+    # retrieve bad table
+    expect_error(bfcmeta(bfc, "table2"))
+
+    # querycols should include meta columns
+    expect_true(all(names(metaOrig) %in% bfcquerycols(bfc)))
+    expect_identical(names(bfcinfo(bfc)),bfcquerycols(bfc))
+
+})
+
+test_that("bfcquery and bfccount works", {
+
+    # test count
+    expect_identical(bfccount(bfc), bfccount(bfcinfo(bfc)))
+    expect_identical(bfccount(bfc), length(bfc))
+
     # query found
     q1 <- as.data.frame(bfcquery(bfc, "prep"))
-    expect_identical(dim(q1), c(2L,8L))
+    expect_identical(dim(q1)[1], 2L)
     expect_identical(q1$rid, c(rid1,rid3))
 
     # test query on fpath
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
-    expect_identical(dim(q2), c(2L,8L))
+    expect_identical(dim(q2)[1], 2L)
+    q2b <- as.data.frame(bfcquery(bfc, "wiki", field="fpath"))
+    expect_true(all(q2 == q2b))
 
     # query not found
     expect_identical(bfccount(bfcquery(bfc, "nothere")), 0L)
@@ -251,12 +326,23 @@ test_that("bfcquery works", {
     path <- file.path(bfccache(bfc), "myFile")
     file.create(path)
     bfc[[rid3]] <- path
-    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf")))
-    expect_identical(dim(q3), c(1L,8L))
+    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myF")))
+    expect_identical(dim(q3)[1], 1L)
     expect_identical(q3$rid, rid3)
 
     # multi value some not found
     expect_identical(bfccount(bfcquery(bfc, c("prep", "not"))), 0L)
+
+    # test case sensitive
+    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf")))
+    expect_identical(dim(q3)[1], 0L)
+    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf"), ignore.case=TRUE))
+    expect_identical(dim(q3)[1], 1L)
+
+    # test exact
+    q4 <- as.data.frame(bfcquery(bfc, "^test-4$"))
+    expect_identical(dim(q4)[1], 1L)
+
 })
 
 test_that("bfcneedsupdate works", {
@@ -286,6 +372,7 @@ test_that("bfcneedsupdate works", {
         names(bfcneedsupdate(bfc)),
         as.character(BiocFileCache:::.get_all_web_rids(bfc))
     )
+
 })
 
 test_that("bfcsync and bfcremove works", {

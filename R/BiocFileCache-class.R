@@ -604,8 +604,11 @@ setReplaceMethod("bfcmeta", "missing",
 #' @param name character(1) name of metadata table.
 #' @return For 'bfcmeta': updated BiocFileCache, invisibly
 #' @examples
-#' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
-#'                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
+#' meta = data.frame(list(rid = paste("BFC",seq_len(bfccount(bfc0)), sep=""),
+#'                        num=seq(bfccount(bfc0),1,-1),
+#'                        data=c(paste("Letter",
+#'                        letters[seq_len(bfccount(bfc0))]))),
+#'                   stringsAsFactors=FALSE)
 #' bfcmeta(bfc0, name="resourcedata") <- meta
 #' @aliases bfcmeta<-
 #' @exportMethod bfcmeta<-

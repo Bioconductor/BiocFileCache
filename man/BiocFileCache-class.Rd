@@ -501,8 +501,11 @@ bfcrpath(bfc0, rids = rid3)
 bfcupdate(bfc0, rid3, rpath=fl3, rname="NewRname")
 bfc0[[rid3]] = fl1
 bfcupdate(bfc0, "BFC5", fpath="http://google.com")
-meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
-                  num=c(5:1), data=c(paste("Letter", letters[1:5]))))
+meta = data.frame(list(rid = paste("BFC",seq_len(bfccount(bfc0)), sep=""),
+                       num=seq(bfccount(bfc0),1,-1),
+                       data=c(paste("Letter",
+                       letters[seq_len(bfccount(bfc0))]))),
+                  stringsAsFactors=FALSE)
 bfcmeta(bfc0, name="resourcedata") <- meta
 \dontrun{bfcmetaremove(bfc0, "resourcedata")}
 bfcmetalist(bfc0)
