@@ -603,11 +603,11 @@ setReplaceMethod("bfcmeta", "missing",
 #' @describeIn BiocFileCache add meta data table in database
 #' @param meta \code{data.frame} of meta data.
 #' @param name character(1) name of metadata table.
-#' @return For 'bfcmetaadd': updated BiocFileCache, invisibly
+#' @return For 'bfcmeta': updated BiocFileCache, invisibly
 #' @examples
 #' meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
 #'                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
-#' bfcmetaadd(bfc0, meta)
+#' bfcmeta(bfc0, name="resourcedata") <- meta
 #' @aliases bfcmeta<-,BiocFileCacheBase-method
 #' @exportMethod bfcmeta<-,BiocFileCacheBase
 setReplaceMethod("bfcmeta", "BiocFileCacheBase",
@@ -781,7 +781,7 @@ setMethod("bfcquery", "missing",
 #' @describeIn BiocFileCache query resource
 #' @param query character() Regular expression pattern(s) to match in
 #'     resource. It will match the pattern against \code{fields},
-#'     using \code{&} logic across query element.
+#'     using \code{&} logic across query element. Case sensitive!
 #' @param field character() column names in resource to query, using
 #'     \code{||} logic across multiple field elements. By default,
 #'     matches pattern agains rname, rpath, and fpath. If exact
@@ -792,8 +792,8 @@ setMethod("bfcquery", "missing",
 #'     patterns. A tbl with zero rows is returned when no resources
 #'     match the query.
 #' @examples
-#' bfcquery(bfc0, "test")
-#' bfcquery(bfc0, "Test1", field="rname", exact=TRUE)
+#' bfcquery(bfc0, "Test")
+#' bfcquery(bfc0, "^Test1$", field="rname")
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
@@ -803,7 +803,7 @@ setMethod("bfcquery", "BiocFileCacheBase",
     stopifnot(all(field %in% .get_all_colnames(x)))
 
     name <- basename(tempfile(""))
-    tbl <- .sql_get_resource_table(bfc) %>% collect
+    tbl <- .sql_get_resource_table(x)
     keep <- TRUE
     for (q in query)
         keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q))

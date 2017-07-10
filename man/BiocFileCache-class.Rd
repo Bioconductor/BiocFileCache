@@ -165,11 +165,10 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcquerycols}{BiocFileCacheBase}(x)
 
-\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
-  exact = FALSE)
+\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"))
 
 \S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
-  "fpath"), exact = FALSE)
+  "fpath"))
 
 \S4method{bfccount}{missing}(x)
 
@@ -258,17 +257,14 @@ in current location but save the path in the cache. If 'rtype
 
 \item{name}{character(1) name of metadata table.}
 
-\item{query}{character() Pattern(s) to match in resource. It will
-match the pattern against \code{fields}, using \code{&&} logic
-across query element.}
+\item{query}{character() Regular expression pattern(s) to match in
+resource. It will match the pattern against \code{fields},
+using \code{&} logic across query element. Case sensitive!}
 
 \item{field}{character() column names in resource to query, using
-\code{||} logic across multiple field elements. By default, matches
-pattern agains rname, rpath, and fpath. If exact matching, may only
-be a single value.}
-
-\item{exact}{logical(1) By default \code{FALSE} matches patterns using
-SQL \code{LIKE}, else uses exact matching.}
+\code{||} logic across multiple field elements. By default,
+matches pattern agains rname, rpath, and fpath. If exact
+matching, may only be a single value.}
 
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}
@@ -318,7 +314,7 @@ For 'bfcrpath': The local file path location to load.
 For 'bfcupdate': an updated \code{BiocFileCache} object,
     invisibly.
 
-For 'bfcmetaadd': updated BiocFileCache, invisibly
+For 'bfcmeta': updated BiocFileCache, invisibly
 
 For 'bfcmetaremove': updated BiocFileCache, invisibly
 
@@ -333,8 +329,8 @@ For 'bfcquerycols': character() all columns in all database tables
      available for query.
 
 For 'bfcquery': A \code{bfc_tbl} of current resources in
-    the database whose \code{field} contained query. If
-    multiple values are given, the resource must contain all of the
+    the database whose \code{field} contained query. If multiple
+    values are given, the resource must contain all of the
     patterns. A tbl with zero rows is returned when no resources
     match the query.
 
@@ -506,14 +502,14 @@ bfc0[[rid3]] = fl1
 bfcupdate(bfc0, "BFC5", fpath="http://google.com")
 meta = data.frame(list(rid = paste("BFC", 1:5, sep=""),
                   num=c(5:1), data=c(paste("Letter", letters[1:5]))))
-bfcmetaadd(bfc0, meta)
+bfcmeta(bfc0, name="resourcedata") <- meta
 \dontrun{bfcmetaremove(bfc0, "resourcedata")}
 bfcmetalist(bfc0)
 tbl = bfcmeta(bfc0, "resourcedata")
 tbl
 bfcquerycols(bfc0)
-bfcquery(bfc0, "test")
-bfcquery(bfc0, "Test1", field="rname", exact=TRUE)
+bfcquery(bfc0, "Test")
+bfcquery(bfc0, "^Test1$", field="rname")
 bfccount(bfc0)
 bfccount(bfcquery(bfc0, "test"))
 bfcneedsupdate(bfc0, "BFC5")

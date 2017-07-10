@@ -189,8 +189,11 @@
     for (m in meta)
         tbl <- left_join(tbl, tbl(src, m), by="rid")
 
+    tbl <- tbl %>% collect
+    dbDisconnect(con)
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
+
 }
 
 .sql_get_nrows <-
@@ -332,8 +335,8 @@
     function(bfc, rnames)
 {
     stopifnot(!missing(rnames))
-    unname(vapply(rnames, .sql_query_resource, character(1),bfc=bfc,
-                  field=c("rname", "rpath", "fpath"), exact=FALSE))
+    unname(vapply(rnames, function(bfc, rnames){bfcrid(bfcquery(bfc, rnames))},
+                  character(1), bfc=bfc))
 }
 
 .get_all_colnames <-
