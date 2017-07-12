@@ -354,6 +354,43 @@ if (test)
     bfcdownload(bfc, rid)
 ```
 
+## Adding MetaData
+
+The following functions are provided for metadata:
+
+ * `bfcmeta()<-`
+ * `bfcmeta()`
+ * `bfcmetalist()`
+ * `bfcmetaremove()`
+
+Additional metadata can be added as `data.frames` that become tables in the sql 
+database. The `data.frame` must contain a column `rid` that matches the `rid`
+column in the cache. Any metadata added will then be displayed when accessing 
+the cache. Metadata is added with `bfcmeta()<-`. A table `name` must be provided
+as an argument. Users can add multiple metadata tables as long as the names are 
+unique. Tables may be appended or overwritten using additional arguments 
+`append=TRUE` or `overwrite=TRUE`.  
+
+```{r}
+names(bfcinfo(bfc))
+meta <- as.data.frame(list(rid=bfcrid(bfc)[1:3], idx=1:3))
+bfcmeta(bfc, name="resourceData") <- meta
+names(bfcinfo(bfc))
+```
+The metadata tables that exist can be listed with `bfcmetalist()` and can be 
+retrieved with `bfcmeta()`. 
+
+```{r}
+bfcmetalist(bfc)
+bfcmeta(bfc, name="resourceData")
+```
+
+Lastly, metadata can be removed with `bfcmetaremove()`.
+
+```{r}
+bfcmetaremove(bfc, name="resourceData")
+```
+
 ## Removing Resources
 
 Now that we have added resources, it is also possible to remove a resource.
