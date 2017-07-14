@@ -38,7 +38,6 @@
 \alias{bfcupdate,BiocFileCache-method}
 \alias{bfcupdate}
 \alias{bfcmeta<-}
-\alias{bfcmeta<-,missing-method}
 \alias{bfcmeta<-,BiocFileCacheBase-method}
 \alias{bfcmeta<-}
 \alias{bfcmetaremove,missing-method}
@@ -145,8 +144,6 @@ bfcrid(x)
   fpath = NULL, proxy = "")
 
 bfcmeta(x, name, ...) <- value
-
-\S4method{bfcmeta}{missing}(x, name, ...) <- value
 
 \S4method{bfcmeta}{BiocFileCacheBase}(x, name, ...) <- value
 
@@ -402,6 +399,13 @@ information:
     resource to determine if the local copy is stale and needs to
     be updated}
 }
+
+All functions have a quick implementation where if the BiocFileCache object
+is not passed as an argument, the function uses default 'BiocFileCache()' for
+implementation. e.g 'bfcinfo()' can be used instead of
+'bfcinfo(BiocFileCache())'. The only function this is not available for is
+'bfcmeta()<-'; The BiocFileCache object must be defined as a varaible and
+ passed as an argument. See vignette("BiocFileCache") for more details.
 }
 \section{Methods (by generic)}{
 \itemize{

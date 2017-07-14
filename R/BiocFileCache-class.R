@@ -61,6 +61,13 @@
 #'     be updated}
 #' }
 #'
+#' All functions have a quick implementation where if the BiocFileCache object
+#' is not passed as an argument, the function uses default 'BiocFileCache()' for
+#' implementation. e.g 'bfcinfo()' can be used instead of
+#' 'bfcinfo(BiocFileCache())'. The only function this is not available for is
+#' 'bfcmeta()<-'; The BiocFileCache object must be defined as a varaible and
+#'  passed as an argument. See vignette("BiocFileCache") for more details.
+#'
 #' @param cache character(1) On-disk location (directory path) of
 #'     cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
@@ -590,15 +597,6 @@ setGeneric("bfcmeta<-",
         standardGeneric("bfcmeta<-"),
     signature = "x"
 )
-
-#' @rdname BiocFileCache-class
-#' @exportMethod bfcmeta<-
-setReplaceMethod("bfcmeta", "missing",
-    function(x, name, ..., value)
-{
-    bfc <- BiocFileCache()
-    bfcmeta(bfc, name, ...) <- value
-})
 
 #' @describeIn BiocFileCache add meta data table in database
 #' @param name character(1) name of metadata table.
