@@ -391,6 +391,28 @@ Lastly, metadata can be removed with `bfcmetaremove()`.
 bfcmetaremove(bfc, name="resourceData")
 ```
 
+**Note:** 
+
+While quick implementations of all the functions exist where if you
+don't specify a BiocFileCache object it will operate on `BiocFileCache()`,
+this option is not available for `bfcmeta()<-`. This function must always
+specify a BiocFileCache object by first defining a variable and then passing
+that variable into the function. 
+
+Example of ERROR:
+```{r eval=FALSE}
+bfcmeta(name="resourceData") <- meta
+Error in bfcmeta(name = "resourceData") <- meta : 
+  target of assignment expands to non-language object
+```
+Correct implementation:
+```{r eval=FALSE}
+bfc <- BiocFileCache()
+bfcmeta(bfc, name="resourceData") <- meta
+```
+All other functions have a default, if the BiocFileCache object is missing it
+will operate on the default cache `BiocFileCache()`.
+
 ## Removing Resources
 
 Now that we have added resources, it is also possible to remove a resource.
