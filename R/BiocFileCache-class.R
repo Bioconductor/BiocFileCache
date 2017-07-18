@@ -448,7 +448,7 @@ setGeneric("bfcrpath",
 setMethod("bfcrpath", "missing",
     function(x, rnames, ..., rids)
 {
-    bfcrpath(BiocFileCache(), rnames, ..., rids)
+    bfcrpath(BiocFileCache(), rnames=rnames, ..., rids=rids)
 })
 
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
