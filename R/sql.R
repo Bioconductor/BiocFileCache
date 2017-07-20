@@ -3,6 +3,8 @@
 #' @import dbplyr
 #' @importFrom dplyr %>% tbl select_ collect summarize filter_ n left_join
 
+.formatID <- . %>% collect(Inf) %>% `[[`("rid")
+
 .sql_file <-
     function(bfc, file)
 {
@@ -272,21 +274,20 @@
             (mytbl %>% `[[`("access_time")), split=" "), `[`, 1))
 
     diffTime <- currentDate - accessDate
-    mytbl[diffTime > days,1] %>% collect(Inf) %>% `[[`("rid")
+    mytbl[diffTime > days,1] %>% .formatID
 }
 
 .get_all_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% select_("rid") %>%
-        collect(Inf) %>% `[[`("rid")
+    .sql_get_resource_table(bfc) %>% select_("rid") %>% .formatID
 }
 
 .get_all_web_rids <-
     function(bfc)
 {
     .sql_get_resource_table(bfc) %>% filter_(~ rtype == "web") %>%
-        select_("rid") %>% collect(Inf) %>% `[[`("rid")
+        select_("rid") %>% .formatID
 
 }
 
@@ -328,7 +329,7 @@
 .get_tbl_rid <-
     function(tbl)
 {
-    tbl %>% collect(Inf) %>% `[[`("rid")
+    tbl %>% .formatID
 }
 
 .fix_rnames <-
