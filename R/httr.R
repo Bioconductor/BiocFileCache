@@ -7,25 +7,9 @@
         invokeRestart("muffleWarning")
     })
 
-    status = tryCatch({
-        stop_for_status(response)
-    }, http_403 = function(e) {
-        identity(e)
-    }, http_error = function(e) {
-        stop(e)
-    }, error = identity)
-
-    if ((is(status, "error") || is(status, "http_403")) &&
-        is.null(cache_info(response)$modified)) {
-        response <- withCallingHandlers(suppressWarnings(GET(link)))
-        status <- stop_for_status(response)
-    }
-
     as.character(cache_info(response)$modified)
 }
 
-#.hub_cache_resource <- function(hubpath, cachepath, proxy) {
-# from AnnotationHub
 
 #' @importFrom utils packageVersion
 .httr_download <-
