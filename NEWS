@@ -4,14 +4,25 @@ CHANGES IN VERSION 1.1
 NEW FEATURES
 
     o (v. 1.1.7) bfcmeta() and friends allows arbitrary metadata on
-      records.
+      records and ability to query bfcmeta data.
 
 USER-VISIBLE CHANGES
+
+    o (v. 1.1.16) if httr::HEAD fails don't try httr::GET, just report not
+    available
 
     o (v. 1.1.7) bfcquery() syntax changed to grep(), rather than SQL
       'LIKE'.
 
     o (v. 1.1.7) bfcquery() supports user-specified 'fields='.
+
+    o (v. 1.1.5) queryCount renamed to bfccount
+
+    o (v. 1.1.2) Add user specified extension to file in cache
+
+    o (v. 1.1.2) Use dbExecute/dbSendStatement rather than pasting query
+
+    o Files in cache retain basename and extension of original file
 
 CHANGES IN VERSION 0.99.0
 -------------------------
