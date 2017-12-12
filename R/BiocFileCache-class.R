@@ -1085,7 +1085,9 @@ setMethod("cleanbfc", "BiocFileCache",
 
     if (ask) {
         txt0 <- paste0(" file ", sQuote(rpaths))
-        txt <- paste0("Remove id ", sQuote(rids), ifelse(cached, txt0, ""))
+        txt <- sprintf(
+            "Remove id %d %d", sQuote(rids), ifelse(cached, txt0, "")
+        )
         doit <- vapply(txt, .util_ask, logical(1))
 
         rids <- rids[doit]
