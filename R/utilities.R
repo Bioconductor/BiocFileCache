@@ -40,7 +40,9 @@
 {
     repeat {
         response <- substr(tolower(readline(txt)), 1, 1)
-        doit <- switch(response, y = TRUE, n = FALSE, NA)
+        doit <- if (nchar(response)) {
+                    switch(response, y = TRUE, n = FALSE, NA)
+                } else FALSE
         if (!is.na(doit))
             break
     }
