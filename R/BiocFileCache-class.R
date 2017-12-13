@@ -268,7 +268,7 @@ setMethod("bfcnew", "BiocFileCache",
 setGeneric("bfcadd",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", ...
+        action=c("copy", "move", "asis"), proxy="", config=list(), ...
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
@@ -279,10 +279,10 @@ setGeneric("bfcadd",
 setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", ...
+        action=c("copy", "move", "asis"), proxy="", config=list(), ...
     )
 {
-    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy, ...)
+    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy, config, ...)
 })
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -301,6 +301,7 @@ setMethod("bfcadd", "missing",
 #'     in current location but save the path in the cache. If 'rtype
 #'     == "relative"', action can not be "asis".
 #' @param proxy character(1) (Optional) proxy server.
+#' @param config list() passed as config argument in \code{httr::GET}
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
 #'     Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
@@ -330,7 +331,7 @@ setMethod("bfcadd", "missing",
 setMethod("bfcadd", "BiocFileCache",
     function(
         x, rname, fpath = rname, rtype = c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", ...)
+        action=c("copy", "move", "asis"), proxy="", config=list(), ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
     stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
@@ -353,7 +354,7 @@ setMethod("bfcadd", "BiocFileCache",
             }
         )
     } else {                            # rtype == "web"
-        .util_download(x, rid, proxy, "bfcadd()")
+        .util_download(x, rid, proxy, config, "bfcadd()")
     }
 
     setNames(rpath, rid)
@@ -535,7 +536,7 @@ setMethod("bfcupdate", "missing",
 #' @aliases bfcupdate
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
-    function(x, rids, rname=NULL, rpath=NULL, fpath=NULL, proxy="")
+    function(x, rids, rname=NULL, rpath=NULL, fpath=NULL, proxy="", config=list())
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -581,7 +582,7 @@ setMethod("bfcupdate", "BiocFileCache",
                     call.=FALSE)
 
             .util_download_and_rename(
-                x, rids[i], proxy, "bfcupdate()", fpath[i]
+                x, rids[i], proxy, config, "bfcupdate()", fpath[i]
             )
             .sql_set_fpath(x, rids[i], fpath[i])
         }
@@ -903,7 +904,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcdownload",
-    function(x, rid, proxy="") standardGeneric("bfcdownload"),
+    function(x, rid, proxy="", config=list()) standardGeneric("bfcdownload"),
     signature = "x"
 )
 
@@ -911,9 +912,9 @@ setGeneric("bfcdownload",
 #' @aliases bfcdownload,missing-method
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "missing",
-    function(x, rid, proxy="")
+    function(x, rid, proxy="", config=list())
 {
-    bfcdownload(BiocFileCache(), rid, proxy)
+    bfcdownload(BiocFileCache(), rid, proxy, config)
 })
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
@@ -924,14 +925,14 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="")
+    function(x, rid, proxy="", config=list())
 {
     stopifnot(!missing(rid), length(rid) == 1L)
     stopifnot(.sql_get_rtype(x, rid) == "web")
     stopifnot(rid %in% bfcrid(x))
 
     .sql_update_time(x, rid)
-    .util_download_and_rename(x, rid, proxy, "bfcdownload()")
+    .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
 
     setNames(bfcrpath(x, rids=rid), rid)
 })

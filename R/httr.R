@@ -13,7 +13,7 @@
 
 #' @importFrom utils packageVersion
 .httr_download <-
-    function(websource, localfile, proxy)
+    function(websource, localfile, proxy, config)
 {
     ## retrieve file from hub to cache
     tryCatch({
@@ -23,14 +23,14 @@
         ## Download the resource in a way that supports https
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
             response <- suppressWarnings({
-                GET(websource, progress(),
+                GET(websource, progress(), config=config,
                     write_disk(localfile, overwrite=TRUE), proxy=proxy)
             })
             cat("\n") ## line break after progress bar
         } else {
             response <- suppressWarnings({
                 GET(websource, write_disk(localfile, overwrite=TRUE),
-                    proxy=proxy)
+                    proxy=proxy, config=config)
             })
         }
         if (length(status_code(response))) {

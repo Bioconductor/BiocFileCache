@@ -118,11 +118,11 @@ bfcrid(x)
 
 \S4method{bfcadd}{missing}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", ...)
+  proxy = "", config = list(), ...)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", ...)
+  proxy = "", config = list(), ...)
 
 \S4method{bfcinfo}{missing}(x, rids)
 
@@ -141,7 +141,7 @@ bfcrid(x)
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
-  fpath = NULL, proxy = "")
+  fpath = NULL, proxy = "", config = list())
 
 bfcmeta(x, name, ...) <- value
 
@@ -179,9 +179,9 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
-\S4method{bfcdownload}{missing}(x, rid, proxy = "")
+\S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list())
 
-\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "")
+\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list())
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -246,6 +246,8 @@ in current location but save the path in the cache. If 'rtype
 == "relative"', action can not be "asis".}
 
 \item{proxy}{character(1) (Optional) proxy server.}
+
+\item{config}{list() passed as config argument in \code{httr::GET}}
 
 \item{rids}{character() Vector of rids.}
 

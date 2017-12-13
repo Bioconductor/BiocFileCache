@@ -73,12 +73,12 @@
 }
 
 .util_download <-
-    function(bfc, rid, proxy, call)
+    function(bfc, rid, proxy, config, call)
 {
     rpath <- .sql_get_rpath(bfc, rid)
     fpath <- .sql_get_fpath(bfc, rid)
 
-    status <- .httr_download(fpath, rpath, proxy)
+    status <- .httr_download(fpath, rpath, proxy, config)
     if (!status) {
         bfcremove(bfc, rid)
         stop(
@@ -93,13 +93,13 @@
 }
 
 .util_download_and_rename <-
-    function(bfc, rid, proxy, call, fpath = .sql_get_fpath(bfc, rid))
+    function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid))
 {
     rpath <- .sql_get_rpath(bfc, rid)
     temppath <- tempfile(tmpdir=bfccache(bfc))
     on.exit(unlink(temppath))
 
-    status <- .httr_download(fpath, temppath, proxy)
+    status <- .httr_download(fpath, temppath, proxy, config)
     if (!status)
         stop(
             call, " failed",
