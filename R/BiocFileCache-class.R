@@ -977,7 +977,7 @@ setMethod("bfcremove", "BiocFileCache",
 
 #' @export
 setGeneric("bfcsync",
-    function(x, verbose=TRUE) standardGeneric("bfcsync"),
+    function(x, verbose = TRUE, ask = TRUE) standardGeneric("bfcsync"),
     signature = "x"
 )
 
@@ -985,9 +985,9 @@ setGeneric("bfcsync",
 #' @aliases bfcsync,missing-method
 #' @exportMethod bfcsync
 setMethod("bfcsync", "missing",
-    function(x, verbose=TRUE)
+    function(x, verbose = TRUE, ask = TRUE)
 {
-    bfcsync(BiocFileCache(), verbose)
+    bfcsync(BiocFileCache(), verbose, ask)
 })
 
 #' @describeIn BiocFileCache sync cache and resource.
@@ -1004,7 +1004,7 @@ setMethod("bfcsync", "missing",
 #' @importFrom utils capture.output
 #' @exportMethod bfcsync
 setMethod("bfcsync", "BiocFileCache",
-    function(x, verbose=TRUE)
+    function(x, verbose=TRUE, ask = TRUE)
 {
     stopifnot(is.logical(verbose), length(verbose) == 1L, !is.na(verbose))
 
@@ -1022,28 +1022,32 @@ setMethod("bfcsync", "BiocFileCache",
     }
     untracked <- setdiff(files, paths)
 
-    test <- (length(rids) == 0L) && (length(untracked) == 0L)
-    if (verbose && (length(rids) != 0L)) {
-        txt <-
-            "The following entries have local files specified but not found.
-            Consider updating or removing:"
-        tbl <- capture.output(bfcinfo(x, rids))
+    rids0 <- rids; untracked0 <- untracked
+
+    if (verbose && (length(rids) != 0L))
         message(
-            paste(strwrap(txt), collapse="\n"),
-            "\n\n", paste(tbl, collapse="\n")
+            "entries without corresponding files: ",
+            paste0("'", rids, "'", collapse=" ")
         )
-    }
-    if (verbose && (length(untracked) != 0L)) {
-        txt <-
-            "The following entries are in the cache but not being tracked.
-            Consider adding to cache with 'bfcadd()':"
-        message(
-            paste(strwrap(txt, exdent=4), collapse="\n"),
-            "\n  ", paste(untracked, collapse="\n  ")
-        )
+    if (ask && (length(rids) != 0L)) {
+        doit <- .util_ask(paste("delete", length(rids), "entries? "))
+        rids <- rids[doit]
     }
 
-    test
+    if (verbose && (length(untracked) != 0L))
+        message(
+            "files without cache entries\n  ",
+            paste(untracked, collpase="\n  ")
+        )
+    if (ask && (length(untracked) != 0L)) {
+        doit <- .util_ask(paste("delete", length(untracked), "files? "))
+        untracked <- untracked[doit]
+    }
+
+    .sql_remove_resource(x, rids)
+    .util_unlink(untracked)
+
+    !length(setdiff(rids0, rids)) && !length(setdiff(untracked0, untracked))
 })
 
 #' @export

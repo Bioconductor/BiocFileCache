@@ -187,9 +187,9 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcremove}{BiocFileCache}(x, rids)
 
-\S4method{bfcsync}{missing}(x, verbose = TRUE)
+\S4method{bfcsync}{missing}(x, verbose = TRUE, ask = TRUE)
 
-\S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE)
+\S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE, ask = TRUE)
 
 \S4method{cleanbfc}{missing}(x, days = 120, ask = TRUE)
 
@@ -269,11 +269,11 @@ matching, may only be a single value.}
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}
 
-\item{days}{integer(1) Number of days between accessDate and
-currentDate; if exceeded entry will be deleted.}
-
 \item{ask}{logical(1) Prompt if really want to remove cache and
 files.}
+
+\item{days}{integer(1) Number of days between accessDate and
+currentDate; if exceeded entry will be deleted.}
 
 \item{object}{A \code{BiocFileCache} instance.}
 }
