@@ -7,7 +7,11 @@
         invokeRestart("muffleWarning")
     })
 
-    as.character(cache_info(response)$modified)
+    tryCatch({
+        as.character(cache_info(response)$modified)
+    },  error = function(err) {
+        NA
+    })
 }
 
 
