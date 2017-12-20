@@ -83,8 +83,15 @@ BiocFileCache <-
 {
     stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
 
-    if (!file.exists(cache))
-        dir.create(cache)
+    if (!file.exists(cache)){
+        if (.util_ask(paste0(cache,
+                             "\n  Does not exist. Create directory? Y/N:"))){
+            dir.create(cache)
+        } else {
+            cache = file.path(tempdir(), "BiocFileCache")
+            if (!file.exists(cache)) dir.create(cache)
+        }
+    }
     bfc <- .BiocFileCache(cache=cache)
     .sql_create_db(bfc)
     bfc
