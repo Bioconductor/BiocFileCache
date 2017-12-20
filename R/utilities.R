@@ -36,8 +36,9 @@
 }
 
 .util_ask <-
-    function(txt)
+    function(...)
 {
+    txt <- paste0(...)
     repeat {
         response <- substr(tolower(readline(txt)), 1, 1)
         doit <- if (nchar(response)) {

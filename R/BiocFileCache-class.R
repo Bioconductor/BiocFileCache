@@ -84,12 +84,14 @@ BiocFileCache <-
     stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
 
     if (!file.exists(cache)){
-        if (.util_ask(paste0(cache,
-                             "\n  Does not exist. Create directory? Y/N:"))){
+        ans <- .util_ask(cache, "\n  does not exist, create directory? Y/N: ") 
+        if (ans){
             dir.create(cache)
         } else {
-            cache = file.path(tempdir(), "BiocFileCache")
-            if (!file.exists(cache)) dir.create(cache)
+            cache <- file.path(tempdir(), "BiocFileCache")
+            message("Using temporary cache ", cache)
+            if (!file.exists(cache))
+                dir.create(cache)
         }
     }
     bfc <- .BiocFileCache(cache=cache)
