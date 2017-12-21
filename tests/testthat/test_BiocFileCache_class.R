@@ -1,18 +1,16 @@
 context("BiocFileCache_class")
 
 test_that("BiocFileCache creation works", {
-    dir <- tempfile()
-
-    bfc <- BiocFileCache(dir)
-    expect_identical(bfccache(bfc), dir)
+    bfc <- BiocFileCache()
     expect_true(file.exists(bfccache(bfc)))
 
     # test that sql file also gets created
     expect_true(file.exists(file.path(bfccache(bfc), "BiocFileCache.sqlite")))
+    removebfc(bfc, ask=FALSE)
 })
 
 test_that("bfcadd and bfcnew works", {
-    bfc <- BiocFileCache(tempfile())
+    bfc <- BiocFileCache()
     fl <- tempfile(); file.create(fl)
     expect_identical(length(bfc), 0L)
     expect_identical(bfccount(bfcinfo(bfc)), 0L)
@@ -92,13 +90,13 @@ test_that("bfcadd and bfcnew works", {
     expect_true(!file.exists(fl))
     fl <- tempfile(); file.create(fl)
     expect_warning(bfcadd(bfc, fl, rtype = "relative", action="asis"))
-
+    removebfc(bfc, ask=FALSE)
 })
 
 #
 # construct bfc for further test, avoiding construction in each
 #
-bfc <- BiocFileCache(tempfile())
+bfc <- BiocFileCache()
 fl <- tempfile(); file.create(fl)
 add1 <- bfcadd(bfc, 'test-1', fl)
 rid1 <- names(add1)
@@ -375,9 +373,11 @@ test_that("bfcneedsupdate works", {
 
 })
 
+removebfc(bfc, ask=FALSE)
+
 test_that("bfcsync and bfcremove works", {
 
-    bfc2 <- BiocFileCache(tempfile())
+    bfc2 <- BiocFileCache()
     fl <- tempfile(); file.create(fl)
     add1 <- bfcadd(bfc2, 'test-1', fl)
     rid1 <- names(add1)
@@ -439,7 +439,7 @@ test_that("cleanbfc works", {
 })
 
 test_that("removebfc works", {
-    bfc <- BiocFileCache(tempfile())
+    bfc <- BiocFileCache()
     path <- bfccache(bfc)
     expect_true(file.exists(path))
     expect_true(removebfc(bfc, ask=FALSE))
