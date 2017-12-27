@@ -118,11 +118,11 @@ bfcrid(x)
 
 \S4method{bfcadd}{missing}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", config = list(), ...)
+  proxy = "", download = TRUE, config = list(), ...)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", config = list(), ...)
+  proxy = "", download = TRUE, config = list(), ...)
 
 \S4method{bfcinfo}{missing}(x, rids)
 
@@ -246,6 +246,9 @@ in current location but save the path in the cache. If 'rtype
 == "relative"', action can not be "asis".}
 
 \item{proxy}{character(1) (Optional) proxy server.}
+
+\item{download}{logical(1) If \code{rtype=web}, should remote
+resource be downloaded locally immediately.}
 
 \item{config}{list() passed as config argument in \code{httr::GET}}
 

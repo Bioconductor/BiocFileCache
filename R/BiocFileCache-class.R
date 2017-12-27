@@ -84,7 +84,7 @@ BiocFileCache <-
     stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
 
     if (!file.exists(cache)){
-        ans <- .util_ask(cache, "\n  does not exist, create directory? Y/N: ") 
+        ans <- .util_ask(cache, "\n  does not exist, create directory? Y/N: ")
         if (ans){
             dir.create(cache)
         } else {
@@ -269,6 +269,7 @@ setMethod("bfcnew", "BiocFileCache",
     rtype <- match.arg(rtype)
 
     rid <- .sql_new_resource(x, rname, rtype, NA_character_, ext)
+    .sql_set_last_modified(x, rid, NA_character_)
     rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
@@ -277,7 +278,8 @@ setMethod("bfcnew", "BiocFileCache",
 setGeneric("bfcadd",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", config=list(), ...
+        action=c("copy", "move", "asis"), proxy="",
+        download=TRUE, config=list(), ...
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
@@ -288,10 +290,12 @@ setGeneric("bfcadd",
 setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", config=list(), ...
+        action=c("copy", "move", "asis"), proxy="",
+        download=TRUE, config=list(), ...
     )
 {
-    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy, config, ...)
+    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy,
+           download, config, ...)
 })
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -310,6 +314,8 @@ setMethod("bfcadd", "missing",
 #'     in current location but save the path in the cache. If 'rtype
 #'     == "relative"', action can not be "asis".
 #' @param proxy character(1) (Optional) proxy server.
+#' @param download logical(1) If \code{rtype=web}, should remote
+#'     resource be downloaded locally immediately.
 #' @param config list() passed as config argument in \code{httr::GET}
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
@@ -340,7 +346,8 @@ setMethod("bfcadd", "missing",
 setMethod("bfcadd", "BiocFileCache",
     function(
         x, rname, fpath = rname, rtype = c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="", config=list(), ...)
+        action=c("copy", "move", "asis"), proxy="",
+        download=TRUE, config=list(), ...)
 {
     stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
     stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
@@ -351,6 +358,7 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
     rid <- .sql_new_resource(x, rname, rtype, fpath)
+    .sql_set_last_modified(x, rid, NA_character_)
     rpath <- bfcrpath(x, rids = rid)
     if (rtype %in% c("local", "relative")) {
         switch(
@@ -363,7 +371,8 @@ setMethod("bfcadd", "BiocFileCache",
             }
         )
     } else {                            # rtype == "web"
-        .util_download(x, rid, proxy, config, "bfcadd()")
+        if (download)
+            .util_download(x, rid, proxy, config, "bfcadd()")
     }
 
     setNames(rpath, rid)
@@ -903,11 +912,12 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
             NA
         } else {
-            as.Date(web_time) > as.Date(file_time)
+            as.Date(web_time, optional=TRUE) > as.Date(file_time, optional=TRUE)
         }
     } # end helper
     result <- vapply(rids, helper, logical(1), x=x)
-
+    # if web resources hasn't been locally downloaded yet
+    result[rids %in% .get_rid_filenotfound(x)] = TRUE
     setNames(result, rids)
 })
 

@@ -1,7 +1,18 @@
 CHANGES IN VERSION 1.3
 ----------------------
+
+NEW FEATURES
+
+    o (v. 1.3.9) Optionally download web resource when adding to cache bfcadd(download=TRUE)
+
+SCHEMA CHANGE
+
+    o (v. 1.3.9) Last modified time default is NA
+
 USER-VISIBLE CHANGES
 
+    o (v. 1.3.9) If web resource was not downloaded, bfcneedsupdate is TRUE
+    o (v. 1.3.9) Local and non downloaded web will have last modified time as NA
     o (v. 1.3.6) Update how default cache location is determined
     o (v. 1.3.1) Expose GET::config argument to web resource functions
 

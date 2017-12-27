@@ -1,8 +1,8 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
 
-.CURRENT_SCHEMA_VERSION <- "0.99.1"
+.CURRENT_SCHEMA_VERSION <- "0.99.2"
 
-.SUPPORTED_SCHEMA_VERSIONS <- "0.99.1"
+.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.1", "0.99.2")
 
 .RESERVED <- list(                       # dynamically, in .onLoad?
     TABLES = c("metadata", "resource", "sqlite_sequence"),
@@ -69,7 +69,7 @@
 {
     web_time <- .httr_get_last_modified(fpath)
     if (length(web_time) == 0L)
-        web_time <- as.character(Sys.Date())
+        web_time <- NA_character_
     .sql_set_last_modified(bfc, rid, web_time)
 
     bfc

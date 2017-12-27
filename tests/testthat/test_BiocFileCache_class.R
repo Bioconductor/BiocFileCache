@@ -61,6 +61,14 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(BiocFileCache:::.sql_get_fpath(bfc,names(path)),
                      BiocFileCache:::.sql_get_field(bfc,names(path), "rname"))
 
+    # test web resource not download
+    url <- "http://httpbin.org/get"
+    path <- bfcadd(bfc, 'test-noDownload', url, rtype="web", download=FALSE)
+    rid <- names(path)
+    expect_identical(length(bfc), 7L)
+    expect_false(file.exists(bfc[[rid]]))
+    expect_true(is.na(BiocFileCache:::.sql_get_last_modified(bfc, rid)))
+
     # test relative paths
     path <- bfcnew(bfc, "relative-test", "relative")
     expect_identical(BiocFileCache:::.sql_get_field(bfc,names(path), "rtype"),
@@ -107,11 +115,14 @@ add3 <- bfcadd(bfc, 'test-3', url, rtype="web")
 rid3 <- names(add3)
 path <- bfcnew(bfc, 'test-4')
 rid4 <- names(path)
+url <- "http://httpbin.org/get"
+add5 <- bfcadd(bfc, 'test-5', url, rtype="web", download=FALSE)
+rid5 <- names(add5)
 
 test_that("bfcinfo works", {
     # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
-                     c(4L, 8L))
+                     c(5L, 8L))
     expect_is(bfcinfo(bfc), "tbl_df")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
@@ -143,20 +154,20 @@ test_that("bfcpath and bfcrpath works", {
 
     # multiple files
     expect_identical(length(bfcrpath(bfc, rids=paste0("BFC", 1:3))), 3L)
-    expect_identical(length(bfcrpath(bfc)), 4L)
+    expect_identical(length(bfcrpath(bfc)), 5L)
 
     # test bfcrpath with rname
     expect_identical(length(bfcrpath(bfc, c("test-1", "test-3"))), 2L)
     expect_error(bfcrpath(bfc, "test"))
     url = "https://en.wikipedia.org/wiki/Bioconductor"
     expect_error(bfcrpath(bfc, c("test-1",url, "notworking")))
-    expect_identical(length(bfcrid(bfc)), 4L)
-    expect_identical(length(bfcrpath(bfc, c("test-1", url, "test-3"))), 3L)
     expect_identical(length(bfcrid(bfc)), 5L)
-    expect_identical(bfccount(bfcinfo(bfc)), 5L)
-    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "rname"),
+    expect_identical(length(bfcrpath(bfc, c("test-1", url, "test-3"))), 3L)
+    expect_identical(length(bfcrid(bfc)), 6L)
+    expect_identical(bfccount(bfcinfo(bfc)), 6L)
+    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC7", "rname"),
                      url)
-    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC6", "fpath"),
+    expect_identical(BiocFileCache:::.sql_get_field(bfc, "BFC7", "fpath"),
                      url)
 
 })
@@ -216,7 +227,7 @@ test_that("bfcupdate works", {
 
     # test errors, files not found
     expect_error(bfcupdate(bfc, rid2, fpath="rid2/local/notweb"))
-    expect_error(bfcupdate(bfc, rid3, fpath="http://notworking/web"))
+    expect_error(bfcupdate(bfc, rid3, fpath="https://httpbin.org/status/404"))
     expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid"))
 
     # test update fpath and rname
@@ -251,7 +262,7 @@ test_that("bfcmeta works", {
     # try add meta with bad rid
     expect_error(bfcmeta(bfc, name="resourcedata") <- meta)
     # add valid
-    meta$rid[5] = "BFC6"
+    meta$rid[6] = "BFC7"
     metaOrig = meta
     bfcmeta(bfc, name="resourcedata") <- meta
     expect_identical(bfcmetalist(bfc),"resourcedata")
@@ -356,10 +367,7 @@ test_that("bfcneedsupdate works", {
     link = "http://google.com"
     bfcupdate(bfc, rid3, fpath=link)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
-    expect_identical(
-        as.character(Sys.Date()),
-        as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
-    )
+    expect_true(is.na(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time))
 
     # remove those that aren't web
     expect_identical(
@@ -370,6 +378,9 @@ test_that("bfcneedsupdate works", {
         names(bfcneedsupdate(bfc)),
         as.character(BiocFileCache:::.get_all_web_rids(bfc))
     )
+
+    # test non downloaded is TRUE
+    expect_true(bfcneedsupdate(bfc, rid5))
 
 })
 

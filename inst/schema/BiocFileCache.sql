@@ -20,7 +20,7 @@ CREATE TABLE resource (
     rpath TEXT,
     rtype TEXT,
     fpath TEXT,
-    last_modified_time DATETIME DEFAULT CURRENT_TIMESTAMP
+    last_modified_time DATETIME DEFAULT NA
 );
 -- INSERT
 INSERT INTO resource (
