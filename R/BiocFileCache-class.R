@@ -957,6 +957,77 @@ setMethod("bfcdownload", "BiocFileCache",
 })
 
 #' @export
+setGeneric("bfcisrelative",
+    function(x, verbose = TRUE) standardGeneric("bfcisrelative"),
+    signature = "x")
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcisrelative,missing-method
+#' @exportMethod bfcisrelative
+setMethod("bfcisrelative", "missing", function(x, verbose = TRUE){
+    bfcisrelative(BiocFileCache(), verbose)
+})
+
+#' @describeIn BiocFileCache Check if BiocFileCache object is portable
+#' @return For 'bfcisrelative': logical() If cache is portable.
+#' @examples
+#' bfcisrelative(bfc0)
+#' @aliases bfcisrelative
+#' @exportMethod bfcisrelative
+setMethod("bfcisrelative", "BiocFileCacheBase", function(x, verbose = TRUE){
+
+    ids <- .get_nonrelative_ids(x)
+    if(length(ids) != 0L){
+        if (verbose)
+            message("entries with files not in cache location\n  ", bfccache(x),
+                    " :\n  ", paste0("'", ids, "'", collapse=" "))
+        return(FALSE)
+    }
+    TRUE
+})
+
+#' @export
+setGeneric("bfcrelative",
+    function(
+        x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE
+    ) standardGeneric("bfcrelative"),
+    signature = "x"
+)
+
+#' @rdname BiocFileCache-class
+#' @aliases bfcrelative,missing-method
+#' @exportMethod bfcrelative
+setMethod("bfcrelative", "missing",
+    function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
+{
+    bfcrelative(BiocFileCache(), rids, action, ask)
+})
+
+#' @describeIn BiocFileCache Make database and resources portable.  If
+#'     resources are not relative to the \code{bfccache(x)}, options to update
+#'     local file path.
+#' @return For 'bfcrelative': updated BiocFileCache object, invisibly
+#' @aliases bfcrelative
+#' @exportMethod bfcrelative
+setMethod("bfcrelative", "BiocFileCache",
+    function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
+{
+    if (missing(rids))
+        rids <- bfcrid(x)
+
+    action <- match.arg(action)
+
+    bfctemp <- x[rids]
+    pid <- .get_nonrelative_ids(bfctemp)
+    if (length(pid) != 0){
+        res <- vapply(pid, .set_relative, logical(1), bfc=x,
+                      action=action, ask=ask, verbose = verbose)
+    }
+
+    invisible(x)
+})
+
+#' @export
 setGeneric("bfcremove",
     function(x, rids) standardGeneric("bfcremove"),
     signature = "x"

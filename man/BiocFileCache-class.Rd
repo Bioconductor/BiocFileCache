@@ -65,6 +65,12 @@
 \alias{bfcdownload,missing-method}
 \alias{bfcdownload,BiocFileCache-method}
 \alias{bfcdownload}
+\alias{bfcisrelative,missing-method}
+\alias{bfcisrelative,BiocFileCacheBase-method}
+\alias{bfcisrelative}
+\alias{bfcrelative,missing-method}
+\alias{bfcrelative,BiocFileCache-method}
+\alias{bfcrelative}
 \alias{bfcremove,missing-method}
 \alias{bfcremove,BiocFileCache-method}
 \alias{bfcremove}
@@ -182,6 +188,16 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list())
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list())
+
+\S4method{bfcisrelative}{missing}(x, verbose = TRUE)
+
+\S4method{bfcisrelative}{BiocFileCacheBase}(x, verbose = TRUE)
+
+\S4method{bfcrelative}{missing}(x, rids, action = c("copy", "move"),
+  ask = TRUE, verbose = TRUE)
+
+\S4method{bfcrelative}{BiocFileCache}(x, rids, action = c("copy", "move"),
+  ask = TRUE, verbose = TRUE)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -351,6 +367,10 @@ For 'bfcneedsupdate': named logical vector if resource
 For 'bfcdownload': character(1) path to downloaded resource
     in cache.
 
+For 'bfcisrelative': logical() If cache is portable.
+
+For 'bfcrelative': updated BiocFileCache object, invisibly
+
 For 'bfcremove': updated BiocFileCache object, invisibly
 
 For 'bfcsync': logical(1) indicating whether the cache is
@@ -464,6 +484,12 @@ cache or query.
 
 \item \code{bfcdownload}: Redownload resource to location in cache
 
+\item \code{bfcisrelative}: Check if BiocFileCache object is portable
+
+\item \code{bfcrelative}: Make database and resources portable.  If
+resources are not relative to the \code{bfccache(x)}, options to update
+local file path.
+
 \item \code{bfcremove}: Remove a resource to the database.  If
 the local file is located in \code{bfccache(x)}, the file will
 also be deleted. This will not delete information in any metadata
@@ -527,6 +553,7 @@ bfccount(bfc0)
 bfccount(bfcquery(bfc0, "test"))
 bfcneedsupdate(bfc0, "BFC5")
 bfcdownload(bfc0, "BFC5")
+bfcisrelative(bfc0)
 bfcremove(bfc0, rid3)
 bfcinfo(bfc0)
 bfcsync(bfc0)

@@ -346,6 +346,49 @@
     colnames(.sql_get_resource_table(bfc))
 }
 
+.get_nonrelative_ids <-
+    function(bfc)
+{
+    rpaths <- .get_all_rpath(bfc)
+    rids <- bfcrid(bfc)
+    cacheloc <- bfccache(bfc)
+    res <- grepl(paste0("^", cacheloc), rpaths)
+    rids[!res]
+}
+
+.set_relative <-
+    function(bfc, rid, action, ask, verbose)
+{
+    rpath <- .sql_get_rpath(bfc, rid)
+    fileBase <- basename(rpath)
+    newpath <- .sql_file(bfc, fileBase)
+    if (file.exists(newpath))
+        newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
+                         sep="_")
+    if (ask){
+         doit <- .util_ask(paste("Permanently change", rid, "path\nfrom: ", rpath,
+                                 "\nto:   ", newpath, "\nY/N:"))
+    } else {
+        doit <- TRUE
+    }
+    if (doit){
+        switch(
+            action,
+            copy = file.copy(rpath, newpath),
+            move = file.rename(rpath, newpath)
+        )
+        .sql_set_rpath(bfc, rid, newpath)
+        if (identical(.sql_get_rtype(bfc, rid), "local")){
+            if (verbose){
+                message("Updating 'rtype' from local to relative")
+            }
+            .sql_set_rtype(bfc, rid, "relative")
+        }
+    }
+    doit
+}
+
+
 ##
 ## .sql_meta_*
 ##

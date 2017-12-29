@@ -384,6 +384,19 @@ test_that("bfcneedsupdate works", {
 
 })
 
+test_that("bfcisrelative and bfcrelative works",{
+
+    fltemp <- file.path(dirname(tempdir()), "tempFile"); file.create(fltemp)
+    addtemp <- bfcadd(bfc, "temp", fltemp, rtype="local", action="asis")
+    ridtemp <- names(addtemp)
+    expect_identical(.sql_get_rtype(bfc, ridtemp), "local")
+    expect_false(bfcisrelative(bfc, verbose=FALSE))
+    bfcrelative(bfc, ask=FALSE, verbose=FALSE)
+    expect_true(bfcisrelative(bfc))
+    expect_identical(.sql_get_rtype(bfc, ridtemp), "relative")
+
+})
+
 removebfc(bfc, ask=FALSE)
 
 test_that("bfcsync and bfcremove works", {
