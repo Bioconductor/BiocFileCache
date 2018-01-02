@@ -245,7 +245,7 @@ setGeneric("bfcnew",
 setMethod("bfcnew", "missing",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
 {
-    bfcnew(BiocFileCache(), rname, rtype, ext)
+    bfcnew(x=BiocFileCache(), rname=rname, rtype=rtype, ext=ext)
 })
 
 #' @describeIn BiocFileCache Add a resource to the database
@@ -295,8 +295,8 @@ setMethod("bfcadd", "missing",
         download=TRUE, config=list(), ...
     )
 {
-    bfcadd(BiocFileCache(), rname, fpath, rtype, action, proxy,
-           download, config, ...)
+    bfcadd(x=BiocFileCache(), rname=rname, fpath=fpath, rtype=rtype,
+           action=action, proxy=proxy, download=download, config=config, ...)
 })
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -391,7 +391,7 @@ setGeneric("bfcinfo",
 setMethod("bfcinfo", "missing",
     function(x, rids)
 {
-    bfcinfo(BiocFileCache(), rids)
+    bfcinfo(x=BiocFileCache(), rids=rids)
 })
 
 #' @describeIn BiocFileCache list resources in database
@@ -430,7 +430,7 @@ setGeneric("bfcpath",
 setMethod("bfcpath", "missing",
     function(x, rid)
 {
-    bfcpath(BiocFileCache(), rid)
+    bfcpath(x=BiocFileCache(), rid=rid)
 })
 
 #' @describeIn BiocFileCache display paths of resource
@@ -468,7 +468,7 @@ setGeneric("bfcrpath",
 setMethod("bfcrpath", "missing",
     function(x, rnames, ..., rids)
 {
-    bfcrpath(BiocFileCache(), rnames=rnames, ..., rids=rids)
+    bfcrpath(x=BiocFileCache(), rnames=rnames, ..., rids=rids)
 })
 
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
@@ -541,7 +541,7 @@ setGeneric("bfcupdate",
 setMethod("bfcupdate", "missing",
     function(x, rids, value, ...)
 {
-    bfcupdate(BiocFileCache(), rids, value, ...)
+    bfcupdate(x=BiocFileCache(), rids=rids, value=value, ...)
 })
 
 #' @describeIn BiocFileCache Update a resource in the cache
@@ -667,7 +667,7 @@ setGeneric("bfcmetaremove",
 setMethod("bfcmetaremove", "missing",
     function(x, name, ...)
 {
-    bfcmetaremove(BiocFileCache(), name, ...)
+    bfcmetaremove(x=BiocFileCache(), name=name, ...)
 })
 
 #' @describeIn BiocFileCache remove meta data table in database
@@ -702,7 +702,7 @@ setGeneric("bfcmetalist",
 setMethod("bfcmetalist", "missing",
     function(x)
 {
-    bfcmetalist(BiocFileCache())
+    bfcmetalist(x=BiocFileCache())
 })
 
 #' @describeIn BiocFileCache retrieve list of metadata table
@@ -731,7 +731,7 @@ setGeneric("bfcmeta",
 setMethod("bfcmeta", "missing",
     function(x, name, ...)
 {
-    bfcmeta(BiocFileCache(), name, ...)
+    bfcmeta(x=BiocFileCache(), name=name, ...)
 })
 
 #' @describeIn BiocFileCache retrieve metadata table
@@ -767,7 +767,7 @@ setGeneric("bfcquerycols",
 setMethod("bfcquerycols", "missing",
     function(x)
 {
-    bfcquerycols(BiocFileCache())
+    bfcquerycols(x=BiocFileCache())
 })
 
 #' @describeIn BiocFileCache Get all the possible columns to query
@@ -796,7 +796,7 @@ setGeneric("bfcquery",
 setMethod("bfcquery", "missing",
     function(x, query, field=c("rname", "rpath", "fpath"), ...)
 {
-    bfcquery(BiocFileCache(), query, field, ...)
+    bfcquery(x=BiocFileCache(), query=query, field=field, ...)
 })
 
 #' @describeIn BiocFileCache query resource
@@ -843,7 +843,7 @@ setGeneric("bfccount",
 setMethod("bfccount", "missing",
     function(x)
 {
-    bfccount(BiocFileCache())
+    bfccount(x=BiocFileCache())
 })
 
 #' @describeIn BiocFileCache Get the number of objects in the file
@@ -882,7 +882,7 @@ setGeneric("bfcneedsupdate",
 setMethod("bfcneedsupdate", "missing",
     function(x, rids)
 {
-    bfcneedsupdate(BiocFileCache(), rids)
+    bfcneedsupdate(x=BiocFileCache(), rids=rids)
 })
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
@@ -935,7 +935,7 @@ setGeneric("bfcdownload",
 setMethod("bfcdownload", "missing",
     function(x, rid, proxy="", config=list())
 {
-    bfcdownload(BiocFileCache(), rid, proxy, config)
+    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config)
 })
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
@@ -967,7 +967,7 @@ setGeneric("bfcisportable",
 #' @aliases bfcisportable,missing-method
 #' @exportMethod bfcisportable
 setMethod("bfcisportable", "missing", function(x, verbose = TRUE){
-    bfcisportable(BiocFileCache(), verbose)
+    bfcisportable(x=BiocFileCache(), verbose=verbose)
 })
 
 #' @describeIn BiocFileCache Check if BiocFileCache object is portable
@@ -1010,7 +1010,8 @@ setGeneric("bfcportable",
 setMethod("bfcportable", "missing",
     function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
 {
-    bfcportable(BiocFileCache(), rids, action, ask)
+    bfcportable(x=BiocFileCache(), rids=rids, action=action, ask=ask,
+                verbose=verbose)
 })
 
 #' @describeIn BiocFileCache Make database and resources portable.  If
@@ -1054,7 +1055,7 @@ setGeneric("bfcremove",
 setMethod("bfcremove", "missing",
     function(x, rids)
 {
-    bfcremove(BiocFileCache(), rids)
+    bfcremove(x=BiocFileCache(), rids=rids)
 })
 
 #' @describeIn BiocFileCache Remove a resource to the database.  If
@@ -1093,7 +1094,7 @@ setGeneric("bfcsync",
 setMethod("bfcsync", "missing",
     function(x, verbose = TRUE, ask = TRUE)
 {
-    bfcsync(BiocFileCache(), verbose, ask)
+    bfcsync(x=BiocFileCache(), verbose=verbose, ask=ask)
 })
 
 #' @describeIn BiocFileCache sync cache and resource.
@@ -1168,7 +1169,7 @@ setGeneric("cleanbfc",
 setMethod("cleanbfc", "missing",
     function(x, days = 120, ask = TRUE)
 {
-    cleanbfc(BiocFileCache(), days, ask)
+    cleanbfc(x=BiocFileCache(), days=days, ask=ask)
 })
 
 #' @describeIn BiocFileCache Remove old/unused files in
@@ -1222,7 +1223,7 @@ setGeneric("removebfc",
 setMethod("removebfc", "missing",
     function(x, ask = TRUE)
 {
-    removebfc(BiocFileCache(), ask)
+    removebfc(x=BiocFileCache(), ask=ask)
 })
 
 #' @describeIn BiocFileCache Completely remove the BiocFileCache
