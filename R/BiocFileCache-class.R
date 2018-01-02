@@ -992,10 +992,8 @@ setMethod("bfcisportable", "BiocFileCacheBase", function(x, verbose = TRUE){
             message("entries with rtype = 'local': \n",
                     "  ", paste0("'", idsloc, "'", collapse=" "))
     }
-    if (length(unique(c(ids, idsloc))) != 0){
-        return(FALSE)
-    }
-    TRUE
+    res <- length(unique(c(ids, idsloc))) == 0
+    return(res)
 })
 
 #' @export
