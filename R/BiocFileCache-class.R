@@ -959,24 +959,24 @@ setMethod("bfcdownload", "BiocFileCache",
 })
 
 #' @export
-setGeneric("bfcisrelative",
-    function(x, verbose = TRUE) standardGeneric("bfcisrelative"),
+setGeneric("bfcisportable",
+    function(x, verbose = TRUE) standardGeneric("bfcisportable"),
     signature = "x")
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcisrelative,missing-method
-#' @exportMethod bfcisrelative
-setMethod("bfcisrelative", "missing", function(x, verbose = TRUE){
-    bfcisrelative(BiocFileCache(), verbose)
+#' @aliases bfcisportable,missing-method
+#' @exportMethod bfcisportable
+setMethod("bfcisportable", "missing", function(x, verbose = TRUE){
+    bfcisportable(BiocFileCache(), verbose)
 })
 
 #' @describeIn BiocFileCache Check if BiocFileCache object is portable
-#' @return For 'bfcisrelative': logical() If cache is portable.
+#' @return For 'bfcisportable': logical() If cache is portable.
 #' @examples
-#' bfcisrelative(bfc0)
-#' @aliases bfcisrelative
-#' @exportMethod bfcisrelative
-setMethod("bfcisrelative", "BiocFileCacheBase", function(x, verbose = TRUE){
+#' bfcisportable(bfc0)
+#' @aliases bfcisportable
+#' @exportMethod bfcisportable
+setMethod("bfcisportable", "BiocFileCacheBase", function(x, verbose = TRUE){
 
     ids <- .get_nonrelative_ids(x)
     idsloc <- .get_local_ids(x)
@@ -999,29 +999,29 @@ setMethod("bfcisrelative", "BiocFileCacheBase", function(x, verbose = TRUE){
 })
 
 #' @export
-setGeneric("bfcrelative",
+setGeneric("bfcportable",
     function(
         x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE
-    ) standardGeneric("bfcrelative"),
+    ) standardGeneric("bfcportable"),
     signature = "x"
 )
 
 #' @rdname BiocFileCache-class
-#' @aliases bfcrelative,missing-method
-#' @exportMethod bfcrelative
-setMethod("bfcrelative", "missing",
+#' @aliases bfcportable,missing-method
+#' @exportMethod bfcportable
+setMethod("bfcportable", "missing",
     function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
 {
-    bfcrelative(BiocFileCache(), rids, action, ask)
+    bfcportable(BiocFileCache(), rids, action, ask)
 })
 
 #' @describeIn BiocFileCache Make database and resources portable.  If
 #'     resources are not relative to the \code{bfccache(x)}, options to update
 #'     local file path.
-#' @return For 'bfcrelative': updated BiocFileCache object, invisibly
-#' @aliases bfcrelative
-#' @exportMethod bfcrelative
-setMethod("bfcrelative", "BiocFileCache",
+#' @return For 'bfcportable': updated BiocFileCache object, invisibly
+#' @aliases bfcportable
+#' @exportMethod bfcportable
+setMethod("bfcportable", "BiocFileCache",
     function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
 {
     if (missing(rids))
