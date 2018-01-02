@@ -124,7 +124,7 @@
     function(bfc, rname, rtype, fpath, ext=NA_character_)
 {
     rpath <- path.expand(tempfile("", bfccache(bfc)))
-    if (identical(rtype, "relative"))
+    if (identical(rtype, "relative") || identical(rtype, "web"))
         rpath <- basename(rpath)
 
     if (is.na(fpath))
@@ -228,7 +228,7 @@
 {
     rtype <- .sql_get_rtype(bfc, rid)
     rpath <- .sql_get_field(bfc, rid, "rpath")
-    if (identical(rtype, "relative"))
+    if (identical(rtype, "relative") || identical(rtype, "web"))
         rpath <- file.path(bfccache(bfc), rpath)
     rpath
 }
@@ -352,8 +352,15 @@
     rpaths <- .get_all_rpath(bfc)
     rids <- bfcrid(bfc)
     cacheloc <- bfccache(bfc)
-    res <- grepl(paste0("^", cacheloc), rpaths)
+    res <- startsWith(rpaths, cacheloc)
     rids[!res]
+}
+
+.get_local_ids <- function(bfc){
+
+    rids <- bfcrid(bfc)
+    rtypes <- vapply(rids, .sql_get_rtype, character(1), bfc = bfc)
+    rids[which(rtypes == "local")]
 }
 
 .set_relative <-
@@ -377,7 +384,7 @@
             copy = file.copy(rpath, newpath),
             move = file.rename(rpath, newpath)
         )
-        .sql_set_rpath(bfc, rid, newpath)
+        .sql_set_rpath(bfc, rid, basename(newpath))
         if (identical(.sql_get_rtype(bfc, rid), "local")){
             if (verbose){
                 message("Updating 'rtype' from local to relative")

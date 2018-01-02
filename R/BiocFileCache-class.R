@@ -224,7 +224,8 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
     .sql_update_time(x, i)
     .sql_set_rpath(x, i, value)
-    if (identical(.sql_get_rtype(x, i), "relative")) {
+    rtype <- .sql_get_rtype(x, i)
+    if (identical(rtype, "relative") || identical(rtype, "web")) {
         warning("updating rpath, changing rtype to 'local'")
         .sql_set_rtype(x, i, "local")
     }
@@ -586,7 +587,8 @@ setMethod("bfcupdate", "BiocFileCache",
                     call.=FALSE
                 )
             .sql_set_rpath(x, rids[i], rpath[i])
-            if (.sql_get_rtype(x, rids[i]) == "relative"){
+            rtype <- .sql_get_rtype(x, rids[i])
+            if (identical(rtype, "relative") || identical(rtype, "web")){
                 warning("updating rpath, changing rtype to 'local'")
                 .sql_set_rtype(x, rids[i], "local")
             }
@@ -977,10 +979,19 @@ setMethod("bfcisrelative", "missing", function(x, verbose = TRUE){
 setMethod("bfcisrelative", "BiocFileCacheBase", function(x, verbose = TRUE){
 
     ids <- .get_nonrelative_ids(x)
+    idsloc <- .get_local_ids(x)
+
     if(length(ids) != 0L){
         if (verbose)
             message("entries with files not in cache location\n  ", bfccache(x),
                     " :\n  ", paste0("'", ids, "'", collapse=" "))
+    }
+    if(length(idsloc) != 0L){
+        if (verbose)
+            message("entries with rtype = 'local': \n  ",
+                    paste0("'", idsloc, "'", collapse=" "))
+    }
+    if (length(unique(c(ids, idsloc))) != 0){
         return(FALSE)
     }
     TRUE
@@ -1021,7 +1032,12 @@ setMethod("bfcrelative", "BiocFileCache",
     pid <- .get_nonrelative_ids(bfctemp)
     if (length(pid) != 0){
         res <- vapply(pid, .set_relative, logical(1), bfc=x,
-                      action=action, ask=ask, verbose = verbose)
+                      action=action, ask=ask, verbose=verbose)
+    }
+    pid <- .get_local_ids(bfctemp)
+    if (length(pid) != 0){
+        res <- vapply(pid, .util_rtype_check, logical(1), bfc=x,
+                      ask=ask, verbose=verbose)
     }
 
     invisible(x)

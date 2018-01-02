@@ -334,18 +334,18 @@ test_that("bfcquery and bfccount works", {
     # multiple value all found
     path <- file.path(bfccache(bfc), "myFile")
     file.create(path)
-    bfc[[rid3]] <- path
-    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myF")))
+    bfc[[rid2]] <- path
+    q3 <- as.data.frame(bfcquery(bfc, c("test-2", "myF")))
     expect_identical(dim(q3)[1], 1L)
-    expect_identical(q3$rid, rid3)
+    expect_identical(q3$rid, rid2)
 
     # multi value some not found
     expect_identical(bfccount(bfcquery(bfc, c("prep", "not"))), 0L)
 
     # test case sensitive
-    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf")))
+    q3 <- as.data.frame(bfcquery(bfc, c("test-2", "myf")))
     expect_identical(dim(q3)[1], 0L)
-    q3 <- as.data.frame(bfcquery(bfc, c("prep", "myf"), ignore.case=TRUE))
+    q3 <- as.data.frame(bfcquery(bfc, c("test-2", "myf"), ignore.case=TRUE))
     expect_identical(dim(q3)[1], 1L)
 
     # test exact
@@ -384,17 +384,29 @@ test_that("bfcneedsupdate works", {
 
 })
 
-test_that("bfcisrelative and bfcrelative works",{
+test_that("bfcisrelative, bfcrelative, and helpers works",{
 
+    expect_identical(length(BiocFileCache:::.get_local_ids(bfc)), 2L)
+    expect_identical(BiocFileCache:::.get_local_ids(bfc), c(rid1, rid2))
+    expect_identical(length(BiocFileCache:::.get_nonrelative_ids(bfc)), 1L)
+    expect_identical(BiocFileCache:::.get_nonrelative_ids(bfc), rid1)
     fltemp <- file.path(dirname(tempdir()), "tempFile"); file.create(fltemp)
     addtemp <- bfcadd(bfc, "temp", fltemp, rtype="local", action="asis")
     ridtemp <- names(addtemp)
     expect_identical(.sql_get_rtype(bfc, ridtemp), "local")
+    expect_identical(length(BiocFileCache:::.get_local_ids(bfc)), 3L)
+    expect_identical(BiocFileCache:::.get_local_ids(bfc), c(rid1, rid2,ridtemp))
     expect_false(bfcisrelative(bfc, verbose=FALSE))
+    sub1 = bfc[c(rid3, rid4, rid5)]
+    expect_true(bfcisrelative(sub1, verbose=FALSE))
+    sub2 = bfc[c(rid2, rid3, rid4)]
+    expect_false(bfcisrelative(sub2, verbose=FALSE))
     bfcrelative(bfc, ask=FALSE, verbose=FALSE)
     expect_true(bfcisrelative(bfc))
     expect_identical(.sql_get_rtype(bfc, ridtemp), "relative")
-
+    BiocFileCache:::.sql_set_fpath(bfc, ridtemp, "http://httpbin.org/get")
+    temp <- BiocFileCache:::.util_rtype_check(bfc, ridtemp, FALSE, FALSE)
+    expect_identical(.sql_get_rtype(bfc, ridtemp), "web")
 })
 
 removebfc(bfc, ask=FALSE)

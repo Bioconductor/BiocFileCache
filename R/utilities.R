@@ -125,3 +125,46 @@
 
     .util_set_last_modified(bfc, rid, fpath)
 }
+
+.util_rtype_check <- function(bfc, rid, ask, verbose){
+
+    rtype <- .sql_get_rtype(bfc, rid)
+    fpath <- .sql_get_fpath(bfc, rid)
+    rpath <- .sql_get_rpath(bfc, rid)
+    testF <- startsWith(fpath, "http") || startsWith(fpath, "ftp")
+    testR <- startsWith(rpath, bfccache(bfc))
+
+    if (identical(rtype, "local") && testR){
+        mess <- paste("rpath indicates 'rtype' may be relative:\n", rpath,
+                      "\nUpdate rtype to relative? Y/N: ")
+        newType <- "relative"
+    } else if (testF && testR && (rtype != "web")){
+        mess <- paste("fpath indicates 'rtype' may be web:\n", fpath,
+                      "\nUpdate rtype to web? Y/N: ")
+        newType <- "web"
+    } else {
+        mess <- NA
+        newType <- NA
+    }
+
+    if (ask && !is.na(mess)){
+        doit <- .util_ask(mess)
+    } else if (is.na(mess)){
+        doit <- FALSE
+    }else{
+        doit <- TRUE
+    }
+
+    if (doit){
+        if (verbose){
+            message("Updating 'rtype' from ", rtype, " to ", newType)
+        }
+        .sql_set_rtype(bfc, rid, newType)
+    }
+    if (identical(newType, "relative")){
+        newpath <- gsub(pattern=paste0(bfccache(bfc), .Platform$file.sep),
+                        "", rpath)
+        .sql_set_rpath(bfc, rid, newpath)
+    }
+    TRUE
+}
