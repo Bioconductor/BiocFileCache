@@ -983,13 +983,14 @@ setMethod("bfcisrelative", "BiocFileCacheBase", function(x, verbose = TRUE){
 
     if(length(ids) != 0L){
         if (verbose)
-            message("entries with files not in cache location\n  ", bfccache(x),
-                    " :\n  ", paste0("'", ids, "'", collapse=" "))
+            message("entries with files not in cache location\n",
+                    "  ", bfccache(x)," :\n",
+                    "  ", paste0("'", ids, "'", collapse=" "))
     }
     if(length(idsloc) != 0L){
         if (verbose)
-            message("entries with rtype = 'local': \n  ",
-                    paste0("'", idsloc, "'", collapse=" "))
+            message("entries with rtype = 'local': \n",
+                    "  ", paste0("'", idsloc, "'", collapse=" "))
     }
     if (length(unique(c(ids, idsloc))) != 0){
         return(FALSE)

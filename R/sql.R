@@ -373,8 +373,11 @@
         newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
                          sep="_")
     if (ask){
-         doit <- .util_ask(paste("Permanently change", rid, "path\nfrom: ", rpath,
-                                 "\nto:   ", newpath, "\nY/N:"))
+         doit <- .util_ask(paste(
+             "Permanently change", rid, "path\n",
+             "from: ", rpath,"\n",
+             "to:   ", newpath, "\n",
+             "Y/N:"))
     } else {
         doit <- TRUE
     }

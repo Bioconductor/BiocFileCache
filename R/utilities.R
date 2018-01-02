@@ -135,12 +135,16 @@
     testR <- startsWith(rpath, bfccache(bfc))
 
     if (identical(rtype, "local") && testR){
-        mess <- paste("rpath indicates 'rtype' may be relative:\n", rpath,
-                      "\nUpdate rtype to relative? Y/N: ")
+        mess <- paste(
+            "rpath indicates 'rtype' may be relative:\n",
+            rpath,"\n",
+            "Update rtype to relative? Y/N: ")
         newType <- "relative"
     } else if (testF && testR && (rtype != "web")){
-        mess <- paste("fpath indicates 'rtype' may be web:\n", fpath,
-                      "\nUpdate rtype to web? Y/N: ")
+        mess <- paste(
+            "fpath indicates 'rtype' may be web:\n",
+            fpath, "\n",
+            "Update rtype to web? Y/N: ")
         newType <- "web"
     } else {
         mess <- NA
