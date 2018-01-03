@@ -1031,15 +1031,40 @@ setMethod("bfcportable", "BiocFileCache",
     bfctemp <- x[rids]
     pid <- .get_nonrelative_ids(bfctemp)
     if (length(pid) != 0){
-        res <- vapply(pid, .set_relative, logical(1), bfc=x,
-                      action=action, ask=ask, verbose=verbose)
+        if (verbose)
+            message(
+                "entries without file in", bfccache(bfctemp), " :\n",
+                "  ", paste0("'", pid, "'", collapse=" ")
+                )
+        if (ask){
+            doit <- .util_ask(paste(
+                "Permanently change", length(pid), "rpath?\n  Y/N: "))
+        } else {
+            doit <- TRUE
+        }
+        if (doit)
+            res <- vapply(pid, .set_relative, logical(1), bfc=x,
+                          action=action, verbose=verbose)
     }
     pid <- .get_local_ids(bfctemp)
     if (length(pid) != 0){
-        res <- vapply(pid, .util_rtype_check, logical(1), bfc=x,
-                      ask=ask, verbose=verbose)
+        if (verbose)
+            message(
+                "entries identified as rtype='local':\n",
+                "  ", paste0("'", pid, "'", collapse=" ")
+                )
+        if (ask){
+            doit <- .util_ask(paste(
+                "Update ", length(pid),
+                " rpath if necessary to cache location\n",
+                "  and change to rtype='relative'?\n  Y/N: "))
+        } else {
+            doit <- TRUE
+        }
+        if (doit)
+            res <- vapply(pid, .util_rtype_check, logical(1), bfc=x,
+                          ask=FALSE, verbose=verbose)
     }
-
     invisible(x)
 })
 

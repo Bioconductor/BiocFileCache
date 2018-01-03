@@ -364,7 +364,7 @@
 }
 
 .set_relative <-
-    function(bfc, rid, action, ask, verbose)
+    function(bfc, rid, action, verbose)
 {
     rpath <- .sql_get_rpath(bfc, rid)
     fileBase <- basename(rpath)
@@ -372,30 +372,19 @@
     if (file.exists(newpath))
         newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
                          sep="_")
-    if (ask){
-         doit <- .util_ask(paste(
-             "Permanently change", rid, "path\n",
-             "from: ", rpath,"\n",
-             "to:   ", newpath, "\n",
-             "Y/N:"))
-    } else {
-        doit <- TRUE
-    }
-    if (doit){
-        switch(
-            action,
-            copy = file.copy(rpath, newpath),
-            move = file.rename(rpath, newpath)
+    switch(
+        action,
+        copy = file.copy(rpath, newpath),
+        move = file.rename(rpath, newpath)
         )
-        .sql_set_rpath(bfc, rid, basename(newpath))
-        if (identical(.sql_get_rtype(bfc, rid), "local")){
-            if (verbose){
-                message("Updating 'rtype' from local to relative")
-            }
-            .sql_set_rtype(bfc, rid, "relative")
+    .sql_set_rpath(bfc, rid, basename(newpath))
+    if (identical(.sql_get_rtype(bfc, rid), "local")){
+        if (verbose){
+            message("Updating 'rtype' from local to relative")
         }
+        .sql_set_rtype(bfc, rid, "relative")
     }
-    doit
+    TRUE
 }
 
 
