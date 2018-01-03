@@ -15,9 +15,10 @@ SCHEMA CHANGE
 
 USER-VISIBLE CHANGES
 
+    o (v. 1.3.14) upon bfc creation, option to update to most current schema
     o (v. 1.3.13) bfcportable operates over all offending ids instead of asking individually
     o (v. 1.3.12) bfcisrelative/bfcrelative changed to bfcisportbale/bfcportable
-    o (v. 1.3.11) web resource rpaths are stored as relative links 
+    o (v. 1.3.11) web resource rpaths are stored as relative links
     o (v. 1.3.9) If web resource was not downloaded, bfcneedsupdate is TRUE
     o (v. 1.3.9) Local and non downloaded web will have last modified time as NA
     o (v. 1.3.6) Update how default cache location is determined
