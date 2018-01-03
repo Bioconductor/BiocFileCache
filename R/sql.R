@@ -49,6 +49,99 @@
             "\n  supported version(s): ",
             paste(sQuote(.SUPPORTED_SCHEMA_VERSIONS), collapse=" ")
         )
+    if (mdata[mdata$key=="schema_version",2] != .CURRENT_SCHEMA_VERSION){
+        if (!.biocfilecache_flags$get_update_asked())
+            .sql_updateOldSchema(bfc)
+    }
+}
+
+.sql_updateOldSchema <-
+    function(bfc)
+{
+    # This is necessary for a few modifications from the old schema
+    # We made web resource rpaths relative since we only allow to use download
+    # and checks if using a cache location for the files
+    # default last_modified_time to NA instead of Sys.Date for
+    # local/relative/Non downloaded web resources
+    # We added option to Non download resource which can't default to
+    # Sys.Date
+
+    sqlfile <- .sql_dbfile(bfc)
+    con <- dbConnect(SQLite(), sqlfile)
+    sql <- .sql_cmd("-- SELECT_METADATA")
+    mdata <- dbGetQuery(con, sql)
+    dbDisconnect(con)
+
+    message("WARNING:\n",
+            "Current schema_version ",
+            mdata[mdata$key=="schema_version",2]," is out-of-date.\n\n",
+            "Current Version will NOT work as expect.\n",
+            "Recommend Updating to lastest schema_version.\n",
+            "Notable Changes:\n",
+            "  1. Web Resource 'rpath' stored as relative path\n",
+            "  2. Default last_modified time for\n",
+            "     local/relative/nondownloaded/last_modified_notfound\n",
+            "     resources is NA not Sys.Date\n")
+    doit <- .util_ask("Update current BiocFileCache to be consistent with\n",
+                      "  schema_version: ", .CURRENT_SCHEMA_VERSION, "\n",
+                      "  This will be a permanent change but only necessary once.\n",
+                      "Y/N: ")
+    .biocfilecache_flags$set_update_asked()
+
+    if (!doit){
+        return()
+    }
+
+    # truncate rpaths of all web resources
+    wid <- .get_all_web_rids(bfc)
+    badpaths <- bfcrpath(bfc, rids=wid)
+    pattern <- paste0(bfccache(bfc),"/", bfccache(bfc),"/")
+    check <- startsWith(badpaths, pattern)
+    if (any(!check)){
+        ids <- wid[!check]
+        filenames <- basename(badpaths[!check])
+        warning("Some web resources do not currently have rpath in cache.\n",
+                "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
+                "  These resources will now be considered rtype='local'")
+        for(i in seq_along(ids)){
+            .sql_set_rtype(bfc, ids[i], "local")
+        }
+    }
+    wid <- wid[check]
+    badpaths <- badpaths[check]
+    newpaths <- gsub(badpaths, pattern=pattern, replacement="")
+    message("Updating rpath for the following web resources:\n",
+            "  ", paste0("'", wid, "'", collapse=" "))
+    for(i in seq_along(wid)){
+        .sql_set_rpath(bfc, wid[i], newpaths[i])
+    }
+
+    # change local/relative lmt to NA
+    nonweb <- setdiff(.get_all_rids(bfc), wid)
+    if (length(nonweb) != 0){
+        message("Updating last modified time for the following non web resources:\n",
+                "  ", paste0("'", nonweb, "'", collapse=" "))
+        for(i in seq_along(nonweb)){
+            .sql_set_last_modified(bfc, nonweb[i], NA_character_)
+        }
+    }
+    # check last_modified of all web
+    for(i in seq_along(wid)){
+        fpath <- .sql_get_fpath(bfc, wid[i])
+        check_time <- .httr_get_last_modified(fpath)
+        if (is.na(check_time) || (length(check_time) == 0))
+            .sql_set_last_modified(bfc, wid[i], NA_character_)
+    }
+
+    # update metadata table for package version and schema
+    sql <- paste0("update metadata set value = '",
+                  .CURRENT_SCHEMA_VERSION,
+                  "' where key = 'schema_version'; ")
+    res <- .sql_db_execute(bfc, sql)
+    sql <- paste0("update metadata set value = '",
+                  as.character(packageVersion("BiocFileCache")),
+                  "' where key = 'package_version';")
+    res <- .sql_db_execute(bfc, sql)
 }
 
 ## R / RSQLite, DBI interface

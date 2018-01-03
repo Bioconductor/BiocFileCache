@@ -12,6 +12,14 @@
     )
 )
 
+.biocfilecache_flags <- local({
+    update_asked <- FALSE
+    list(get_update_asked = function() {
+        update_asked
+    }, set_update_asked = function() {
+        update_asked <<- TRUE
+    })
+})
 
 .util_standardize_rtype <-
     function(rtype, fpath, action)
