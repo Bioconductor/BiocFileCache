@@ -172,3 +172,28 @@
     }
     TRUE
 }
+
+.util_export_file <-
+    function(bfc, rid, dir)
+{
+
+    rtype <- .sql_get_rtype(bfc, rid)
+    rpath <- .sql_get_rpath(bfc, rid)
+    loc <- file.exists(rpath)
+    if (!loc){
+        if (identical(rtype, "web")){
+            vl <- "web"
+        } else {
+            vl <- NA_character_
+        }
+    } else {
+        if (identical(rtype, "local")){
+            vl <- "local"
+        } else {
+            newpath <- file.path(dir, basename(rpath))
+            system(paste("cp", rpath, newpath))
+            vl <- "relative"
+        }
+    }
+    vl
+}

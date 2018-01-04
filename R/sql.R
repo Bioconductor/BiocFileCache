@@ -99,7 +99,7 @@
                 "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
                 "  These resources will now be considered rtype='local'"))
             for(i in seq_along(ids)){
-                .sql_set_rype(bfc, ids[i], "local")
+                .sql_set_rtype(bfc, ids[i], "local")
             }
         }
         wid <- wid[check]
@@ -517,4 +517,23 @@
     on.exit(dbDisconnect(con))
     res <- dbListTables(con)
     setdiff(res, .RESERVED$TABLES)
+}
+
+.sql_filter_metadata <-
+    function(bfc, name, verbose)
+{
+    df <- bfcmeta(bfc, name)
+    rids <- bfcrid(bfc)
+    check <- as.character(df$rid) %in% rids
+    if (all(!check)){
+        bfcmetaremove(bfc, name)
+        vl <- FALSE
+    } else if (any(!check)){
+        df <- df[check,]
+        bfcmeta(bfc, name, overwrite=TRUE) <- df
+        vl <- FALSE
+    } else {
+        vl <- TRUE
+    }
+    vl
 }
