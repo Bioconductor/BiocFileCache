@@ -226,13 +226,13 @@ test_that("bfcupdate works", {
     expect_error(bfc[[rid1]] <- "A/file/doesnt/work")
 
     # test errors, files not found
-    expect_error(bfcupdate(bfc, rid2, fpath="rid2/local/notweb"))
-    expect_error(bfcupdate(bfc, rid3, fpath="https://httpbin.org/status/404"))
-    expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid"))
+    expect_error(bfcupdate(bfc, rid2, fpath="rid2/local/notweb", ask=FALSE))
+    expect_error(bfcupdate(bfc, rid3, fpath="https://httpbin.org/status/404", ask=FALSE))
+    expect_error(bfcupdate(bfc, rid2, rpath="path/not/valid", ask=FALSE))
 
     # test update fpath and rname
     link = "https://en.wikipedia.org/wiki/Bioconductor"
-    bfcupdate(bfc, rid3, fpath=link, rname="prepQuery")
+    bfcupdate(bfc, rid3, fpath=link, rname="prepQuery", ask=FALSE)
     vl <- as.character(unname(as.data.frame(
         bfcinfo(bfc,rid3))[c("rname", "fpath")]))
     expect_identical(vl, c("prepQuery", link))
@@ -365,7 +365,7 @@ test_that("bfcneedsupdate works", {
 
     # test last modified not available
     link = "http://google.com"
-    bfcupdate(bfc, rid3, fpath=link)
+    bfcupdate(bfc, rid3, fpath=link, ask=FALSE)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
     expect_true(is.na(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time))
 
@@ -382,6 +382,18 @@ test_that("bfcneedsupdate works", {
     # test non downloaded is TRUE
     expect_true(bfcneedsupdate(bfc, rid5))
 
+})
+
+test_that("bfcdownload works", {
+
+    time1 <- file.info(.sql_get_rpath(bfc, rid3))[["ctime"]]
+    temp <- bfcdownload(bfc, rid3, ask=TRUE)
+    time2 <- file.info(.sql_get_rpath(bfc, rid3))[["ctime"]]
+    expect_identical(time1, time2)
+    temp <- bfcdownload(bfc, rid3, ask=FALSE)
+    time3 <- file.info(.sql_get_rpath(bfc, rid3))[["ctime"]]
+    expect_true(time1 < time3)
+    expect_error(bfcdownload(bfc, rid1))
 })
 
 removebfc(bfc, ask=FALSE)
@@ -412,7 +424,7 @@ test_that("exportbfc and importbfc works",{
     expect_identical(length(list.files(temploc)), 2L)
     expect_identical(unname(res),
                      c("relative", "local", "relative", NA_character_, "web"))
-    unlink(temploc, recursive=TRUE)
+    .util_unlink(temploc, recursive=TRUE)
     expect_false(file.exists(file.path(dirloc, "BFCExport.tar")))
     file <- exportbfc(bfc, outputFile=file.path(dirloc, "BFCExport.tar"),
                                verbose=FALSE)
@@ -425,14 +437,14 @@ test_that("exportbfc and importbfc works",{
     expect_true(file.exists(file.path(locpath,"BiocFileCache.sqlite")))
     expect_identical(length(list.files(locpath)), 4L)
     sub <- bfc[c(rid1,rid2)]
-    unlink(locpath, recursive=TRUE)
+    .util_unlink(locpath, recursive=TRUE)
     file.remove(file)
     file <- exportbfc(sub, outputFile=file.path(dirloc, "SubExport.zip"),
                       verbose=FALSE, outputMethod="zip")
     expect_true(file.exists(file.path(dirloc, "SubExport.zip")))
     bfc3 <- importbfc(file, exdir=dirloc, archiveMethod="unzip")
     expect_identical(bfccount(bfc3), 2L)
-    unlink(locpath, recursive=TRUE)
+    .util_unlink(locpath, recursive=TRUE)
     file.remove(file)
     removebfc(bfc, ask=FALSE)
 })
@@ -474,7 +486,7 @@ test_that("bfcsync and bfcremove works", {
         paths = normalizePath(paths)
     }
     untracked <- setdiff(files, paths)
-    unlink(untracked)
+    .util_unlink(untracked)
     expect_true(bfcsync(bfc2, FALSE))
 
     # test that remove, deletes file if in cache

@@ -146,7 +146,7 @@ bfcrid(x)
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
-  fpath = NULL, proxy = "", config = list())
+  fpath = NULL, proxy = "", config = list(), ask = TRUE)
 
 bfcmeta(x, name, ...) <- value
 
@@ -184,9 +184,11 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
-\S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list())
+\S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(),
+  ask = TRUE)
 
-\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list())
+\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(),
+  ask = TRUE)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -279,6 +281,9 @@ resource be downloaded locally immediately.}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
+\item{ask}{logical(1) Prompt if really want to remove cache and
+files.}
+
 \item{name}{character(1) name of metadata table.}
 
 \item{query}{character() Regular expression pattern(s) to match in
@@ -292,9 +297,6 @@ matching, may only be a single value.}
 
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}
-
-\item{ask}{logical(1) Prompt if really want to remove cache and
-files.}
 
 \item{outputFile}{character(1) The <filepath>/basename for the output
 archive. Please include appropriate extension based on outMethod and any

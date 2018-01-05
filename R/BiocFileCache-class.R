@@ -561,7 +561,7 @@ setMethod("bfcupdate", "missing",
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rids, rname=NULL, rpath=NULL, fpath=NULL,
-             proxy="", config=list())
+             proxy="", config=list(), ask=TRUE)
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -607,10 +607,20 @@ setMethod("bfcupdate", "BiocFileCache",
                     "\n  reason: resource rtype is not 'web'",
                     call.=FALSE)
 
-            .util_download_and_rename(
-                x, rids[i], proxy, config, "bfcupdate()", fpath[i]
-            )
-            .sql_set_fpath(x, rids[i], fpath[i])
+            if (ask){
+                doit <-
+                    .util_ask("Setting a new remote path results in immediate\n",
+                              "  download and overwriting of existing file.\n",
+                              "  Continue:?\n Y/N:")
+            } else {
+                doit <- TRUE
+            }
+            if (doit) {
+                .util_download_and_rename(
+                    x, rids[i], proxy, config, "bfcupdate()", fpath[i]
+                )
+                .sql_set_fpath(x, rids[i], fpath[i])
+            }
         }
     }
 
@@ -931,7 +941,8 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcdownload",
-    function(x, rid, proxy="", config=list()) standardGeneric("bfcdownload"),
+    function(x, rid, proxy="", config=list(), ask=TRUE)
+    standardGeneric("bfcdownload"),
     signature = "x"
 )
 
@@ -939,9 +950,9 @@ setGeneric("bfcdownload",
 #' @aliases bfcdownload,missing-method
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "missing",
-    function(x, rid, proxy="", config=list())
+    function(x, rid, proxy="", config=list(), ask=TRUE)
 {
-    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config)
+    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config, ask=ask)
 })
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
@@ -952,14 +963,23 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="", config=list())
+    function(x, rid, proxy="", config=list(), ask=TRUE)
 {
     stopifnot(!missing(rid), length(rid) == 1L)
     stopifnot(.sql_get_rtype(x, rid) == "web")
     stopifnot(rid %in% bfcrid(x))
 
     .sql_update_time(x, rid)
-    .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
+
+    if (ask && file.exists(.sql_get_rpath(x, rid))){
+        doit <-
+            .util_ask("Redownloading. This will overwrite exisiting file.\n",
+                      "Continue?\n  Y/N:")
+    } else{
+        doit <- TRUE
+    }
+    if (doit)
+        .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
 
     setNames(bfcrpath(x, rids=rid), rid)
 })
