@@ -454,30 +454,30 @@
     rids[which(rtypes == "local")]
 }
 
-.set_relative <-
-    function(bfc, rid, action, verbose)
+.sql_set_relative <-
+    function(bfc, rids, action, verbose)
 {
-    rpath <- .sql_get_rpath(bfc, rid)
-    fileBase <- basename(rpath)
-    newpath <- .sql_file(bfc, fileBase)
-    if (file.exists(newpath))
-        newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
-                         sep="_")
-    switch(
-        action,
-        copy = file.copy(rpath, newpath),
-        move = file.rename(rpath, newpath)
-        )
-    .sql_set_rpath(bfc, rid, basename(newpath))
-    if (identical(.sql_get_rtype(bfc, rid), "local")){
-        if (verbose){
-            message("Updating 'rtype' from local to relative")
+    for(rid in rids){
+        rpath <- .sql_get_rpath(bfc, rid)
+        fileBase <- basename(rpath)
+        newpath <- .sql_file(bfc, fileBase)
+        if (file.exists(newpath))
+            newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
+                             sep="_")
+        switch(
+            action,
+            copy = file.copy(rpath, newpath),
+            move = file.rename(rpath, newpath)
+            )
+        .sql_set_rpath(bfc, rid, basename(newpath))
+        if (identical(.sql_get_rtype(bfc, rid), "local")){
+            if (verbose){
+                message("Updating 'rtype' from local to relative")
+            }
+            .sql_set_rtype(bfc, rid, "relative")
         }
-        .sql_set_rtype(bfc, rid, "relative")
     }
-    TRUE
 }
-
 
 ##
 ## .sql_meta_*

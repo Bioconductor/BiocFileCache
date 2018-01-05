@@ -1,7 +1,7 @@
 #' @import methods
 #' @import httr
 #' @import rappdirs
-#' @importFrom utils tar zip
+#' @importFrom utils tar zip untar unzip
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
     slots=c(cache="character")
@@ -324,7 +324,9 @@ setMethod("bfcadd", "missing",
 #'     Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
 #'     arguments passed to \code{grepl}. For 'exportbfc': Additional arguments
 #'     to the selected outputMethod function. See \code{utils::tar} or
-#'     \code{utils::zip} for more information.
+#'     \code{utils::zip} for more information. For 'importbfc': Additional
+#'     arguments to the selected archiveMethod function. See \code{utils::untar}
+#'     or \code{utils::unzip} for more information.
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -1079,122 +1081,9 @@ setMethod("bfcsync", "BiocFileCache",
 
 
 #' @export
-setGeneric("bfcisportable",
-    function(x, verbose = TRUE) standardGeneric("bfcisportable"),
-    signature = "x")
-
-#' @rdname BiocFileCache-class
-#' @aliases bfcisportable,missing-method
-#' @exportMethod bfcisportable
-setMethod("bfcisportable", "missing", function(x, verbose = TRUE){
-    bfcisportable(x=BiocFileCache(), verbose=verbose)
-})
-
-#' @describeIn BiocFileCache Check if BiocFileCache object is portable
-#' @return For 'bfcisportable': logical() If cache is portable.
-#' @examples
-#' bfcisportable(bfc0)
-#' @aliases bfcisportable
-#' @exportMethod bfcisportable
-setMethod("bfcisportable", "BiocFileCacheBase", function(x, verbose = TRUE){
-
-    ids <- .get_nonrelative_ids(x)
-    idsloc <- .get_local_ids(x)
-
-    if(length(ids) != 0L){
-        if (verbose)
-            message("entries with files not in cache location\n",
-                    "  ", bfccache(x)," :\n",
-                    "  ", paste0("'", ids, "'", collapse=" "))
-    }
-    if(length(idsloc) != 0L){
-        if (verbose)
-            message("entries with rtype = 'local': \n",
-                    "  ", paste0("'", idsloc, "'", collapse=" "))
-    }
-    res <- length(unique(c(ids, idsloc))) == 0
-    return(res)
-})
-
-#' @export
-setGeneric("bfcportable",
-    function(
-        x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE
-    ) standardGeneric("bfcportable"),
-    signature = "x"
-)
-
-#' @rdname BiocFileCache-class
-#' @aliases bfcportable,missing-method
-#' @exportMethod bfcportable
-setMethod("bfcportable", "missing",
-    function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
-{
-    bfcportable(x=BiocFileCache(), rids=rids, action=action, ask=ask,
-                verbose=verbose)
-})
-
-#' @describeIn BiocFileCache Make database and resources portable.  If
-#'     resources are not relative to the \code{bfccache(x)}, options to update
-#'     local file path.
-#' @return For 'bfcportable': updated BiocFileCache object, invisibly
-#' @examples
-#' \dontrun{bfcportable(bfc)}
-#' @aliases bfcportable
-#' @exportMethod bfcportable
-setMethod("bfcportable", "BiocFileCache",
-    function(x, rids, action=c("copy", "move"), ask = TRUE, verbose = TRUE)
-{
-    if (missing(rids))
-        rids <- bfcrid(x)
-
-    action <- match.arg(action)
-
-    bfctemp <- x[rids]
-    pid <- .get_nonrelative_ids(bfctemp)
-    if (length(pid) != 0){
-        if (verbose)
-            message(
-                "entries without file in", bfccache(bfctemp), " :\n",
-                "  ", paste0("'", pid, "'", collapse=" ")
-                )
-        if (ask){
-            doit <- .util_ask(paste(
-                "Permanently change", length(pid), "rpath?\n  Y/N: "))
-        } else {
-            doit <- TRUE
-        }
-        if (doit)
-            res <- vapply(pid, .set_relative, logical(1), bfc=x,
-                          action=action, verbose=verbose)
-    }
-    pid <- .get_local_ids(bfctemp)
-    if (length(pid) != 0){
-        if (verbose)
-            message(
-                "entries identified as rtype='local':\n",
-                "  ", paste0("'", pid, "'", collapse=" ")
-                )
-        if (ask){
-            doit <- .util_ask(paste(
-                "Update ", length(pid),
-                " rpath if necessary to cache location\n",
-                "  and change to rtype='relative'?\n  Y/N: "))
-        } else {
-            doit <- TRUE
-        }
-        if (doit)
-            res <- vapply(pid, .util_rtype_check, logical(1), bfc=x,
-                          ask=FALSE, verbose=verbose)
-    }
-    invisible(x)
-})
-
-
-#' @export
 setGeneric("exportbfc",
-    function(x, rids, dirname = "BiocFileCache",
-             outputFile="ExportBiocFileCache.tar", outputMethod=c("tar","zip"),
+    function(x, rids,
+             outputFile="BiocFileCacheExport.tar", outputMethod=c("tar","zip"),
              verbose=TRUE, ...)
     standardGeneric("exportbfc"),
     signature = "x"
@@ -1204,17 +1093,16 @@ setGeneric("exportbfc",
 #' @aliases exportbfc,missing-method
 #' @exportMethod exportbfc
 setMethod("exportbfc", "missing",
-    function(x, rids, dirname = "BiocFileCache",
-             outputFile="ExportBiocFileCache.tar", outputMethod=c("tar","zip"),
+    function(x, rids,
+             outputFile="BiocFileCacheExport.tar", outputMethod=c("tar","zip"),
              verbose=TRUE, ...)
 {
-    exportbfc(x=BiocFileCache(), rids=rids, dirname=dirname,
+    exportbfc(x=BiocFileCache(), rids=rids,
               outputFile=outputFile, outputMethod=outputMethod,
               verbose=verbose, ...)
 })
 
 #' @describeIn BiocFileCache Create exportable file containing BiocFileCache.
-#' @param dirname character(1) The name of the cache directory being exported.
 #' @param outputFile character(1) The <filepath>/basename for the output
 #' archive. Please include appropriate extension based on outMethod and any
 #' additional parameters selected for \code{utils::tar} or \code{utils::zip}
@@ -1226,8 +1114,8 @@ setMethod("exportbfc", "missing",
 #' @aliases exportbfc
 #' @exportMethod exportbfc
 setMethod("exportbfc", "BiocFileCacheBase",
-    function(x, rids, dirname = "BiocFileCache",
-             outputFile="ExportBiocFileCache.tar", outputMethod=c("tar","zip"),
+    function(x, rids,
+             outputFile="BiocFileCacheExport.tar", outputMethod=c("tar","zip"),
              verbose=TRUE, ...)
 {
     if (missing(rids))
@@ -1238,31 +1126,26 @@ setMethod("exportbfc", "BiocFileCacheBase",
     outputMethod <- match.arg(outputMethod)
     stopifnot(is.logical(verbose), length(verbose) == 1L)
 
-    # kept verbose true because may not expect
-    # ORIGINAL bfc to be checked and possibly altered
-    # if we do this check will alter even if using a subset object?!!!
-    res <- vapply(rids, .util_rtype_check, logical(1),
-                  bfc=x, ask=FALSE, verbose=TRUE)
-
     bfc <- x[rids]
     if (length(bfc) == 0L)
         stop("No valid rids selected")
 
-    dir <- file.path(tempdir(), dirname)
+    dir <- file.path(tempdir(), "BiocFileCacheExport")
     dir.create(dir)
     ids <-  bfcrid(bfc)
 
-    system(paste("cp", .sql_dbfile(x), dir))
+    file.copy(.sql_dbfile(x), dir)
     newbfc <- BiocFileCache(dir)
     idrm <- setdiff(.get_all_rids(newbfc), ids)
-    newbfc <- bfcremove(newbfc, rids=idrm)
+    if (length(idrm) != 0)
+        newbfc <- bfcremove(newbfc, rids=idrm)
 
     res <- vapply(ids, .util_export_file, character(1),
                   bfc=x, dir=dir)
 
     # 'relative' = ok, 'web'= not download
     # 'local' = file not in cache, 'NA' = file not found
-    if (any(res == "web")){
+    if (any(res == "web", na.rm=TRUE)){
         webid <- names(which(res == "web"))
         if (verbose)
             message(paste0("The following are identified as web resources\n",
@@ -1270,7 +1153,7 @@ setMethod("exportbfc", "BiocFileCacheBase",
                            "files will be exported:\n",
                            "  ", paste0("'", webid, "'", collapse=" "), "\n\n"))
     }
-    if (any(res == "local")){
+    if (any(res == "local", na.rm=TRUE)){
         locid <- names(which(res == "local"))
         if (verbose)
             message(paste0("The following are identified as local resources.\n",
@@ -1284,7 +1167,7 @@ setMethod("exportbfc", "BiocFileCacheBase",
                               basename(orig), sep="_")
                 newpath <- file.path(dir, filename)
             }
-            system(paste("cp", orig, newpath))
+            file.copy(orig, newpath)
         }
     }
     if (any(is.na(res))){
@@ -1305,19 +1188,59 @@ setMethod("exportbfc", "BiocFileCacheBase",
 
     # tar/zip up directory
     origdir <- getwd()
+    if (dirname(outputFile) == ".")
+        outputFile = file.path(origdir, outputFile)
     setwd(dirname(dir))
     files = basename(dir)
-    switch(
-        outputMethod,
-        tar = {
-            tar(tarfile=outputFile, files=files, ...)
-        },
-        zip = {
-            zip(zipfile=outputFile, files=files, ...)
-        }
-        )
+
+    archive <- function(outputFile, how = c("tar", "zip"), files, ...) {
+        fun <- switch(how, tar = tar, zip = zip)
+        fun(outputFile, files, ...)
+    }
+
+    archive(outputFile=outputFile, how=outputMethod, files=files, ...)
     setwd(origdir)
+    .util_unlink(dir, recursive=TRUE)
     outputFile
+})
+
+#' @export
+setGeneric("importbfc",
+    function(filename, archiveMethod=c("untar","unzip"),
+             exdir=".", ...)
+    standardGeneric("importbfc"),
+    signature = "filename"
+)
+
+#' @describeIn BiocFileCache Import file created with exportbfc containing
+#' BiocFileCache.
+#' @param filename character(1) The name of the archive.
+#' @param archiveMethod Either 'untar' or 'unzip' for how the directory should
+#' be extracted. Default is 'untar'.
+#' @param exdir Directory to extract files too. See \code{utils::untar} or
+#' \code{utils::unzip} for more details.
+#' @return A BiocFileCache object
+#' @examples
+#' \dontrun{importbfc("ExportBiocFileCache.tar")}
+#' @aliases importbfc
+#' @exportMethod importbfc
+setMethod("importbfc", "character",
+    function(filename, archiveMethod=c("untar","unzip"),
+             exdir=".", ...)
+{
+    exportPath <- file.path(exdir, "BiocFileCacheExport")
+    stopifnot(!dir.exists(exportPath))
+    stopifnot(length(exdir) == 1L, is.character(exdir))
+    stopifnot(length(filename) == 1L, is.character(filename))
+    archiveMethod = match.arg(archiveMethod)
+
+    inflate <- function(filename, how = c("untar", "unzip"), exdir, ...) {
+        fun <- switch(how, untar = untar, unzip = unzip)
+        fun(filename, exdir=exdir, ...)
+    }
+    inflate(filename=filename, how=archiveMethod, exdir=exdir, ...)
+    bfc = BiocFileCache(exportPath)
+    bfc
 })
 
 
