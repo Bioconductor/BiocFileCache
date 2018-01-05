@@ -65,18 +65,17 @@
 \alias{bfcdownload,missing-method}
 \alias{bfcdownload,BiocFileCache-method}
 \alias{bfcdownload}
-\alias{bfcisportable,missing-method}
-\alias{bfcisportable,BiocFileCacheBase-method}
-\alias{bfcisportable}
-\alias{bfcportable,missing-method}
-\alias{bfcportable,BiocFileCache-method}
-\alias{bfcportable}
 \alias{bfcremove,missing-method}
 \alias{bfcremove,BiocFileCache-method}
 \alias{bfcremove}
 \alias{bfcsync,missing-method}
 \alias{bfcsync,BiocFileCache-method}
 \alias{bfcsync}
+\alias{exportbfc,missing-method}
+\alias{exportbfc,BiocFileCacheBase-method}
+\alias{exportbfc}
+\alias{importbfc,character-method}
+\alias{importbfc}
 \alias{cleanbfc,missing-method}
 \alias{cleanbfc,BiocFileCache-method}
 \alias{cleanbfc}
@@ -189,16 +188,6 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list())
 
-\S4method{bfcisportable}{missing}(x, verbose = TRUE)
-
-\S4method{bfcisportable}{BiocFileCacheBase}(x, verbose = TRUE)
-
-\S4method{bfcportable}{missing}(x, rids, action = c("copy", "move"),
-  ask = TRUE, verbose = TRUE)
-
-\S4method{bfcportable}{BiocFileCache}(x, rids, action = c("copy", "move"),
-  ask = TRUE, verbose = TRUE)
-
 \S4method{bfcremove}{missing}(x, rids)
 
 \S4method{bfcremove}{BiocFileCache}(x, rids)
@@ -206,6 +195,16 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcsync}{missing}(x, verbose = TRUE, ask = TRUE)
 
 \S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE, ask = TRUE)
+
+\S4method{exportbfc}{missing}(x, rids, outputFile = "BiocFileCacheExport.tar",
+  outputMethod = c("tar", "zip"), verbose = TRUE, ...)
+
+\S4method{exportbfc}{BiocFileCacheBase}(x, rids,
+  outputFile = "BiocFileCacheExport.tar", outputMethod = c("tar", "zip"),
+  verbose = TRUE, ...)
+
+\S4method{importbfc}{character}(filename, archiveMethod = c("untar", "unzip"),
+  exdir = ".", ...)
 
 \S4method{cleanbfc}{missing}(x, days = 120, ask = TRUE)
 
@@ -231,7 +230,11 @@ of \code{BiocFileCache()}.}
 \item{...}{For 'bfcadd': For \code{action="copy"}, additional
 arguments passed to \code{file.copy}. For 'bfcrpaths':
 Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
-arguments passed to \code{grepl}.}
+arguments passed to \code{grepl}. For 'exportbfc': Additional arguments
+to the selected outputMethod function. See \code{utils::tar} or
+\code{utils::zip} for more information. For 'importbfc': Additional
+arguments to the selected archiveMethod function. See \code{utils::untar}
+or \code{utils::unzip} for more information.}
 
 \item{drop}{Ignored.}
 
@@ -292,6 +295,21 @@ should be included as output.}
 
 \item{ask}{logical(1) Prompt if really want to remove cache and
 files.}
+
+\item{outputFile}{character(1) The <filepath>/basename for the output
+archive. Please include appropriate extension based on outMethod and any
+additional parameters selected for \code{utils::tar} or \code{utils::zip}}
+
+\item{outputMethod}{Either 'tar' or 'zip' for how the directory should
+be archived. Default is 'tar'.}
+
+\item{filename}{character(1) The name of the archive.}
+
+\item{archiveMethod}{Either 'untar' or 'unzip' for how the directory should
+be extracted. Default is 'untar'.}
+
+\item{exdir}{Directory to extract files too. See \code{utils::untar} or
+\code{utils::unzip} for more details.}
 
 \item{days}{integer(1) Number of days between accessDate and
 currentDate; if exceeded entry will be deleted.}
@@ -367,15 +385,15 @@ For 'bfcneedsupdate': named logical vector if resource
 For 'bfcdownload': character(1) path to downloaded resource
     in cache.
 
-For 'bfcisportable': logical() If cache is portable.
-
-For 'bfcportable': updated BiocFileCache object, invisibly
-
 For 'bfcremove': updated BiocFileCache object, invisibly
 
 For 'bfcsync': logical(1) indicating whether the cache is
     in sync (\code{TRUE}) or not. 'verbose' is TRUE by default, so
     descriptive messages will also be included.
+
+character(1) The outputFile path.
+
+A BiocFileCache object
 
 For 'cleanbfc': updated BiocFileCache, invisibly.
 
@@ -484,18 +502,17 @@ cache or query.
 
 \item \code{bfcdownload}: Redownload resource to location in cache
 
-\item \code{bfcisportable}: Check if BiocFileCache object is portable
-
-\item \code{bfcportable}: Make database and resources portable.  If
-resources are not relative to the \code{bfccache(x)}, options to update
-local file path.
-
 \item \code{bfcremove}: Remove a resource to the database.  If
 the local file is located in \code{bfccache(x)}, the file will
 also be deleted. This will not delete information in any metadata
 table.
 
 \item \code{bfcsync}: sync cache and resource.
+
+\item \code{exportbfc}: Create exportable file containing BiocFileCache.
+
+\item \code{importbfc}: Import file created with exportbfc containing
+BiocFileCache.
 
 \item \code{cleanbfc}: Remove old/unused files in
 BiocFileCache. If file to be removed is not in the bfccache
@@ -553,12 +570,13 @@ bfccount(bfc0)
 bfccount(bfcquery(bfc0, "test"))
 bfcneedsupdate(bfc0, "BFC5")
 bfcdownload(bfc0, "BFC5")
-bfcisportable(bfc0)
 bfcremove(bfc0, rid3)
 bfcinfo(bfc0)
 bfcsync(bfc0)
 bfcremove(bfc0, "BFC1")
 bfcsync(bfc0, FALSE)
+\dontrun{exportbfc(bfc)}
+\dontrun{importbfc("ExportBiocFileCache.tar")}
 \dontrun{cleanbfc(bfc, ask=FALSE)}
 \dontrun{removebfc(bfc, ask=FALSE)}
 }

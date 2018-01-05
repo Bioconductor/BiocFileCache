@@ -384,32 +384,58 @@ test_that("bfcneedsupdate works", {
 
 })
 
-test_that("bfcisportable, bfcportable, and helpers works",{
-
-    expect_identical(length(BiocFileCache:::.get_local_ids(bfc)), 2L)
-    expect_identical(BiocFileCache:::.get_local_ids(bfc), c(rid1, rid2))
-    expect_identical(length(BiocFileCache:::.get_nonrelative_ids(bfc)), 1L)
-    expect_identical(BiocFileCache:::.get_nonrelative_ids(bfc), rid1)
-    fltemp <- file.path(dirname(tempdir()), "tempFile"); file.create(fltemp)
-    addtemp <- bfcadd(bfc, "temp", fltemp, rtype="local", action="asis")
-    ridtemp <- names(addtemp)
-    expect_identical(.sql_get_rtype(bfc, ridtemp), "local")
-    expect_identical(length(BiocFileCache:::.get_local_ids(bfc)), 3L)
-    expect_identical(BiocFileCache:::.get_local_ids(bfc), c(rid1, rid2,ridtemp))
-    expect_false(bfcisportable(bfc, verbose=FALSE))
-    sub1 = bfc[c(rid3, rid4, rid5)]
-    expect_true(bfcisportable(sub1, verbose=FALSE))
-    sub2 = bfc[c(rid2, rid3, rid4)]
-    expect_false(bfcisportable(sub2, verbose=FALSE))
-    bfcportable(bfc, ask=FALSE, verbose=FALSE)
-    expect_true(bfcisportable(bfc))
-    expect_identical(.sql_get_rtype(bfc, ridtemp), "relative")
-    BiocFileCache:::.sql_set_fpath(bfc, ridtemp, "http://httpbin.org/get")
-    temp <- BiocFileCache:::.util_rtype_check(bfc, ridtemp, FALSE, FALSE)
-    expect_identical(.sql_get_rtype(bfc, ridtemp), "web")
-})
-
 removebfc(bfc, ask=FALSE)
+
+test_that("exportbfc and importbfc works",{
+
+    bfc <- BiocFileCache(tempfile())
+    fl <- tempfile(); file.create(fl)
+    add1 <- bfcadd(bfc, 'relative', fl)
+    rid1 <- names(add1)
+    add2 <- bfcadd(bfc, 'local', fl, rtype='local', action='asis')
+    rid2 <- names(add2)
+    url <- "http://httpbin.org/get"
+    add3 <- bfcadd(bfc, 'web', url, rtype="web")
+    rid3 <- names(add3)
+    path <- bfcnew(bfc, 'notfound')
+    rid4 <- names(path)
+    url <- "http://httpbin.org/get"
+    add5 <- bfcadd(bfc, 'webno', url, rtype="web", download=FALSE)
+    rid5 <- names(add5)
+
+    dirloc <- dirname(bfccache(bfc))
+    temploc <- file.path(dirloc, "ExportTest")
+    dir.create(temploc)
+    ids <- bfcrid(bfc)
+    res <- vapply(ids, .util_export_file, character(1),
+                  bfc=bfc, dir=temploc)
+    expect_identical(length(list.files(temploc)), 2L)
+    expect_identical(unname(res),
+                     c("relative", "local", "relative", NA_character_, "web"))
+    unlink(temploc, recursive=TRUE)
+    expect_false(file.exists(file.path(dirloc, "BFCExport.tar")))
+    file <- exportbfc(bfc, outputFile=file.path(dirloc, "BFCExport.tar"),
+                               verbose=FALSE)
+    expect_true(file.exists(file.path(dirloc, "BFCExport.tar")))
+    expect_false(dir.exists("BiocFileCacheExport"))
+    bfc2 <- importbfc(file, exdir=dirloc)
+    expect_true(dir.exists(file.path(dirloc,"BiocFileCacheExport")))
+    expect_identical(bfccount(bfc2), 4L)
+    locpath <- file.path(dirloc, "BiocFileCacheExport")
+    expect_true(file.exists(file.path(locpath,"BiocFileCache.sqlite")))
+    expect_identical(length(list.files(locpath)), 4L)
+    sub <- bfc[c(rid1,rid2)]
+    unlink(locpath, recursive=TRUE)
+    file.remove(file)
+    file <- exportbfc(sub, outputFile=file.path(dirloc, "SubExport.zip"),
+                      verbose=FALSE, outputMethod="zip")
+    expect_true(file.exists(file.path(dirloc, "SubExport.zip")))
+    bfc3 <- importbfc(file, exdir=dirloc, archiveMethod="unzip")
+    expect_identical(bfccount(bfc3), 2L)
+    unlink(locpath, recursive=TRUE)
+    file.remove(file)
+    removebfc(bfc, ask=FALSE)
+})
 
 test_that("bfcsync and bfcremove works", {
 
