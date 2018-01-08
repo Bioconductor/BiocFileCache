@@ -47,7 +47,8 @@ library(BiocFileCache)
 The initial step to utilizing [BiocFileCache][] in managing files is to create a
 cache object specifying a location. We will create a temporary directory for use
 with examples in this vignette. If a path is not specified upon creation, the
-default location is a directory `~/.BiocFileCache`.
+default location is a directory `~/.BiocFileCache` in the typical user cache
+directory.
 
 ```{r}
 path <- file.path(tempdir(), "tempCacheDir")
@@ -55,7 +56,10 @@ bfc <- BiocFileCache(path)
 ```
 
 If the path location exists and has been utilized to store files previously, the
-previous object will be loaded with any files saved to the cache.
+previous object will be loaded with any files saved to the cache. If the path
+location does not exist the user will be prompted to create the new directory.
+If the session is not interactive to promt the user or the user decides not to
+create the directory a temporary directory will be used.
 
 Some utility functions to examine the cache are:
 
@@ -106,7 +110,8 @@ The table of resource files includes the following information:
  * `last_modified_time`: For a remote resource, the last_modified (if available)
    information for the local copy of the data. This information is checked
    against the remote resource to determine if the local copy is stale and needs
-   to be updated.
+   to be updated. If it is not available or your resource is not a remote
+   resource, the last modified time will be marked as NA.
 
 Now that we have created the cache object and location, let's explore adding
 files that the cache will manage!
@@ -154,10 +159,12 @@ it is on the local system yet still track through the cache object `asis`. copy
 and move will rename the file to the generated cache file path. If the `fpath`
 is a remote source, the source will try to be downloaded, if it is successful it
 will save in the cache location and track in the cache object; The original
-source will be added to the cache information as `fpath`. Relative path
-locations may also be used, specified with `rtype = "relative"`. This will
-store a relative location for the file within the cache; only actions `copy`
-and `move` are available for relative paths.
+source will be added to the cache information as `fpath`. If the user does not
+want the remote resource to be downloaded initially, the argument
+`download=FALSE` may be used to delay the download but add the resource to the
+cache. Relative path locations may also be used, specified with
+`rtype = "relative"`. This will store a relative location for the file within
+the cache; only actions `copy` and `move` are available for relative paths.
 
 First let's use local files:
 
@@ -194,6 +201,9 @@ url2<- "https://en.wikipedia.org/wiki/Bioconductor"
 add6 <- bfcadd(bfc, "TestWeb", fpath=url2)
 rid6 <- names(add6)
 
+# add a remote resource but don't initially download
+add7 <- bfcadd(bfc, "TestNoDweb", fpath=url2, download=FALSE)
+rid7 <- names(add7)
 # let's look at our BiocFileCache object now
 bfc
 bfcinfo(bfc)
@@ -212,7 +222,8 @@ that you have added some time ago.
  * `bfcquery()`
 
 `bfcquery()` will take in a key word and search across the `rname`, `rpath`, and
-`fpath` for any matching entries.
+`fpath` for any matching entries. The columns that are searched can be
+controlled with the argument `field`.
 
 ```{r}
 bfcquery(bfc, "Web")
@@ -283,7 +294,8 @@ of the data.
 `bfcneedsupdate()` is a method that will check the local copy of the data's
 last_modified tag to the last_modified tag of the remote source. The cache saves
 this information when the web resource is initially added. If the resource does
-not have a last_modified tag, it is undetermined.
+not have a last_modified tag, it is undetermined. If the resource has not been
+download yet, it is `TRUE`.
 
 **Note:** This function does not automatically download the remote source if it
   is out of date.  Please see `bfcdownload()`.
@@ -320,8 +332,9 @@ resource in addition to the `rpath`. This can be done with
  * `bfcupdate()`
 
 Again, if changing the `rpath` the file must exist. If a `fpath` is being
-updated, the data will be downloaded and overwrite the current file specified in
-`rpath`.
+updated, the data will be downloaded and the user will be prompted to overwrite
+the current file specified in `rpath`. If the user does not want to be prompted
+about overwritting of files, `ask=FALSE` may be used.
 
 ```{r}
 bfcinfo(bfc, "BFC1")
@@ -334,7 +347,7 @@ Now let's update a web resource
 ```{r}
 library(dplyr)
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
-bfcupdate(bfc, "BFC6", fpath=url, rname="Duplicate")
+bfcupdate(bfc, "BFC6", fpath=url, rname="Duplicate", ask=FALSE)
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 ```
 
@@ -351,7 +364,7 @@ The following confirms that resources need updating, and the performs the update
 rid <- "BFC5"
 test <- !identical(bfcneedsupdate(bfc, rid), FALSE) # 'TRUE' or 'NA'
 if (test)
-    bfcdownload(bfc, rid)
+    bfcdownload(bfc, rid, ask=FALSE)
 ```
 
 ## Adding MetaData
@@ -363,13 +376,13 @@ The following functions are provided for metadata:
  * `bfcmetalist()`
  * `bfcmetaremove()`
 
-Additional metadata can be added as `data.frames` that become tables in the sql 
+Additional metadata can be added as `data.frames` that become tables in the sql
 database. The `data.frame` must contain a column `rid` that matches the `rid`
-column in the cache. Any metadata added will then be displayed when accessing 
+column in the cache. Any metadata added will then be displayed when accessing
 the cache. Metadata is added with `bfcmeta()<-`. A table `name` must be provided
-as an argument. Users can add multiple metadata tables as long as the names are 
-unique. Tables may be appended or overwritten using additional arguments 
-`append=TRUE` or `overwrite=TRUE`.  
+as an argument. Users can add multiple metadata tables as long as the names are
+unique. Tables may be appended or overwritten using additional arguments
+`append=TRUE` or `overwrite=TRUE`.
 
 ```{r}
 names(bfcinfo(bfc))
@@ -377,8 +390,8 @@ meta <- as.data.frame(list(rid=bfcrid(bfc)[1:3], idx=1:3))
 bfcmeta(bfc, name="resourceData") <- meta
 names(bfcinfo(bfc))
 ```
-The metadata tables that exist can be listed with `bfcmetalist()` and can be 
-retrieved with `bfcmeta()`. 
+The metadata tables that exist can be listed with `bfcmetalist()` and can be
+retrieved with `bfcmeta()`.
 
 ```{r}
 bfcmetalist(bfc)
@@ -391,18 +404,18 @@ Lastly, metadata can be removed with `bfcmetaremove()`.
 bfcmetaremove(bfc, name="resourceData")
 ```
 
-**Note:** 
+**Note:**
 
 While quick implementations of all the functions exist where if you
 don't specify a BiocFileCache object it will operate on `BiocFileCache()`,
 this option is not available for `bfcmeta()<-`. This function must always
 specify a BiocFileCache object by first defining a variable and then passing
-that variable into the function. 
+that variable into the function.
 
 Example of ERROR:
 ```{r eval=FALSE}
 bfcmeta(name="resourceData") <- meta
-Error in bfcmeta(name = "resourceData") <- meta : 
+Error in bfcmeta(name = "resourceData") <- meta :
   target of assignment expands to non-language object
 ```
 Correct implementation:
@@ -464,6 +477,59 @@ bfcremove(bfc, rmMe)
 unlink(fileBeingReplaced)
 
 bfcsync(bfc)
+```
+
+## Exporting and Importing Cache
+
+There is a helper function to export a BiocFileCache and associated files as a
+tar or zip archive as well as the appropriate import function.
+
+ * `exportbfc()`
+ * `importbfc()`
+
+The `exportbfc` function will take in a BiocFileCache object or subsetted object
+and create a tar or zip archive that can then be shared to other collaborators
+on different computer systems. The user can choose where the archive is created
+with `outputFile`; the current working directory and the name
+`BiocFileCacheExport.tar` is used as default. By default a tar archive is
+created, but the user can create a zip archive instead using the argument
+`outputMethod="zip"`. Any additional argument to the `utils::zip` or
+`utils::tar` may also be utilized.
+
+The following are some example calls:
+```{r eval=FALSE}
+# export entire biocfilecache
+exportbfc(bfc)
+
+# export the first 4 entries of biocfilecache
+# as a compressed tar
+exportbfc(bfc, rids=paste0("BFC", 1:4),
+	  outputFile="BiocFileCacheExport.tar.gz", compression="gzip")
+
+# export the subsetted object of web resources as zip
+sub1 <- bfc[bfcrid(bfcquery(bfc, "web", field='rtype'))]
+exportbfc(sub1, outputFile = "BiocFileCacheExportWeb.zip",
+	  outMethod="zip")
+```
+
+The archive once inflated on a users system will have a fully functional copy of
+the sent cache. The archive can be extracted manually and the path used in the
+constructor `BiocFileCache()` or for convenience the function `importbfc` may be
+utilized. The `importbfc` function takes in a path to the appropriate tar or zip
+file, the argument `archiveMethod` indicating if `untar` or `unzip` should be
+used (the default is untar), a path to where the archive should be extracted to
+as `exdir`, and any additional arguments to the `utils::untar` and
+`utils::unzip` methods. The function will extract the files and load the
+associated BiocFileCache object into the R session.
+
+The following are example calls to load the above example exported objects:
+```{r eval=FALSE}
+
+bfc <- importbfc("BiocFileCacheExport.tar")
+
+bfc2 <- importbfc("BiocFileCacheExport.tar.gz", compression="gzip")
+
+bfc3 <- importbfc("BiocFileCacheExportWeb.zip", archiveMethod="unzip")
 ```
 
 ## Cleaning or Removing Cache
