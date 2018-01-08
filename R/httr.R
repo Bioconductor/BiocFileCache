@@ -14,6 +14,22 @@
     })
 }
 
+.httr_get_etag <-
+    function(link)
+{
+    response = withCallingHandlers({
+        HEAD(link)
+    }, warning = function(w) {
+        invokeRestart("muffleWarning")
+    })
+
+    tryCatch({
+        gsub("\"", "",
+             as.character(cache_info(response)$etag))
+    },  error = function(err) {
+        NA
+    })
+}
 
 #' @importFrom utils packageVersion
 .httr_download <-

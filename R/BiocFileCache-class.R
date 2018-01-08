@@ -272,6 +272,7 @@ setMethod("bfcnew", "BiocFileCache",
 
     rid <- .sql_new_resource(x, rname, rtype, NA_character_, ext)
     .sql_set_last_modified(x, rid, NA_character_)
+    .sql_set_etag(x, rid, NA_character_)
     rpath <- .sql_get_rpath(x, rid)
     setNames(rpath, rid)
 })
@@ -365,6 +366,7 @@ setMethod("bfcadd", "BiocFileCache",
 
     rid <- .sql_new_resource(x, rname, rtype, fpath)
     .sql_set_last_modified(x, rid, NA_character_)
+    .sql_set_etag(x, rid, NA_character_)
     rpath <- bfcrpath(x, rids = rid)
     if (rtype %in% c("local", "relative")) {
         switch(
@@ -904,11 +906,13 @@ setMethod("bfcneedsupdate", "missing",
 #' @describeIn BiocFileCache check if a resource needs to be updated
 #' @return For 'bfcneedsupdate': named logical vector if resource
 #'     needs to be updated. The name is the resource
-#'     'rid'. \code{TRUE}: fpath \code{modified} time of web resource
-#'     more recent than in BiocFileCache; \code{FALSE}: fpath
-#'     \code{modified} time of web resource not more recent than in
-#'     BiocFileCache; \code{NA}: web resource modified time could not
-#'     be determined.
+#'     'rid'. \code{TRUE}: fpath \code{etag} or \code{modified} time of
+#'     web resource more recent than in BiocFileCache; \code{FALSE}: fpath
+#'     \code{etag} or \code{modified} time of web resource not more recent
+#'     than in BiocFileCache; \code{NA}: web resource etag and modified time
+#'     could not be determined. If the etag is available the function will use
+#'     that information definitively and only compare last modified time if
+#'     etag is not available.
 #' @examples
 #' bfcneedsupdate(bfc0, "BFC5")
 #' @aliases bfcneedsupdate
@@ -927,12 +931,28 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         file_time <- .sql_get_last_modified(x, rid)
         fpath <- .sql_get_fpath(x, rid)
         web_time <- .httr_get_last_modified(fpath)
-        if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
-            NA
+        file_etag <-  .sql_get_etag(x, rid)
+        web_etag <- .httr_get_etag(fpath)
+
+        checkTime <- FALSE
+        if ((length(file_etag) == 0L) || (length(web_etag) == 0L)
+            || is.na(file_etag)) {
+            checkTime <- TRUE
         } else {
-            as.Date(web_time, optional=TRUE) > as.Date(file_time, optional=TRUE)
+            res <- !identical(file_etag, web_etag)
         }
+
+        if (checkTime){
+            if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
+                res <- NA
+            } else {
+                res <- as.Date(web_time, optional=TRUE) >
+                    as.Date(file_time, optional=TRUE)
+            }
+        }
+        res
     } # end helper
+
     result <- vapply(rids, helper, logical(1), x=x)
     # if web resources hasn't been locally downloaded yet
     result[rids %in% .get_rid_filenotfound(x)] = TRUE

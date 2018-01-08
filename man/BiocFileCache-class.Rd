@@ -378,11 +378,13 @@ For 'bfccount': integer(1) Number of objects in the cache
 
 For 'bfcneedsupdate': named logical vector if resource
     needs to be updated. The name is the resource
-    'rid'. \code{TRUE}: fpath \code{modified} time of web resource
-    more recent than in BiocFileCache; \code{FALSE}: fpath
-    \code{modified} time of web resource not more recent than in
-    BiocFileCache; \code{NA}: web resource modified time could not
-    be determined.
+    'rid'. \code{TRUE}: fpath \code{etag} or \code{modified} time of
+    web resource more recent than in BiocFileCache; \code{FALSE}: fpath
+    \code{etag} or \code{modified} time of web resource not more recent
+    than in BiocFileCache; \code{NA}: web resource etag and modified time
+    could not be determined. If the etag is available the function will use
+    that information definitively and only compare last modified time if
+    etag is not available.
 
 For 'bfcdownload': character(1) path to downloaded resource
     in cache.

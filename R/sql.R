@@ -81,7 +81,8 @@
             "  1. Web Resource 'rpath' stored as relative path\n",
             "  2. Default last_modified time for\n",
             "     local/relative/nondownloaded/last_modified_notfound\n",
-            "     resources is NA not Sys.Date\n")
+            "     resources is NA not Sys.Date\n",
+            "  3. Added etag to schema\n")
     doit <- .util_ask("Update current BiocFileCache to be consistent with\n",
                       "  schema_version: ", .CURRENT_SCHEMA_VERSION, "\n",
                       "  This will be a permanent change but only necessary once.\n",
@@ -92,46 +93,57 @@
         return()
     }
 
+    firstUpdate <- FALSE
+    if (mdata[mdata$key=="schema_version",2] == "0.99.1")
+        firstUpdate <- TRUE
+
+    if (firstUpdate){
     # truncate rpaths of all web resources
-    wid <- .get_all_web_rids(bfc)
-    badpaths <- bfcrpath(bfc, rids=wid)
-    pattern <- paste0(bfccache(bfc),"/", bfccache(bfc),"/")
-    check <- startsWith(badpaths, pattern)
-    if (any(!check)){
-        ids <- wid[!check]
-        filenames <- basename(badpaths[!check])
-        warning("Some web resources do not currently have rpath in cache.\n",
-                "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
-                "  These resources will now be considered rtype='local'")
-        for(i in seq_along(ids)){
-            .sql_set_rtype(bfc, ids[i], "local")
+        wid <- .get_all_web_rids(bfc)
+        badpaths <- bfcrpath(bfc, rids=wid)
+        pattern <- paste0(bfccache(bfc),"/", bfccache(bfc),"/")
+        check <- startsWith(badpaths, pattern)
+        if (any(!check)){
+            ids <- wid[!check]
+            filenames <- basename(badpaths[!check])
+            warning("Some web resources do not currently have rpath in cache.\n",
+                    "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
+                    "  These resources will now be considered rtype='local'")
+            for(i in seq_along(ids)){
+                .sql_set_rtype(bfc, ids[i], "local")
+            }
         }
-    }
-    wid <- wid[check]
-    badpaths <- badpaths[check]
-    newpaths <- gsub(badpaths, pattern=pattern, replacement="")
-    message("Updating rpath for the following web resources:\n",
-            "  ", paste0("'", wid, "'", collapse=" "))
-    for(i in seq_along(wid)){
-        .sql_set_rpath(bfc, wid[i], newpaths[i])
-    }
+        wid <- wid[check]
+        badpaths <- badpaths[check]
+        newpaths <- gsub(badpaths, pattern=pattern, replacement="")
+        message("Updating rpath for the following web resources:\n",
+                "  ", paste0("'", wid, "'", collapse=" "))
+        for(i in seq_along(wid)){
+            .sql_set_rpath(bfc, wid[i], newpaths[i])
+        }
 
     # change local/relative lmt to NA
-    nonweb <- setdiff(.get_all_rids(bfc), wid)
-    if (length(nonweb) != 0){
-        message("Updating last modified time for the following non web resources:\n",
-                "  ", paste0("'", nonweb, "'", collapse=" "))
-        for(i in seq_along(nonweb)){
-            .sql_set_last_modified(bfc, nonweb[i], NA_character_)
+        nonweb <- setdiff(.get_all_rids(bfc), wid)
+        if (length(nonweb) != 0){
+            message("Updating last modified time for the following\n",
+                    "  non web resources:\n",
+                    "  ", paste0("'", nonweb, "'", collapse=" "))
+            for(i in seq_along(nonweb)){
+                .sql_set_last_modified(bfc, nonweb[i], NA_character_)
+            }
+        }
+    # check last_modified of all web
+        for(i in seq_along(wid)){
+            fpath <- .sql_get_fpath(bfc, wid[i])
+            check_time <- .httr_get_last_modified(fpath)
+            if (is.na(check_time) || (length(check_time) == 0))
+                .sql_set_last_modified(bfc, wid[i], NA_character_)
         }
     }
-    # check last_modified of all web
-    for(i in seq_along(wid)){
-        fpath <- .sql_get_fpath(bfc, wid[i])
-        check_time <- .httr_get_last_modified(fpath)
-        if (is.na(check_time) || (length(check_time) == 0))
-            .sql_set_last_modified(bfc, wid[i], NA_character_)
-    }
+
+    # add new column for etag
+    sql <- "ALTER TABLE resource ADD etag TEXT;"
+    res <- .sql_db_execute(bfc, sql)
 
     # update metadata table for package version and schema
     sql <- paste0("update metadata set value = '",
@@ -396,6 +408,21 @@
     sql <- .sql_cmd("-- UPDATE_MODIFIED")
     .sql_db_execute(
         bfc, sql, rid = rid, last_modified_time = last_modified_time
+    )
+}
+
+.sql_get_etag <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "etag")
+}
+
+.sql_set_etag <-
+    function(bfc, rid, etag)
+{
+    sql <- .sql_cmd("-- UPDATE_ETAG")
+    .sql_db_execute(
+        bfc, sql, rid = rid, etag = etag
     )
 }
 

@@ -1,14 +1,14 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
 
-.CURRENT_SCHEMA_VERSION <- "0.99.2"
+.CURRENT_SCHEMA_VERSION <- "0.99.3"
 
-.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.1", "0.99.2")
+.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.1", "0.99.2", "0.99.3")
 
 .RESERVED <- list(                       # dynamically, in .onLoad?
     TABLES = c("metadata", "resource", "sqlite_sequence"),
     COLUMNS = c(
         "id", "rname", "create_time", "access_time", "rpath", "rtype",
-        "fpath", "last_modified_time"
+        "fpath", "last_modified_time", "etag"
     )
 )
 
@@ -83,6 +83,17 @@
     bfc
 }
 
+.util_set_etag <-
+    function(bfc, rid, fpath = .sql_get_fpath(bfc, rid))
+{
+    web_etag <- .httr_get_etag(fpath)
+    if (length(web_etag) == 0L)
+        web_etag <- NA_character_
+    .sql_set_etag(bfc, rid, web_etag)
+
+    bfc
+}
+
 .util_download <-
     function(bfc, rid, proxy, config, call)
 {
@@ -101,6 +112,7 @@
     }
 
     .util_set_last_modified(bfc, rid)
+    .util_set_etag(bfc, rid)
 }
 
 .util_download_and_rename <-
@@ -132,6 +144,7 @@
         )
 
     .util_set_last_modified(bfc, rid, fpath)
+    .util_set_etag(bfc, rid, fpath)
 }
 
 .util_export_file <-

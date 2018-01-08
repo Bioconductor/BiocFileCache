@@ -122,11 +122,11 @@ rid5 <- names(add5)
 test_that("bfcinfo works", {
     # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
-                     c(5L, 8L))
+                     c(5L, 9L))
     expect_is(bfcinfo(bfc), "tbl_df")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
-                     c(3L, 8L))
+                     c(3L, 9L))
     # print one found and one not found
     expect_error(bfcinfo(bfc, c(1, 6)))
 
@@ -326,7 +326,7 @@ test_that("bfcquery and bfccount works", {
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
     expect_identical(dim(q2)[1], 2L)
     q2b <- as.data.frame(bfcquery(bfc, "wiki", field="fpath"))
-    expect_true(all(q2 == q2b))
+    expect_true(all(q2 == q2b, na.rm=TRUE))
 
     # query not found
     expect_identical(bfccount(bfcquery(bfc, "nothere")), 0L)
@@ -381,6 +381,24 @@ test_that("bfcneedsupdate works", {
 
     # test non downloaded is TRUE
     expect_true(bfcneedsupdate(bfc, rid5))
+
+    # test etag available and check order
+    link = "https://www.wikipedia.org/"
+    bfcupdate(bfc, rid3, fpath=link, ask=FALSE)
+    expect_identical(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time,
+                     .httr_get_last_modified(link))
+    expect_identical(as.data.frame(bfcinfo(bfc,rid3))$etag,
+                     .httr_get_etag(link))
+    expect_true(!is.na(bfcneedsupdate(bfc, rid3)))
+    expect_true(!is.na(as.data.frame(bfcinfo(bfc,rid3))$etag))
+    expect_false(bfcneedsupdate(bfc, rid3))
+    .sql_set_etag(bfc, rid3, "somethingElse")
+    expect_true(bfcneedsupdate(bfc, rid3))
+    .sql_set_etag(bfc, rid3, NA_character_)
+    expect_false(bfcneedsupdate(bfc, rid3))
+    .sql_set_last_modified(bfc, rid3,
+                  as.character(as.Date(.sql_get_last_modified(bfc, rid3)) - 1))
+    expect_true(bfcneedsupdate(bfc, rid3))
 
 })
 

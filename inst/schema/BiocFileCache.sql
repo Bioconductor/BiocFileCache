@@ -20,7 +20,8 @@ CREATE TABLE resource (
     rpath TEXT,
     rtype TEXT,
     fpath TEXT,
-    last_modified_time DATETIME DEFAULT NA
+    last_modified_time DATETIME DEFAULT NA,
+    etag TEXT DEFAULT NA
 );
 -- INSERT
 INSERT INTO resource (
@@ -53,4 +54,8 @@ WHERE rid = :rid;
 -- UPDATE_FPATH
 UPDATE resource
 SET fpath = :fpath, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rid;
+-- UPDATE_ETAG
+UPDATE resource
+SET etag  = :etag, access_time = CURRENT_TIMESTAMP
 WHERE rid = :rid;

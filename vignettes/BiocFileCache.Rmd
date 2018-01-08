@@ -292,10 +292,12 @@ of the data.
  * `bfcneedsupdate()`
 
 `bfcneedsupdate()` is a method that will check the local copy of the data's
-last_modified tag to the last_modified tag of the remote source. The cache saves
-this information when the web resource is initially added. If the resource does
-not have a last_modified tag, it is undetermined. If the resource has not been
-download yet, it is `TRUE`.
+etag and last_modifed time to the etag and last_modified time of the remote
+resource. The cache saves this information when the web resource is initially
+added. The etag information is used definitively if it is available, if it is
+not available it checks the last_modified time. If the resource does
+not have a last_modified tag either, it is undetermined. If the resource has
+not been download yet, it is `TRUE`.
 
 **Note:** This function does not automatically download the remote source if it
   is out of date.  Please see `bfcdownload()`.
