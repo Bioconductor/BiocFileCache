@@ -82,10 +82,17 @@
 BiocFileCache <-
     function(cache=user_cache_dir(appname="BiocFileCache"))
 {
+
     stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
 
     if (!file.exists(cache)){
-        ans <- .util_ask(cache, "\n  does not exist, create directory? Y/N: ")
+        if(!.biocfilecache_flags$get_create_asked() || !missing(cache)){
+            ans <- .util_ask(cache,
+                             "\n  does not exist, create directory? Y/N: ")
+            if (missing(cache)) .biocfilecache_flags$set_create_asked()
+        } else {
+            ans <- FALSE
+        }
         if (ans){
             dir.create(cache)
         } else {

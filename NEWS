@@ -21,6 +21,7 @@ SCHEMA CHANGE
 
 USER-VISIBLE CHANGES
 
+    o (v. 1.3.22) prompt user only once when using default cache
     o (v. 1.3.17) prompt user when overwriting exisiting file
     o (v. 1.3.16) add importbfc to extract output of exportbfc and load bfc object
     o (v. 1.3.16) added exportbfc to export bfc or subset of bfc

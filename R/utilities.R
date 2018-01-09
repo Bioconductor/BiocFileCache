@@ -14,10 +14,15 @@
 
 .biocfilecache_flags <- local({
     update_asked <- FALSE
+    create_asked <- FALSE
     list(get_update_asked = function() {
         update_asked
     }, set_update_asked = function() {
         update_asked <<- TRUE
+    }, get_create_asked = function() {
+        create_asked
+    }, set_create_asked = function() {
+        create_asked <<- TRUE
     })
 })
 
