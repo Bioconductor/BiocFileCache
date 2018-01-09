@@ -72,25 +72,12 @@
     status
 }
 
-.util_set_last_modified <-
+.util_set_cache_info <-
     function(bfc, rid, fpath = .sql_get_fpath(bfc, rid))
 {
-    web_time <- .httr_get_last_modified(fpath)
-    if (length(web_time) == 0L)
-        web_time <- NA_character_
-    .sql_set_last_modified(bfc, rid, web_time)
-
-    bfc
-}
-
-.util_set_etag <-
-    function(bfc, rid, fpath = .sql_get_fpath(bfc, rid))
-{
-    web_etag <- .httr_get_etag(fpath)
-    if (length(web_etag) == 0L)
-        web_etag <- NA_character_
-    .sql_set_etag(bfc, rid, web_etag)
-
+    cache_info <- .httr_get_cache_info(fpath)
+    .sql_set_last_modified(bfc, rid, cache_info[["modified"]])
+    .sql_set_etag(bfc, rid, cache_info[["etag"]])
     bfc
 }
 
@@ -111,8 +98,7 @@
             call. = FALSE)
     }
 
-    .util_set_last_modified(bfc, rid)
-    .util_set_etag(bfc, rid)
+    .util_set_cache_info(bfc, rid)
 }
 
 .util_download_and_rename <-
@@ -143,8 +129,7 @@
             call. = FALSE
         )
 
-    .util_set_last_modified(bfc, rid, fpath)
-    .util_set_etag(bfc, rid, fpath)
+    .util_set_cache_info(bfc, rid, fpath)
 }
 
 .util_export_file <-

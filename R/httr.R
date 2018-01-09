@@ -1,4 +1,4 @@
-.httr_get_last_modified <-
+.httr_get_cache_info <-
     function(link)
 {
     response = withCallingHandlers({
@@ -8,26 +8,14 @@
     })
 
     tryCatch({
-        as.character(cache_info(response)$modified)
+        ci <- cache_info(response)
+        last_mod <- as.character(ci$modified)
+        etag <- gsub("\"", "",as.character(ci$etag))
+        if (length(last_mod) == 0L) last_mod <- NA_character_
+        if (length(etag) == 0L) etag <- NA_character_
+        c(etag = etag, modified = last_mod)
     },  error = function(err) {
-        NA
-    })
-}
-
-.httr_get_etag <-
-    function(link)
-{
-    response = withCallingHandlers({
-        HEAD(link)
-    }, warning = function(w) {
-        invokeRestart("muffleWarning")
-    })
-
-    tryCatch({
-        gsub("\"", "",
-             as.character(cache_info(response)$etag))
-    },  error = function(err) {
-        NA
+        NA_character_
     })
 }
 

@@ -135,8 +135,8 @@
     # check last_modified of all web
         for(i in seq_along(wid)){
             fpath <- .sql_get_fpath(bfc, wid[i])
-            check_time <- .httr_get_last_modified(fpath)
-            if (is.na(check_time) || (length(check_time) == 0))
+            check_time <- .httr_get_cache_info(fpath)[["modified"]]
+            if (is.na(check_time))
                 .sql_set_last_modified(bfc, wid[i], NA_character_)
         }
     }

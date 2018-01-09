@@ -930,20 +930,20 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         .sql_update_time(x, rid)
         file_time <- .sql_get_last_modified(x, rid)
         fpath <- .sql_get_fpath(x, rid)
-        web_time <- .httr_get_last_modified(fpath)
         file_etag <-  .sql_get_etag(x, rid)
-        web_etag <- .httr_get_etag(fpath)
+        cache_info <- .httr_get_cache_info(fpath)
+        web_time <- cache_info[["modified"]]
+        web_etag <- cache_info[["etag"]]
 
         checkTime <- FALSE
-        if ((length(file_etag) == 0L) || (length(web_etag) == 0L)
-            || is.na(file_etag)) {
+        if (is.na(web_etag) || is.na(file_etag)) {
             checkTime <- TRUE
         } else {
             res <- !identical(file_etag, web_etag)
         }
 
         if (checkTime){
-            if ((length(file_time) == 0L) || (length(web_time) == 0L)) {
+            if (is.na(file_time) || is.na(web_time)) {
                 res <- NA
             } else {
                 res <- as.Date(web_time, optional=TRUE) >

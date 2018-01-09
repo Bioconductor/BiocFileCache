@@ -199,6 +199,35 @@ test_that("check_rtype works", {
     })
 })
 
+
+test_that("internal .httr_get_cache_info works", {
+
+    fun <- BiocFileCache:::.httr_get_cache_info
+
+    # example neither
+    url <- "http://httpbin.org/get"
+    info <- fun(url)
+    expect_true(all(is.na(info)))
+    expect_identical(length(info), 2L)
+    expect_identical(names(info), c("etag", "modified"))
+    # example both
+    url <- "https://www.wikipedia.org/"
+    info <- fun(url)
+    expect_true(all(!is.na(info)))
+    expect_identical(length(info), 2L)    
+    expect_identical(names(info), c("etag", "modified"))
+    # example only time
+    url <- "https://en.wikipedia.org/wiki/Bioconductor"
+    info <- fun(url)
+    expect_true(is.na(info[["etag"]]))
+    expect_true(!is.na(info[["modified"]]))
+    expect_identical(length(info), 2L)
+    expect_identical(names(info), c("etag", "modified"))
+    # more tests in bfcneedsupdate
+    
+})
+
+
 test_that("subsetting works", {
     # out of bounds
     expect_error(bfc[3:5])
@@ -237,7 +266,8 @@ test_that("bfcupdate works", {
         bfcinfo(bfc,rid3))[c("rname", "fpath")]))
     expect_identical(vl, c("prepQuery", link))
     time <- as.data.frame(bfcinfo(bfc,rid3))$last_modified_time
-    expect_identical(time, BiocFileCache:::.httr_get_last_modified(link))
+    expect_identical(time,
+                     BiocFileCache:::.httr_get_cache_info(link)[["modified"]])
 
     # test rpath update and give second query example
     bfcupdate(bfc, rid1, rpath=fl2, rname="prepQuery2")
@@ -385,10 +415,11 @@ test_that("bfcneedsupdate works", {
     # test etag available and check order
     link = "https://www.wikipedia.org/"
     bfcupdate(bfc, rid3, fpath=link, ask=FALSE)
+    cache_info <- .httr_get_cache_info(link)
     expect_identical(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time,
-                     .httr_get_last_modified(link))
+                     cache_info[["modified"]])
     expect_identical(as.data.frame(bfcinfo(bfc,rid3))$etag,
-                     .httr_get_etag(link))
+                     cache_info[["etag"]])
     expect_true(!is.na(bfcneedsupdate(bfc, rid3)))
     expect_true(!is.na(as.data.frame(bfcinfo(bfc,rid3))$etag))
     expect_false(bfcneedsupdate(bfc, rid3))
@@ -413,6 +444,7 @@ test_that("bfcdownload works", {
     expect_true(time1 < time3)
     expect_error(bfcdownload(bfc, rid1))
 })
+
 
 removebfc(bfc, ask=FALSE)
 
