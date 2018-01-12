@@ -94,12 +94,12 @@ BiocFileCache <-
             ans <- FALSE
         }
         if (ans){
-            dir.create(cache)
+            dir.create(cache, recursive=TRUE)
         } else {
             cache <- file.path(tempdir(), "BiocFileCache")
             message("Using temporary cache ", cache)
             if (!file.exists(cache))
-                dir.create(cache)
+                dir.create(cache, recursive=TRUE)
         }
     }
     bfc <- .BiocFileCache(cache=cache)
