@@ -72,8 +72,7 @@
     mdata <- dbGetQuery(con, sql)
     dbDisconnect(con)
 
-    message("WARNING:\n",
-            "Current schema_version ",
+    message("Current schema_version ",
             mdata[mdata$key=="schema_version",2]," is out-of-date.\n\n",
             "Current Version will NOT work as expect.\n",
             "Recommend Updating to lastest schema_version.\n",
@@ -89,7 +88,9 @@
                       "  Continue?")
     .biocfilecache_flags$set_update_asked()
 
-    if (!doit){
+    if (!doit) {
+        warning("BiocFileCache schema not updated\n",
+                "  bfccache(): ", bfccache(bfc))
         return()
     }
 
@@ -122,7 +123,6 @@
     check <- startsWith(badpaths, pattern)
     if (any(!check)){
         ids <- wid[!check]
-        filenames <- basename(badpaths[!check])
         warning("Some web resources do not currently have rpath in cache.\n",
                 "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
                 "  These resources will now be considered rtype='local'")
