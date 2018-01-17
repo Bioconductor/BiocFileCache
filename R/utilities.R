@@ -49,14 +49,14 @@
 }
 
 .util_ask <-
-    function(...)
+    function(..., .interactive = interactive())
 {
-    txt <- paste0(...)
+    if (!.interactive)
+        return(FALSE)
+    txt <- paste0(..., " (yes/no): ")
     repeat {
         response <- substr(tolower(readline(txt)), 1, 1)
-        doit <- if (nchar(response)) {
-                    switch(response, y = TRUE, n = FALSE, NA)
-                } else FALSE
+        doit <- switch(response, y = TRUE, n = FALSE, NA)
         if (!is.na(doit))
             break
     }

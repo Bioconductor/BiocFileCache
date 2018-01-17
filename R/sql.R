@@ -86,7 +86,7 @@
     doit <- .util_ask("Update current BiocFileCache to be consistent with\n",
                       "  schema_version: ", .CURRENT_SCHEMA_VERSION, "\n",
                       "  This will be a permanent change but only necessary once.\n",
-                      "Y/N: ")
+                      "  Continue?")
     .biocfilecache_flags$set_update_asked()
 
     if (!doit){

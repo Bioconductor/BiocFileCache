@@ -88,7 +88,7 @@ BiocFileCache <-
     if (!file.exists(cache)){
         if(!.biocfilecache_flags$get_create_asked() || !missing(cache)){
             ans <- .util_ask(cache,
-                             "\n  does not exist, create directory? Y/N: ")
+                             "\n  does not exist, create directory?")
             if (missing(cache)) .biocfilecache_flags$set_create_asked()
         } else {
             ans <- FALSE
@@ -620,7 +620,7 @@ setMethod("bfcupdate", "BiocFileCache",
                 doit <-
                     .util_ask("Setting a new remote path results in immediate\n",
                               "  download and overwriting of existing file.\n",
-                              "  Continue:?\n Y/N:")
+                              "  Continue?")
             } else {
                 doit <- TRUE
             }
@@ -1001,7 +1001,7 @@ setMethod("bfcdownload", "BiocFileCache",
     if (ask && file.exists(.sql_get_rpath(x, rid))){
         doit <-
             .util_ask("Redownloading. This will overwrite exisiting file.\n",
-                      "Continue?\n  Y/N:")
+                      "Continue?")
     } else{
         doit <- TRUE
     }
@@ -1106,7 +1106,7 @@ setMethod("bfcsync", "BiocFileCache",
             paste0("'", rids, "'", collapse=" ")
         )
     if (ask && (length(rids) != 0L)) {
-        doit <- .util_ask(paste("delete", length(rids), "entries? "))
+        doit <- .util_ask(paste("delete", length(rids), "entries?"))
         rids <- rids[doit]
     }
 
@@ -1116,7 +1116,7 @@ setMethod("bfcsync", "BiocFileCache",
             paste(untracked, collpase="\n  ")
         )
     if (ask && (length(untracked) != 0L)) {
-        doit <- .util_ask(paste("delete", length(untracked), "files? "))
+        doit <- .util_ask(paste("delete", length(untracked), "files?"))
         untracked <- untracked[doit]
     }
 
@@ -1371,7 +1371,7 @@ setMethod("removebfc", "BiocFileCache",
 {
     stopifnot(is.logical(ask), length(ask) == 1L, !is.na(ask))
 
-    txt <- paste("remove cache and", length(x), "resource(s) (y/N): ")
+    txt <- paste("remove cache and", length(x), "resource(s)?")
     if (!ask || .util_ask(txt))
         doit <- .util_unlink(bfccache(x), recursive=TRUE)
 
