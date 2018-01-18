@@ -15,7 +15,7 @@
         if (length(etag) == 0L) etag <- NA_character_
         c(etag = etag, modified = last_mod)
     },  error = function(err) {
-        NA_character_
+        c(etag = NA_character_, modified = NA_character_)
     })
 }
 
