@@ -363,6 +363,8 @@ test_that("bfcquery and bfccount works", {
     q2 <- as.data.frame(bfcquery(bfc, "wiki"))
     expect_identical(dim(q2)[1], 2L)
     q2b <- as.data.frame(bfcquery(bfc, "wiki", field="fpath"))
+    q2 <- q2[,-which(names(q2) == "access_time")]
+    q2b <- q2b[,-which(names(q2b) == "access_time")]
     expect_true(all(q2 == q2b, na.rm=TRUE))
 
     # query not found
