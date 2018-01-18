@@ -2,6 +2,7 @@
 #' @import httr
 #' @import rappdirs
 #' @importFrom utils tar zip untar unzip
+#' @importFrom dplyr mutate
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
     slots=c(cache="character")
@@ -424,7 +425,10 @@ setMethod("bfcinfo", "BiocFileCacheBase",
         rids <- bfcrid(x)
     stopifnot(all(rids %in% bfcrid(x)))
 
-    .sql_get_resource_table(x, rids)
+    tbl <- .sql_get_resource_table(x, rids)
+    tbl <- mutate(tbl, rpath = unname(bfcrpath(x, rids=rids)))
+    class(tbl) <- c("tbl_bfc", class(tbl))
+    tbl
 })
 
 setOldClass("tbl_bfc")
@@ -855,7 +859,7 @@ setMethod("bfcquery", "BiocFileCacheBase",
     for (q in query)
         keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q, ...))
     rids <- intersect(tbl$rid[keep], bfcrid(x))
-    .sql_get_resource_table(x, rids)
+    bfcinfo(x, rids)
 })
 
 #' @export

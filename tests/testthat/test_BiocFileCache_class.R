@@ -132,6 +132,10 @@ test_that("bfcinfo works", {
 
     # index not found
     expect_error(bfcinfo(bfc, 6))
+
+    # check rpaths updated
+    expect_identical(bfcinfo(bfc)[["rpath"]],
+                     unname(bfcrpath(bfc)))
 })
 
 test_that("bfcpath and bfcrpath works", {
@@ -236,8 +240,11 @@ test_that("subsetting works", {
     # empty
     bfcsub3 <- bfc[]
     expect_identical(length(bfcsub3), length(bfc))
-    expect_identical(as.data.frame(bfcinfo(bfcsub3)),
-                     as.data.frame(bfcinfo(bfc)))
+    subin <- as.data.frame(
+        bfcinfo(bfcsub3)[,-which(names(bfcinfo(bfcsub3)) == "access_time")])
+    bfcin <- as.data.frame(
+        bfcinfo(bfc)[,-which(names(bfcinfo(bfc)) == "access_time")])
+    expect_identical(subin, bfcin)
 
     # test restricted methods on subset
     expect_error(bfcnew(bfcsub3))
