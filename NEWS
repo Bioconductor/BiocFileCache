@@ -3,6 +3,7 @@ CHANGES IN VERSION 1.3
 
 NEW FEATURES
 
+    o (v. 1.3.24) Add function makeBiocFileCacheFromDataFrame to convert data.frame to BiocFileCache
     o (v. 1.3.19) etag now checked in addition to last modified time to
     determine if local version of file is current
     o (v. 1.3.16) importbfc to load output of exportbfc

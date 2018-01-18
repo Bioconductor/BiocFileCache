@@ -76,6 +76,8 @@
 \alias{exportbfc}
 \alias{importbfc,character-method}
 \alias{importbfc}
+\alias{makeBiocFileCacheFromDataFrame,ANY-method}
+\alias{makeBiocFileCacheFromDataFrame}
 \alias{cleanbfc,missing-method}
 \alias{cleanbfc,BiocFileCache-method}
 \alias{cleanbfc}
@@ -208,6 +210,10 @@ bfcmeta(x, name, ...) <- value
 \S4method{importbfc}{character}(filename, archiveMethod = c("untar", "unzip"),
   exdir = ".", ...)
 
+\S4method{makeBiocFileCacheFromDataFrame}{ANY}(df, cache,
+  actionLocal = c("move", "copy", "asis"), actionWeb = c("move", "copy"),
+  metadataName, ...)
+
 \S4method{cleanbfc}{missing}(x, days = 120, ask = TRUE)
 
 \S4method{cleanbfc}{BiocFileCache}(x, days = 120, ask = TRUE)
@@ -236,7 +242,8 @@ arguments passed to \code{grepl}. For 'exportbfc': Additional arguments
 to the selected outputMethod function. See \code{utils::tar} or
 \code{utils::zip} for more information. For 'importbfc': Additional
 arguments to the selected archiveMethod function. See \code{utils::untar}
-or \code{utils::unzip} for more information.}
+or \code{utils::unzip} for more information. For 'makeBiocFileCacheFromDataFrame':
+Additional arguments passed to \code{file.copy}.}
 
 \item{drop}{Ignored.}
 
@@ -312,6 +319,19 @@ be extracted. Default is 'untar'.}
 
 \item{exdir}{Directory to extract files too. See \code{utils::untar} or
 \code{utils::unzip} for more details.}
+
+\item{df}{data.frame or tibble to convert}
+
+\item{actionLocal}{If local copy of file should be moved, copied or left in
+original location. See 'action' param of bfcadd.}
+
+\item{actionWeb}{If a local copy of a remote resource already exists, should
+the file be copied or moved to the cache. Locally downloaded remote resources
+must exist in the cache location.}
+
+\item{metadataName}{If there are additional columns of data in the original
+data.frame besides required BiocFileCache columns, this data will be added as
+a metadata table with this name.}
 
 \item{days}{integer(1) Number of days between accessDate and
 currentDate; if exceeded entry will be deleted.}
@@ -396,6 +416,8 @@ For 'bfcsync': logical(1) indicating whether the cache is
     descriptive messages will also be included.
 
 character(1) The outputFile path.
+
+A BiocFileCache object
 
 A BiocFileCache object
 
@@ -517,6 +539,16 @@ table.
 
 \item \code{importbfc}: Import file created with exportbfc containing
 BiocFileCache.
+
+\item \code{makeBiocFileCacheFromDataFrame}: Convert a dataframe or tibble to BiocFileCache. If
+there are a lot of resources being added this could take some time but if a
+cache is saved in a permanent location this should only have to be run
+once. The original data.frame must have the required columns 'rtype',
+'fpath', and 'rpath'; See the vignette for more information on the expected
+information contained in these columns. Similarly, the optional columns
+'rname', 'etag', and 'last_modified_time' may be included. Any additional
+columns not listed as required or optional will be kept as an additional
+metadata table in the BiocFileCache database.
 
 \item \code{cleanbfc}: Remove old/unused files in
 BiocFileCache. If file to be removed is not in the bfccache

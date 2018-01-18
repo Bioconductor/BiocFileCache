@@ -112,6 +112,11 @@ The table of resource files includes the following information:
    against the remote resource to determine if the local copy is stale and needs
    to be updated. If it is not available or your resource is not a remote
    resource, the last modified time will be marked as NA.
+ * `etag`: For a remote resource, the etag (if available) information for the
+   local copy of the data. This information is checked against the remote
+   resource to determine if the local copy is stale and needs to be updated. If
+   it is not available or your resource is not a remote resource, the etag will
+   be marked as NA.
 
 Now that we have created the cache object and location, let's explore adding
 files that the cache will manage!
@@ -533,6 +538,66 @@ bfc2 <- importbfc("BiocFileCacheExport.tar.gz", compression="gzip")
 
 bfc3 <- importbfc("BiocFileCacheExportWeb.zip", archiveMethod="unzip")
 ```
+
+## Creating a Cache from Existing Data
+
+There exists the following helper functions to convert existing data to a
+BiocFileCache:
+
+ * `makeBiocFileCacheFromDataFrame`
+
+These functions may take awhile to run if there are a lot of resources, however
+if the BiocFileCache is stored in a permanent location it will only need to be
+run once.
+
+### Create a BiocFileCache from an Existing data.frame
+
+`makeBiocFileCacheFromDataFrame` takes an existing data.frame and creates a
+BiocFileCache object. The cache location can be specified by the `cache`
+argument. The `cache` must not already exist and the user will be prompted to
+create the location. If the user opts 'N', the cache will be created in a
+temporary directory and this function will have to be run again upon a new R
+session. The original data.frame must contain the required BiocFileCache columns
+`rtype`, `rpath`, and `fpath` as described in the section 1.2 "Creating /
+Loading the Cache". The optional columns `rname`, `last_modified_time`, and
+`etag` may also be specified in the original data.frame although are not
+required and will be populated with defaults if missing. For resources with
+`rtype="local"`, the `actionLocal` will control if the local copy of the file is
+copied or moved to the cache location, or if it is left asis on the local
+system; A local copy of the file must exist if the resource is identified as
+`rtype=local`. For resources with `rtype="web"`, `actionWeb` will control if the
+local copy of the remote file is copied or moved to the cache location. It is a
+requirement of BiocFileCache that all remote resources download their local copy
+to the cache location. A local copy of the file does not have to exist and can
+be downloaded into the cache at a later time. Any additional columns of the
+original data.frame besides those required or optional BiocFileCache columns,
+are separated and added to the BiocFileCache as a meta data table with the name
+given as `metadataName`. See section 1.6 on "Adding Metadata".
+
+The following is an example data.frame with minimal columns 'rtype', 'rpath',
+and 'fpath' and one additional column that will become metadata 'keywords'. The
+'rpath' can be `NA` as these are remote resources (`rtype='web'`) that have not
+been downloaded yet.
+
+```{r}
+tbl <- data.frame(rtype=c("web","web"),
+		      rpath=c(NA_character_,NA_character_),
+		  fpath=c("http://httpbin.org/get",
+			  "https://en.wikipedia.org/wiki/Bioconductor"),
+		      keywords = c("httpbin", "wiki"), stringsAsFactors=FALSE)
+tbl
+```
+
+```{r eval=FALSE}
+
+newbfc <- makeBiocFileCacheFromDataFrame(tbl,
+					 cache=file.path(tempdir(),"BFC"),
+					 actionWeb="copy",
+					 actionLocal="copy",
+					 metadataName="resourceMetadata")
+
+```
+
 
 ## Cleaning or Removing Cache
 
