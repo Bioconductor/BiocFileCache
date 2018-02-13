@@ -7,6 +7,10 @@ test_that("BiocFileCache creation works", {
     # test that sql file also gets created
     expect_true(file.exists(file.path(bfccache(bfc), "BiocFileCache.sqlite")))
     removebfc(bfc, ask=FALSE)
+
+    fl <- tempfile()
+    bfc <- BiocFileCache(fl, ask = FALSE)
+    expect_true(file.exists(fl))
 })
 
 test_that("bfcadd and bfcnew works", {

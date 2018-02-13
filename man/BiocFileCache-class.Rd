@@ -87,7 +87,7 @@
 \alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
-BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"))
+BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"), ask = TRUE)
 
 \S4method{bfccache}{BiocFileCacheBase}(x)
 
@@ -226,7 +226,11 @@ bfcmeta(x, name, ...) <- value
 }
 \arguments{
 \item{cache}{character(1) On-disk location (directory path) of
-cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.}
+cache. For default location see
+\code{\link[rappdirs]{user_cache_dir}}.}
+
+\item{ask}{logical(1) Ask before creating, updating, overwriting,
+or removing cache or local file locations.}
 
 \item{x}{A \code{BiocFileCache} instance or, if missing, the result
 of \code{BiocFileCache()}.}
@@ -287,9 +291,6 @@ resource be downloaded locally immediately.}
 \item{rnames}{character() list of rnames to search and match on.}
 
 \item{rpath}{character() vector of replacement rpaths.}
-
-\item{ask}{logical(1) Prompt if really want to remove cache and
-files.}
 
 \item{name}{character(1) name of metadata table.}
 
