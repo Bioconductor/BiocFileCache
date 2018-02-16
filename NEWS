@@ -3,17 +3,22 @@ CHANGES IN VERSION 1.3
 
 NEW FEATURES
 
-    o (v. 1.3.24) Add function makeBiocFileCacheFromDataFrame to convert data.frame to BiocFileCache
+    o (v. 1.3.28) Add ask = TRUE argument to BiocFileCache().
+    o (v. 1.3.24) Add function makeBiocFileCacheFromDataFrame to
+      convert data.frame to BiocFileCache
     o (v. 1.3.19) etag now checked in addition to last modified time to
     determine if local version of file is current
     o (v. 1.3.16) importbfc to load output of exportbfc
     o (v. 1.3.15) exportbfc allows users to create exportable archive of bfc
-    related files
+      related files
     o (v. 1.3.11) bfcisrelative checks for rtype='local' in addition to relative
-    o (v. 1.3.11) Helper function to check rtype for local but relative, and web and update if necessary
-    o (v. 1.3.10) Add function to check portability of BiocFileCache: bfcisrelative
+    o (v. 1.3.11) Helper function to check rtype for local but
+      relative, and web and update if necessary
+    o (v. 1.3.10) Add function to check portability of BiocFileCache:
+      bfcisrelative
     o (v. 1.3.10) Add function to convert rpaths for portability: bfcrelative
-    o (v. 1.3.9) Optionally download web resource when adding to cache bfcadd(download=TRUE)
+    o (v. 1.3.9) Optionally download web resource when adding to cache
+      bfcadd(download=TRUE)
 
 SCHEMA CHANGE
 
@@ -22,18 +27,23 @@ SCHEMA CHANGE
 
 USER-VISIBLE CHANGES
 
-    o (v. 1.3.25) bfcinfo and bfcquery will show full rpaths even if stored as relative
+    o (v. 1.3.25) bfcinfo and bfcquery will show full rpaths even if
+      stored as relative
     o (v. 1.3.22) prompt user only once when using default cache
     o (v. 1.3.17) prompt user when overwriting exisiting file
-    o (v. 1.3.16) add importbfc to extract output of exportbfc and load bfc object
+    o (v. 1.3.16) add importbfc to extract output of exportbfc and
+      load bfc object
     o (v. 1.3.16) added exportbfc to export bfc or subset of bfc
     o (v. 1.3.16) bfcisportblae and bfcportbale removed for exportbfc
     o (v. 1.3.14) upon bfc creation, option to update to most current schema
-    o (v. 1.3.13) bfcportable operates over all offending ids instead of asking individually
-    o (v. 1.3.12) bfcisrelative/bfcrelative changed to bfcisportbale/bfcportable
+    o (v. 1.3.13) bfcportable operates over all offending ids instead
+      of asking individually
+    o (v. 1.3.12) bfcisrelative/bfcrelative changed to
+      bfcisportbale/bfcportable
     o (v. 1.3.11) web resource rpaths are stored as relative links
     o (v. 1.3.9) If web resource was not downloaded, bfcneedsupdate is TRUE
-    o (v. 1.3.9) Local and non downloaded web will have last modified time as NA
+    o (v. 1.3.9) Local and non downloaded web will have last modified
+      time as NA
     o (v. 1.3.6) Update how default cache location is determined
     o (v. 1.3.1) Expose GET::config argument to web resource functions
 

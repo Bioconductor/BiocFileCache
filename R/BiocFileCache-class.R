@@ -71,7 +71,10 @@
 #'  passed as an argument. See vignette("BiocFileCache") for more details.
 #'
 #' @param cache character(1) On-disk location (directory path) of
-#'     cache. For default location see \code{\link[rappdirs]{user_cache_dir}}.
+#'     cache. For default location see
+#'     \code{\link[rappdirs]{user_cache_dir}}.
+#' @param ask logical(1) Ask before creating, updating, overwriting,
+#'     or removing cache or local file locations.
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
 #' @examples
 #' # bfc <- BiocFileCache()            # global cache
@@ -81,20 +84,24 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=user_cache_dir(appname="BiocFileCache"))
+    function(cache=user_cache_dir(appname="BiocFileCache"), ask = TRUE)
 {
 
-    stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache))
+    stopifnot(
+        is.character(cache), length(cache) == 1L, !is.na(cache),
+        is.logical(ask), length(ask) == 1L, !is.na(ask)
+    )
 
-    if (!file.exists(cache)){
-        if(!.biocfilecache_flags$get_create_asked() || !missing(cache)){
+    if (!file.exists(cache)) {
+        ans <- !ask
+        test <- !.biocfilecache_flags$get_create_asked() || !missing(cache)
+        if (test && ask) {
             ans <- .util_ask(cache,
                              "\n  does not exist, create directory?")
-            if (missing(cache)) .biocfilecache_flags$set_create_asked()
-        } else {
-            ans <- FALSE
+            if (missing(cache))
+                .biocfilecache_flags$set_create_asked()
         }
-        if (ans){
+        if (ans) {
             dir.create(cache, recursive=TRUE)
         } else {
             cache <- file.path(tempdir(), "BiocFileCache")
@@ -1111,7 +1118,7 @@ setMethod("bfcsync", "BiocFileCache",
             paste0("'", rids, "'", collapse=" ")
         )
     if (ask && (length(rids) != 0L)) {
-        doit <- .util_ask(paste("delete", length(rids), "entries?"))
+        doit <- .util_ask("delete ", length(rids), " entries?")
         rids <- rids[doit]
     }
 
@@ -1121,7 +1128,7 @@ setMethod("bfcsync", "BiocFileCache",
             paste(untracked, collpase="\n  ")
         )
     if (ask && (length(untracked) != 0L)) {
-        doit <- .util_ask(paste("delete", length(untracked), "files?"))
+        doit <- .util_ask("delete ", length(untracked), " files?")
         untracked <- untracked[doit]
     }
 
@@ -1489,8 +1496,6 @@ setMethod("cleanbfc", "missing",
 #'     location it will not be deleted.
 #' @param days integer(1) Number of days between accessDate and
 #'     currentDate; if exceeded entry will be deleted.
-#' @param ask logical(1) Prompt if really want to remove cache and
-#'     files.
 #' @return For 'cleanbfc': updated BiocFileCache, invisibly.
 #' @examples
 #' \dontrun{cleanbfc(bfc, ask=FALSE)}
