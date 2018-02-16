@@ -48,7 +48,7 @@ The initial step to utilizing [BiocFileCache][] in managing files is to create a
 cache object specifying a location. We will create a temporary directory for use
 with examples in this vignette. If a path is not specified upon creation, the
 default location is a directory `~/.BiocFileCache` in the typical user cache
-directory.
+directory as defined by `rappdirs::user_cache_dir()`.
 
 ```{r}
 path <- file.path(tempdir(), "tempCacheDir")
