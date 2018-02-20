@@ -1,4 +1,4 @@
--- IF UPDATE SCHEME CHANGE VARIBLES IN utilities.R
+-- IF UPDATE SCHEME CHANGE VARIABLES IN utilities.R
 -- METADATA
 CREATE TABLE metadata (
     key TEXT UNIQUE NOT NULL,
@@ -8,8 +8,6 @@ CREATE TABLE metadata (
 INSERT INTO metadata (
     key, value
 ) VALUES (:key, :value);
--- SELECT_METADATA
-SELECT * FROM metadata;
 -- TABLE
 CREATE TABLE resource (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,13 +22,16 @@ CREATE TABLE resource (
     etag TEXT DEFAULT NA
 );
 -- INSERT
+SELECT rid FROM resource;
 INSERT INTO resource (
-    rname, rpath, rtype, fpath
-) VALUES (:rname, :rpath, :rtype, :fpath);
-UPDATE resource SET rid = "BFC" || id WHERE ROWID = last_insert_rowid();
-SELECT rid FROM resource WHERE ROWID = last_insert_rowid();
+    rname, rpath, rtype, fpath, last_modified_time, etag
+) VALUES (
+    :rname, :rpath, :rtype, :fpath, :last_modified_time, :etag
+);
+UPDATE resource SET rid = "BFC" || id;
+SELECT rid, rname FROM resource;
 -- REMOVE
-DELETE FROM resource WHERE rid = :rid;
+DELETE FROM resource WHERE rid IN (:rid);
 -- UPDATE_PATH
 UPDATE resource
 SET rpath = :rpath, access_time = CURRENT_TIMESTAMP
@@ -59,3 +60,11 @@ WHERE rid = :rid;
 UPDATE resource
 SET etag  = :etag, access_time = CURRENT_TIMESTAMP
 WHERE rid = :rid;
+-- MIGRATION_0_99_1_to_0_99_2
+-- MIGRATION_0_99_2_to_0_99_3
+ALTER TABLE resource
+ADD etag TEXT;
+-- MIGRATION_UPDATE_METADATA
+UPDATE metadata
+SET value = :value
+WHERE key = :key

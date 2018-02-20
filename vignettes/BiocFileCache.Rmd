@@ -51,8 +51,8 @@ default location is a directory `~/.BiocFileCache` in the typical user cache
 directory as defined by `rappdirs::user_cache_dir()`.
 
 ```{r}
-path <- file.path(tempdir(), "tempCacheDir")
-bfc <- BiocFileCache(path)
+path <- tempfile()
+bfc <- BiocFileCache(path, ask = FALSE)
 ```
 
 If the path location exists and has been utilized to store files previously, the

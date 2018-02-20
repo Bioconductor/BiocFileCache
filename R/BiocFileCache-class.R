@@ -174,7 +174,7 @@ setMethod("[", c("BiocFileCache", "character", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
     stopifnot(all(i %in% bfcrid(x)))
-    stopifnot(identical(drop, TRUE))
+    stopifnot(identical(unname(drop), TRUE))
 
     .BiocFileCacheReadOnly(x, rid=as.character(i))
 })
@@ -186,7 +186,7 @@ setMethod("[", c("BiocFileCacheReadOnly", "character", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
     stopifnot(all(i %in% bfcrid(x)))
-    stopifnot(identical(drop, TRUE))
+    stopifnot(identical(unname(drop), TRUE))
 
     initialize(x, rid=as.character(i))
 })
@@ -197,7 +197,7 @@ setMethod("[", c("BiocFileCacheReadOnly", "character", "missing"),
 setMethod("[", c("BiocFileCache", "missing", "missing"),
     function(x, i, j, ..., drop=TRUE)
 {
-    stopifnot(identical(drop, TRUE))
+    stopifnot(identical(unname(drop), TRUE))
 
     .BiocFileCacheReadOnly(x, rid=bfcrid(x))
 })
@@ -240,7 +240,7 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 
     .sql_update_time(x, i)
     .sql_set_rpath(x, i, value)
-    rtype <- .sql_get_rtype(x, i)
+    rtype <- unname(.sql_get_rtype(x, i))
     if (identical(rtype, "relative") || identical(rtype, "web")) {
         warning("updating rpath, changing rtype to 'local'")
         .sql_set_rtype(x, i, "local")
@@ -281,15 +281,14 @@ setMethod("bfcnew", "missing",
 setMethod("bfcnew", "BiocFileCache",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_)
 {
-    stopifnot(length(rname) == 1L, is.character(rname), !is.na(rname))
-    stopifnot(length(ext) == 1L, is.character(ext))
+    stopifnot(
+        is.character(rname), length(rname) > 0L, !any(is.na(rname)),
+        is.character(ext), length(ext) > 0L
+    )
     rtype <- match.arg(rtype)
 
-    rid <- .sql_new_resource(x, rname, rtype, NA_character_, ext)
-    .sql_set_last_modified(x, rid, NA_character_)
-    .sql_set_etag(x, rid, NA_character_)
-    rpath <- .sql_get_rpath(x, rid)
-    setNames(rpath, rid)
+    rid <- .sql_add_resource(x, rname, rtype, NA_character_, ext)
+    bfcrpath(x, rids = rid)
 })
 
 #' @export
@@ -337,13 +336,13 @@ setMethod("bfcadd", "missing",
 #' @param config list() passed as config argument in \code{httr::GET}
 #' @param ... For 'bfcadd': For \code{action="copy"}, additional
 #'     arguments passed to \code{file.copy}. For 'bfcrpaths':
-#'     Additional arguments passed to 'bfcadd'. For 'bfcquery': Additional
-#'     arguments passed to \code{grepl}. For 'exportbfc': Additional arguments
-#'     to the selected outputMethod function. See \code{utils::tar} or
-#'     \code{utils::zip} for more information. For 'importbfc': Additional
-#'     arguments to the selected archiveMethod function. See \code{utils::untar}
-#'     or \code{utils::unzip} for more information. For 'makeBiocFileCacheFromDataFrame':
-#'     Additional arguments passed to \code{file.copy}.
+#'     Additional arguments passed to 'bfcadd'. For 'bfcquery':
+#'     Additional arguments passed to \code{grepl}. For 'exportbfc':
+#'     Additional arguments to the selected outputMethod function. See
+#'     \code{utils::tar} or \code{utils::zip} for more
+#'     information. For 'importbfc': Additional arguments to the
+#'     selected archiveMethod function. See \code{utils::untar} or
+#'     \code{utils::unzip} for more information.
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -368,21 +367,23 @@ setMethod("bfcadd", "missing",
 #' @exportMethod bfcadd
 setMethod("bfcadd", "BiocFileCache",
     function(
-        x, rname, fpath = rname, rtype = c("auto", "relative", "local", "web"),
-        action=c("copy", "move", "asis"), proxy="",
-        download=TRUE, config=list(), ...)
+        x, rname, fpath = rname,
+        rtype = c("auto", "relative", "local", "web"),
+        action = c("copy", "move", "asis"),
+        proxy = "", download = TRUE, config = list(),
+        ...)
 {
-    stopifnot(is.character(rname), length(rname) == 1L, !is.na(rname))
-    stopifnot(is.character(fpath), length(fpath) == 1L, !is.na(fpath))
+    stopifnot(
+        is.character(rname), length(rname) > 0L, !any(is.na(rname)),
+        is.character(fpath), length(fpath) > 0L, !any(is.na(fpath))
+    )
     action <- match.arg(action)
     rtype <- match.arg(rtype)
     rtype <- .util_standardize_rtype(rtype, fpath, action)
     stopifnot(rtype == "web" || file.exists(fpath))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
-    rid <- .sql_new_resource(x, rname, rtype, fpath)
-    .sql_set_last_modified(x, rid, NA_character_)
-    .sql_set_etag(x, rid, NA_character_)
+    rid <- .sql_add_resource(x, rname, rtype, fpath)
     rpath <- bfcrpath(x, rids = rid)
     if (rtype %in% c("local", "relative")) {
         switch(
@@ -394,12 +395,11 @@ setMethod("bfcadd", "BiocFileCache",
                 rpath <- bfcrpath(x, rids = rid)
             }
         )
-    } else {                            # rtype == "web"
-        if (download)
-            .util_download(x, rid, proxy, config, "bfcadd()")
+    } else if (download) {              # rtype == "web"
+        .util_download(x, rid, proxy, config, "bfcadd()")
     }
 
-    setNames(rpath, rid)
+    rpath
 })
 
 #' @export
@@ -470,16 +470,14 @@ setMethod("bfcpath", "missing",
 setMethod("bfcpath", "BiocFileCacheBase",
     function(x, rid)
 {
-    stopifnot(!missing(rid), length(rid) == 1L, rid %in% bfcrid(x))
+    stopifnot(!missing(rid), length(rid) > 0L, all(rid %in% bfcrid(x)))
 
     .sql_update_time(x, rid)
     path <- .sql_get_rpath(x, rid)
-    if (.sql_get_rtype(x, rid) == "web") {
-        fpath <- .sql_get_fpath(x, rid)
-        setNames(c(path, fpath), c(rid, "fpath"))
-    } else {
-        setNames(path, rid)
-    }
+    is_web <- .sql_get_rtype(x, rid) == "web"
+    fpath <- .sql_get_fpath(x, rid[is_web])
+    names(fpath) <- rep("fpath", length(fpath))
+    c(path, fpath)
 })
 
 #' @export
@@ -517,20 +515,19 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         .sql_get_rpath(x, i)
     }
 
-    add_or_return_rname <- function(x, name, ...){
-        res <- bfcrid(bfcquery(x, name))
-        if (length(res) == 0L){
+    add_or_return_rname <- function(x, rname, ...) {
+        res <- bfcrid(bfcquery(x, rname, field="rname"))
+        if (length(res) == 0L) {
             tryCatch({
-                bfcadd(x, name, ...)
+                bfcadd(x, rname, ...)
             }, error=function(e) {
                 warning(conditionMessage(e))
                 NA_character_
             })
-        } else if (length(res) == 1L){
-            path <- update_time_and_path(x, res)
-            setNames(path, res)
+        } else if (length(res) == 1L) {
+            update_time_and_path(x, res)
         } else {
-            warning("rname: '", name ,"' is not unique.")
+            warning("rname: '", rname ,"' is not unique.")
             NA_character_
         }
     }
@@ -549,8 +546,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         setNames(rpaths, .fix_rnames(x, names(rpaths)))
     } else {
         stopifnot(all(rids %in% bfcrid(x)))
-        rpaths <- vapply(rids, update_time_and_path, character(1), x = x)
-        setNames(rpaths, rids)
+        update_time_and_path(x, rids)
     }
 
 })
@@ -614,8 +610,8 @@ setMethod("bfcupdate", "BiocFileCache",
                     call.=FALSE
                 )
             .sql_set_rpath(x, rids[i], rpath[i])
-            rtype <- .sql_get_rtype(x, rids[i])
-            if (identical(rtype, "relative") || identical(rtype, "web")){
+            rtype <- unname(.sql_get_rtype(x, rids[i]))
+            if (identical(rtype, "relative") || identical(rtype, "web")) {
                 warning("updating rpath, changing rtype to 'local'")
                 .sql_set_rtype(x, rids[i], "local")
             }
@@ -628,11 +624,12 @@ setMethod("bfcupdate", "BiocFileCache",
                     "\n  reason: resource rtype is not 'web'",
                     call.=FALSE)
 
-            if (ask){
-                doit <-
-                    .util_ask("Setting a new remote path results in immediate\n",
-                              "  download and overwriting of existing file.\n",
-                              "  Continue?")
+            if (ask) {
+                doit <- .util_ask(
+                    "Setting a new remote path results in immediate\n",
+                    "  download and overwriting of existing file.\n",
+                    "  Continue?"
+                )
             } else {
                 doit <- TRUE
             }
@@ -958,10 +955,10 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         if (is.na(web_etag) || is.na(file_etag)) {
             checkTime <- TRUE
         } else {
-            res <- !identical(file_etag, web_etag)
+            res <- !identical(unname(file_etag), web_etag)
         }
 
-        if (checkTime){
+        if (checkTime) {
             if (is.na(file_time) || is.na(web_time)) {
                 res <- NA
             } else {
@@ -1004,23 +1001,25 @@ setMethod("bfcdownload", "missing",
 setMethod("bfcdownload", "BiocFileCache",
     function(x, rid, proxy="", config=list(), ask=TRUE)
 {
-    stopifnot(!missing(rid), length(rid) == 1L)
-    stopifnot(.sql_get_rtype(x, rid) == "web")
-    stopifnot(rid %in% bfcrid(x))
+    stopifnot(
+        !missing(rid), length(rid) > 0L,
+        all(rid %in% bfcrid(x)),
+        all(.sql_get_rtype(x, rid) == "web")
+    )
 
     .sql_update_time(x, rid)
 
-    if (ask && file.exists(.sql_get_rpath(x, rid))){
-        doit <-
-            .util_ask("Redownloading. This will overwrite exisiting file.\n",
-                      "Continue?")
-    } else{
+    if (ask && any(file.exists(.sql_get_rpath(x, rid)))) {
+        doit <- .util_ask(
+            "bfcdownload() will overwrite exisiting files, continue?"
+        )
+    } else {
         doit <- TRUE
     }
     if (doit)
         .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
 
-    setNames(bfcrpath(x, rids=rid), rid)
+    bfcrpath(x, rid=rid)
 })
 
 
@@ -1054,7 +1053,7 @@ setMethod("bfcremove", "BiocFileCache",
 {
     stopifnot(all(rids %in% bfcrid(x)))
 
-    rpaths <- vapply(rids, .sql_get_rpath, character(1), bfc=x)
+    rpaths <- .sql_get_rpath(x, rids)
     cached <- startsWith(rpaths, bfccache(x))
 
     .sql_remove_resource(x, rids)
@@ -1101,10 +1100,10 @@ setMethod("bfcsync", "BiocFileCache",
 
     # files untracked in cache location
     files <- file.path(bfccache(x), setdiff(dir(bfccache(x)),.CACHE_FILE))
-    paths <- .get_all_rpath(x)
+    paths <- .sql_get_rpath(x, bfcrid(x))
     # normalizePath on windows
     # can't across platform - no opt on linux but added hidden on mac
-    if (tolower(.Platform$OS.type) == "windows"){
+    if (tolower(.Platform$OS.type) == "windows") {
         files = normalizePath(files)
         paths = normalizePath(paths)
     }
@@ -1161,12 +1160,14 @@ setMethod("exportbfc", "missing",
               verbose=verbose, ...)
 })
 
-#' @describeIn BiocFileCache Create exportable file containing BiocFileCache.
-#' @param outputFile character(1) The <filepath>/basename for the output
-#' archive. Please include appropriate extension based on outMethod and any
-#' additional parameters selected for \code{utils::tar} or \code{utils::zip}
-#' @param outputMethod Either 'tar' or 'zip' for how the directory should
-#' be archived. Default is 'tar'.
+#' @describeIn BiocFileCache Create exportable file containing
+#'     BiocFileCache.
+#' @param outputFile character(1) The <filepath>/basename for the
+#'     output archive. Please include appropriate extension based on
+#'     outMethod and any additional parameters selected for
+#'     \code{utils::tar} or \code{utils::zip}
+#' @param outputMethod Either 'tar' or 'zip' for how the directory
+#'     should be archived. Default is 'tar'.
 #' @return character(1) The outputFile path.
 #' @examples
 #' \dontrun{exportbfc(bfc)}
@@ -1204,24 +1205,30 @@ setMethod("exportbfc", "BiocFileCacheBase",
 
     # 'relative' = ok, 'web'= not download
     # 'local' = file not in cache, 'NA' = file not found
-    if (any(res == "web", na.rm=TRUE)){
+    if (any(res == "web", na.rm=TRUE)) {
         webid <- names(which(res == "web"))
         if (verbose)
-            message(paste0("The following are identified as web resources\n",
-                           "but have not been downloaded yet. No associated\n",
-                           "files will be exported:\n",
-                           "  ", paste0("'", webid, "'", collapse=" "), "\n\n"))
+            message(
+                "The following are identified as web resources\n",
+                "but have not been downloaded yet. No associated\n",
+                "files will be exported:\n",
+                "  ", paste0("'", webid, "'", collapse=" "),
+                "\n\n"
+            )
     }
-    if (any(res == "local", na.rm=TRUE)){
+    if (any(res == "local", na.rm=TRUE)) {
         locid <- names(which(res == "local"))
         if (verbose)
-            message(paste0("The following are identified as local resources.\n",
-                           "A copy of the file will be exported:\n",
-                           "  ", paste0("'", locid, "'", collapse=" "), "\n\n"))
-        for(i in locid){
-            orig <- .sql_get_rpath(x, rid=i)
+            message(
+                "The following are identified as local resources.\n",
+                "A copy of the file will be exported:\n",
+                "  ", paste0("'", locid, "'", collapse=" "),
+                "\n\n"
+            )
+        for (i in locid) {
+            orig <- .sql_get_rpath(x, i)
             newpath <- file.path(dir, basename(orig))
-            if (file.exists(newpath)){
+            if (file.exists(newpath)) {
                 filename <- paste(basename(tempfile("", bfccache(newbfc))),
                               basename(orig), sep="_")
                 newpath <- file.path(dir, filename)
@@ -1229,17 +1236,20 @@ setMethod("exportbfc", "BiocFileCacheBase",
             file.copy(orig, newpath)
         }
     }
-    if (any(is.na(res))){
+    if (any(is.na(res))) {
         naid <- names(which(is.na(res)))
         if (verbose)
-            message(paste0("The following had a file that was not found.\n",
-                       "The file is not included and the rid will be removed\n",
-                       "from the BiocFileCache object being exported:\n",
-                       "  ", paste0("'", naid, "'", collapse=" "), "\n\n"))
+            message(
+                "The following had a file that was not found.\n",
+                "The file is not included and the rid will be removed\n",
+                "from the BiocFileCache object being exported:\n",
+                "  ", paste0("'", naid, "'", collapse=" "),
+                "\n\n"
+            )
        newbfc <- bfcremove(newbfc, rids=naid)
     }
 
-    if (length(bfcmetalist(newbfc)) != 0){
+    if (length(bfcmetalist(newbfc)) != 0) {
         metaList <- bfcmetalist(newbfc)
         res <- vapply(metaList, .sql_filter_metadata, logical(1),
                bfc=newbfc, verbose=verbose)
@@ -1302,180 +1312,6 @@ setMethod("importbfc", "character",
     bfc
 })
 
-
-#' @export
-setGeneric("makeBiocFileCacheFromDataFrame",
-    function(df, cache,
-             actionLocal=c("move","copy","asis"), actionWeb=c("move","copy"),
-             metadataName,
-             ...)
-    standardGeneric("makeBiocFileCacheFromDataFrame"),
-    signature = "df"
-)
-
-#' @describeIn BiocFileCache Convert a dataframe or tibble to BiocFileCache. If
-#' there are a lot of resources being added this could take some time but if a
-#' cache is saved in a permanent location this should only have to be run
-#' once. The original data.frame must have the required columns 'rtype',
-#' 'fpath', and 'rpath'; See the vignette for more information on the expected
-#' information contained in these columns. Similarly, the optional columns
-#' 'rname', 'etag', and 'last_modified_time' may be included. Any additional
-#' columns not listed as required or optional will be kept as an additional
-#' metadata table in the BiocFileCache database.
-#' @param df data.frame or tibble to convert
-#' @param actionLocal If local copy of file should be moved, copied or left in
-#' original location. See 'action' param of bfcadd.
-#' @param actionWeb If a local copy of a remote resource already exists, should
-#' the file be copied or moved to the cache. Locally downloaded remote resources
-#' must exist in the cache location.
-#' @param metadataName If there are additional columns of data in the original
-#' data.frame besides required BiocFileCache columns, this data will be added as
-#' a metadata table with this name.
-#' @return A BiocFileCache object
-#' @aliases makeBiocFileCacheFromDataFrame
-#' @exportMethod makeBiocFileCacheFromDataFrame
-setMethod("makeBiocFileCacheFromDataFrame", "ANY",
-    function(df, cache,
-             actionLocal=c("move","copy","asis"), actionWeb=c("move","copy"),
-             metadataName,
-             ...)
-{
-    stopifnot(is.data.frame(df))
-    DF <- as.data.frame(df, stringsAsFactors = FALSE)
-    if (missing(cache)) cache <- user_cache_dir(appname="BiocFileCache")
-    stopifnot(is.character(cache), length(cache) == 1L, !is.na(cache),
-              !dir.exists(cache))
-    actionLocal <- match.arg(actionLocal)
-    actionWeb <- match.arg(actionWeb)
-
-    .required <- c("rtype", "fpath", "rpath")
-    .optional <- c("rname", "etag", "last_modified_time")
-    .possible <- c(.required, .optional)
-    if (!all(.required %in% names(DF))){
-        stop("One of the following required columns in not in data.frame:",
-             "\n   ", paste(.required, collapse=", "),
-             "\n   Please insert into original data.frame")
-    }
-    .optional <- .optional[.optional %in% names(DF)]
-    .available <- c(.required, .optional)
-    metadata <- names(DF)[!names(DF) %in% .available]
-    if (any(metadata %in% c("rid",.RESERVED$COLUMNS))){
-        nocols <- c("rid", setdiff(.RESERVED$COLUMNS, .possible))
-        stop("The following are reserved column names:",
-             "\n    ", paste(nocols, collapse=", "),
-             "\n    Please rename offending column name.")
-    }
-    if (length(metadata) != 0)
-        stopifnot(!missing(metadataName),
-                  is.character(metadataName), length(metadataName) == 1L,
-                  !is.na(metadataName), !(metadataName %in% .RESERVED$TABLES))
-
-    # validity of .required columns
-    stopifnot(is.character(DF[["rtype"]]),
-              is.character(DF[["fpath"]]),
-              is.character(DF[["rpath"]]))
-    rtype <- DF[["rtype"]]
-    fpath <- DF[["fpath"]]
-    rpath <- DF[["rpath"]]
-
-    stopifnot(all(rtype %in% c("web", "local")))
-    web <- which(rtype == "web")
-    if (length(web) != 0L){
-        webpaths <- fpath[web]
-        if(!all(
-            vapply(webpaths, FUN = function(x){
-                startsWith(x, "http") || startsWith(x, "ftp")},
-                   logical(1))))
-            stop("Some source urls for files identified with 'rtype=web'\n",
-                 "  do not start with: http, https, or ftp")
-    }
-    nonweb <- which(rtype != "web")
-    if (length(nonweb) != 0L){
-        if (!all(file.exists(rpath[nonweb])))
-            stop("Not all files identified as 'rtype=local' have existing files")
-    }
-
-    # validity of .optional columns
-    if (length(.optional) != 0L){
-        check <- vapply(.optional, FUN = function(x, df){
-            is.character(df[[x]])}, logical(1), df=DF)
-        if (!all(check)){
-            stop("The following columns must have entries of type 'character':",
-                 "\n    ", paste(.optional, collapse=", "))
-        }
-    }
-    if ("last_modified_time" %in% .optional){
-        check <- tryCatch({
-            as.Date(DF[["last_modified_time"]])
-            TRUE
-        }, error=function(e) {
-            warning(conditionMessage(e))
-            FALSE
-        })
-        if (!check){
-            stop("Column 'last_modified_time' must have entries of type ",
-                 "'character' that can be converted to Date via 'as.Date()'")
-        }
-        modified <- DF[["last_modified_time"]]
-    } else {
-        modified <- rep(NA_character_, nrow(DF))
-    }
-
-    if ("rname" %in% .optional){
-        rname <- DF[["rname"]]
-    } else {
-        rname <- fpath
-    }
-
-    if ("etag" %in% .optional){
-        etag <- DF[["etag"]]
-    } else {
-        etag <- rep(NA_character_, nrow(DF))
-    }
-
-    bfc <- BiocFileCache(cache)
-
-    # add resources to cache
-    for(i in seq_len(nrow(DF))){
-
-        if (rtype[i] == "web"){
-            npath <- fpath[i]
-            action <- actionWeb
-        }else{
-            npath <- rpath[i]
-            action <- actionLocal
-        }
-
-        res <- bfcadd(bfc, rname=rname[i], fpath = npath, rtype = "auto",
-                      action = action, download=FALSE, ...)
-        rid <- names(res)
-        .sql_set_last_modified(bfc, rid, modified[i])
-        .sql_set_etag(bfc, rid, etag[i])
-    }
-
-    # if local version of remote exists, copy or move
-    for(i in web){
-        cpath <- bfcrpath(bfc, rids=paste0("BFC",i))
-        opath <- rpath[i]
-        if (file.exists(opath)){
-            switch(actionWeb,
-                   copy = file.copy(opath, cpath, ...),
-                   move = file.rename(opath, cpath)
-                   )
-        }
-    }
-
-    # create metadata
-    if (length(metadata) != 0){
-        tbl <- cbind(rid=paste0("BFC",seq_len(nrow(DF))),
-                     DF[,metadata,drop=FALSE])
-        bfcmeta(bfc, name=metadataName) <- tbl
-    }
-
-    bfc
-})
-
-
 #' @export
 setGeneric("cleanbfc",
     function(x, days = 120, ask = TRUE) standardGeneric("cleanbfc"),
@@ -1508,7 +1344,7 @@ setMethod("cleanbfc", "BiocFileCache",
     stopifnot(is.logical(ask), length(ask) == 1L, !is.na(ask))
 
     rids <- .sql_clean_cache(x, days)
-    rpaths <- vapply(rids, .sql_get_rpath, character(1), bfc=x)
+    rpaths <- .sql_get_rpath(x, rids)
     cached <- startsWith(rpaths, bfccache(x))
 
     if (ask) {

@@ -32,174 +32,46 @@
     cmds
 }
 
-.sql_validate_version <-
+.sql_schema_version <-
     function(bfc)
 {
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    sql <- .sql_cmd("-- SELECT_METADATA")
-    mdata <- dbGetQuery(con, sql)
-    dbDisconnect(con)
-    if (!mdata[mdata$key=="schema_version",2] %in% .SUPPORTED_SCHEMA_VERSIONS)
-        stop(
-            "unsupported schema version ",
-            "\n  sqlite file: ", sqlfile,
-            "\n  file schema version: ",
-            sQuote(mdata[mdata$key=="schema_version",2]),
-            "\n  supported version(s): ",
-            paste(sQuote(.SUPPORTED_SCHEMA_VERSIONS), collapse=" ")
-        )
-    if (mdata[mdata$key=="schema_version",2] != .CURRENT_SCHEMA_VERSION){
-        if (!.biocfilecache_flags$get_update_asked())
-            .sql_updateOldSchema(bfc)
-    }
-}
-
-.sql_updateOldSchema <-
-    function(bfc)
-{
-    # This is necessary for a few modifications from the old schema
-    # We made web resource rpaths relative since we only allow to use download
-    # and checks if using a cache location for the files
-    # default last_modified_time to NA instead of Sys.Date for
-    # local/relative/Non downloaded web resources
-    # We added option to Non download resource which can't default to
-    # Sys.Date
-
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    sql <- .sql_cmd("-- SELECT_METADATA")
-    mdata <- dbGetQuery(con, sql)
-    dbDisconnect(con)
-
-    message("Current schema_version ",
-            mdata[mdata$key=="schema_version",2]," is out-of-date.\n\n",
-            "Current Version will NOT work as expect.\n",
-            "Recommend Updating to lastest schema_version.\n",
-            "Notable Changes:\n",
-            "  1. Web Resource 'rpath' stored as relative path\n",
-            "  2. Default last_modified time for\n",
-            "     local/relative/nondownloaded/last_modified_notfound\n",
-            "     resources is NA not Sys.Date\n",
-            "  3. Added etag to schema\n")
-    doit <- .util_ask("Update current BiocFileCache to be consistent with\n",
-                      "  schema_version: ", .CURRENT_SCHEMA_VERSION, "\n",
-                      "  This will be a permanent change but only necessary once.\n",
-                      "  Continue?")
-    .biocfilecache_flags$set_update_asked()
-
-    if (!doit) {
-        warning("BiocFileCache schema not updated\n",
-                "  bfccache(): ", bfccache(bfc))
-        return()
-    }
-
-    if (mdata[mdata$key=="schema_version",2] == "0.99.1"){
-        bfc <- .update_schema_0991(bfc)
-    }
-
-    # add new column for etag
-    sql <- "ALTER TABLE resource ADD etag TEXT;"
-    message("Updating schema to include 'etag'\n")
-    res <- .sql_db_execute(bfc, sql)
-
-    # update metadata table for package version and schema
-    sql <- paste0("update metadata set value = '",
-                  .CURRENT_SCHEMA_VERSION,
-                  "' where key = 'schema_version'; ")
-    res <- .sql_db_execute(bfc, sql)
-    sql <- paste0("update metadata set value = '",
-                  as.character(packageVersion("BiocFileCache")),
-                  "' where key = 'package_version';")
-    res <- .sql_db_execute(bfc, sql)
-}
-
-.update_schema_0991 <- function(bfc){
-
-    # truncate rpaths of all web resources
-    wid <- .get_all_web_rids(bfc)
-    badpaths <- bfcrpath(bfc, rids=wid)
-    pattern <- paste0(bfccache(bfc),"/", bfccache(bfc),"/")
-    check <- startsWith(badpaths, pattern)
-    if (any(!check)){
-        ids <- wid[!check]
-        warning("Some web resources do not currently have rpath in cache.\n",
-                "  Bad paths: ", paste0("'", ids, "'", collapse=" "), "\n",
-                "  These resources will now be considered rtype='local'")
-        for(i in seq_along(ids)){
-            .sql_set_rtype(bfc, ids[i], "local")
-        }
-    }
-    wid <- wid[check]
-    badpaths <- badpaths[check]
-    newpaths <- gsub(badpaths, pattern=pattern, replacement="")
-    message("Updating rpath for the following web resources:\n",
-            "  ", paste0("'", wid, "'", collapse=" "))
-    for(i in seq_along(wid)){
-        .sql_set_rpath(bfc, wid[i], newpaths[i])
-    }
-
-    # change local/relative lmt to NA
-    nonweb <- setdiff(.get_all_rids(bfc), wid)
-    if (length(nonweb) != 0){
-        message("Updating last modified time for the following\n",
-                "  non web resources:\n",
-                "  ", paste0("'", nonweb, "'", collapse=" "))
-        for(i in seq_along(nonweb)){
-            .sql_set_last_modified(bfc, nonweb[i], NA_character_)
-        }
-    }
-    # check last_modified of all web
-    for(i in seq_along(wid)){
-        fpath <- .sql_get_fpath(bfc, wid[i])
-        check_time <- .httr_get_cache_info(fpath)[["modified"]]
-        if (is.na(check_time))
-            .sql_set_last_modified(bfc, wid[i], NA_character_)
-    }
-    bfc
+    con <- dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
+    src <- src_dbi(con)
+    tbl <- tbl(src, "metadata") %>% collect(Inf)
+    tbl$value[tbl$key=="schema_version"]
 }
 
 ## R / RSQLite, DBI interface
 
 .sql_db_execute <-
-    function(bfc, sql, ...)
+    function(bfc, sql, ..., con)
 {
-    params <- list(...)
-    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
-    if (length(params) == 0L) {
-        result <- dbExecute(con, sql)
-    } else {
-        result <- dbExecute(con, sql, params = params)
+    param <- data.frame(..., stringsAsFactors = FALSE)
+    if (nrow(param) == 0L)
+        param <- NULL
+
+    if (missing(con)) {
+        con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+        on.exit(dbDisconnect(con))
     }
-    dbDisconnect(con)
-    result
+
+    dbExecute(con, sql, param = param)
 }
 
-.sql_db_send_query <-
-    function(bfc, sql, ...)
+.sql_db_get_query <-
+    function(bfc, sql, ..., con)
 {
-    params <- list(...)
-    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
-    rs <- dbSendStatement(con, sql)
-    dbBind(rs, params)
-    dbClearResult(rs)
-    dbDisconnect(con)
-}
+    param <- data.frame(..., stringsAsFactors = FALSE)
+    if (nrow(param) == 0L)
+        param <- NULL
 
-.sql_db_fetch_query <-
-    function(bfc, sql, ...)
-{
-    params <- list(...)
+    if (missing(con)) {
+        con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+        on.exit(dbDisconnect(con))
+    }
 
-    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
-    rs <- dbSendStatement(con, sql)
-    if (length(params) != 0L)
-        dbBind(rs, params)
-    result <- dbFetch(rs)
-    dbClearResult(rs)
-    dbDisconnect(con)
-
-    result
+    dbGetQuery(con, sql, param)
 }
 
 ## BiocFileCache / RSQLite interface
@@ -212,6 +84,7 @@
         ## update metadata table
         sql <- .sql_cmd("-- METADATA")
         .sql_db_execute(bfc, sql)
+
         sql <- .sql_cmd("-- INSERT_METADATA")
         package_version <- as.character(packageVersion("BiocFileCache"))
         .sql_db_execute(
@@ -228,60 +101,46 @@
     fl
 }
 
-.sql_new_resource <-
-    function(bfc, rname, rtype, fpath, ext=NA_character_)
+.sql_add_resource <-
+    function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
     rpath <- path.expand(tempfile("", bfccache(bfc)))
+    rtype <- unname(rtype)
     if (identical(rtype, "relative") || identical(rtype, "web"))
         rpath <- basename(rpath)
 
-    if (is.na(fpath))
-        fpath <- rpath
+    fpath[is.na(fpath)] <- rpath[is.na(fpath)]
+    ext[is.na(ext)] <- ""
+    rpath <- sprintf("%s_%s%s", rpath, basename(fpath), ext)
 
-    rpath <- paste(rpath, basename(fpath), sep="_")
+    con <- dbConnect(SQLite(), .sql_dbfile(bfc))
+    on.exit(dbDisconnect(con))
 
-    if (!is.na(ext))
-        rpath <- paste(rpath, ext, sep=".")
-
-    # insert is special case need last_insert_rowid()
-    sql <- .sql_cmd("-- INSERT")
-    sqls <- strsplit(sql, ";", fixed=TRUE)[[1]]
-    sqlfile <- .sql_dbfile(bfc)
-    con <- dbConnect(SQLite(), sqlfile)
-    for(i in seq_along(sqls)){
-        # 1 = INSERT
-        # 2 = UPDATE ID
-        # 3 = SELECT last_insert_rowid()
-        switch(i,
-               "1" = {
-                   param = list(rname=rname, rpath=rpath,
-                       rtype=rtype, fpath=fpath)
-                   result <- dbExecute(con, sqls[i], param)
-               },
-               "2" = {
-                   result <- dbExecute(con, sqls[i])
-               },
-               "3" = {
-                   temp <- dbSendQuery(con, sqls[i])
-                   result <- dbFetch(temp)
-                   dbClearResult(temp)
-               })
-    }
-    dbDisconnect(con)
-    result[[1]]
+    sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
+    original_rid <- .sql_db_get_query(bfc, sql[[1]], con = con)[["rid"]]
+    .sql_db_execute(
+        bfc, sql[[2]],
+        rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
+        last_modified_time = as.Date(NA_character_), etag = NA_character_,
+        con = con
+    )
+    .sql_db_execute(bfc, sql[[3]], con = con)
+    tbl <- .sql_db_get_query(bfc, sql[[4]], con = con)
+    tbl <- tbl[!tbl$rid %in% original_rid,, drop=FALSE]
+    setNames(tbl$rid, tbl$rname)
 }
 
 .sql_remove_resource <-
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- REMOVE")
-    .sql_db_send_query(bfc, sql, rid = rid)
+    .sql_db_execute(bfc, sql, rid = rid)
 }
 
 .sql_get_resource_table <-
     function(bfc, rids)
 {
-    con <- DBI::dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
+    con <- dbConnect(RSQLite::SQLite(), .sql_dbfile(bfc))
     on.exit(dbDisconnect(con))
     src <- src_dbi(con)
     tbl <- tbl(src, "resource")
@@ -303,7 +162,6 @@
     tbl <- tbl %>% collect
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
-
 }
 
 .sql_get_nrows <-
@@ -315,8 +173,15 @@
 .sql_get_field <-
     function(bfc, id, field)
 {
-    .sql_get_resource_table(bfc) %>% filter_(~ rid == id) %>%
-        select_(field) %>% collect(Inf) %>% `[[`(field)
+    tbl <- .sql_get_resource_table(bfc) %>% filter_(~ rid %in% id) %>%
+        select_(~ rid, field) %>% collect(Inf)
+    setNames(tbl[[field]], tbl[["rid"]])
+}
+
+.sql_get_rname <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "rname")
 }
 
 .sql_get_rtype <-
@@ -336,8 +201,8 @@
 {
     rtype <- .sql_get_rtype(bfc, rid)
     rpath <- .sql_get_field(bfc, rid, "rpath")
-    if (identical(rtype, "relative") || identical(rtype, "web"))
-        rpath <- file.path(bfccache(bfc), rpath)
+    idx <- rtype %in% c("relative", "web")
+    rpath[idx] <- file.path(bfccache(bfc), rpath)[idx]
     rpath
 }
 
@@ -375,14 +240,9 @@
 {
     mytbl <- .sql_get_resource_table(bfc) %>%
         select_(~ rid, ~ access_time) %>% collect(Inf)
-    currentDate <- Sys.Date()
-
-    accessDate <- as.Date(
-        sapply(strsplit(
-            (mytbl %>% `[[`("access_time")), split=" "), `[`, 1))
-
-    diffTime <- currentDate - accessDate
-    mytbl[diffTime > days,1] %>% .formatID
+    accessDate <- as.Date(as.character(mytbl$access_time))
+    diffTime <- Sys.Date() - accessDate
+    mytbl[diffTime > days, 1] %>% .formatID
 }
 
 .get_all_rids <-
@@ -424,9 +284,7 @@
     function(bfc, rid, etag)
 {
     sql <- .sql_cmd("-- UPDATE_ETAG")
-    .sql_db_execute(
-        bfc, sql, rid = rid, etag = etag
-    )
+    .sql_db_execute(bfc, sql, rid = rid, etag = etag)
 }
 
 .sql_set_fpath <-
@@ -434,12 +292,6 @@
 {
     sql <- .sql_cmd("-- UPDATE_FPATH")
     .sql_db_execute(bfc, sql, rid = rid, fpath = fpath)
-}
-
-.get_all_rpath <-
-    function(bfc)
-{
-    unname(bfcrpath(bfc))
 }
 
 .get_rid_filenotfound <-
@@ -459,8 +311,9 @@
     function(bfc, rnames)
 {
     stopifnot(!missing(rnames))
-    unname(vapply(rnames, function(bfc, rnames){bfcrid(bfcquery(bfc, rnames))},
-                  character(1), bfc=bfc))
+    unname(vapply(rnames, function(bfc, rname) {
+        bfcrid(bfcquery(bfc, rname, field = "rname"))
+    }, character(1), bfc=bfc))
 }
 
 .get_all_colnames <-
@@ -472,43 +325,9 @@
 .get_nonrelative_ids <-
     function(bfc)
 {
-    rpaths <- .get_all_rpath(bfc)
-    rids <- bfcrid(bfc)
-    cacheloc <- bfccache(bfc)
-    res <- startsWith(rpaths, cacheloc)
-    rids[!res]
-}
-
-.get_local_ids <- function(bfc){
-
-    rids <- bfcrid(bfc)
-    rtypes <- vapply(rids, .sql_get_rtype, character(1), bfc = bfc)
-    rids[which(rtypes == "local")]
-}
-
-.sql_set_relative <-
-    function(bfc, rids, action, verbose)
-{
-    for(rid in rids){
-        rpath <- .sql_get_rpath(bfc, rid)
-        fileBase <- basename(rpath)
-        newpath <- .sql_file(bfc, fileBase)
-        if (file.exists(newpath))
-            newpath <- paste(path.expand(tempfile("", bfccache(bfc))), fileBase,
-                             sep="_")
-        switch(
-            action,
-            copy = file.copy(rpath, newpath),
-            move = file.rename(rpath, newpath)
-            )
-        .sql_set_rpath(bfc, rid, basename(newpath))
-        if (identical(.sql_get_rtype(bfc, rid), "local")){
-            if (verbose){
-                message("Updating 'rtype' from local to relative")
-            }
-            .sql_set_rtype(bfc, rid, "relative")
-        }
-    }
+    rpaths <- .sql_get_rpath(bfc, bfcrid(bfc))
+    res <- startsWith(rpaths, bfccache(bfc))
+    names(rpaths)[!res]
 }
 
 ##
@@ -557,10 +376,10 @@
     df <- bfcmeta(bfc, name)
     rids <- bfcrid(bfc)
     check <- as.character(df$rid) %in% rids
-    if (all(!check)){
+    if (all(!check)) {
         bfcmetaremove(bfc, name)
         vl <- FALSE
-    } else if (any(!check)){
+    } else if (any(!check)) {
         df <- df[check,]
         bfcmeta(bfc, name, overwrite=TRUE) <- df
         vl <- FALSE
