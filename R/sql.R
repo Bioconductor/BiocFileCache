@@ -125,9 +125,9 @@
         con = con
     )
     .sql_db_execute(bfc, sql[[3]], con = con)
-    tbl <- .sql_db_get_query(bfc, sql[[4]], con = con)
-    tbl <- tbl[!tbl$rid %in% original_rid,, drop=FALSE]
-    setNames(tbl$rid, tbl$rname)
+
+    rid <- .sql_db_get_query(bfc, sql[[1]], con = con)[["rid"]]
+    .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
 
 .sql_remove_resource <-

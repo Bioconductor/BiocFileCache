@@ -287,8 +287,7 @@ setMethod("bfcnew", "BiocFileCache",
     )
     rtype <- match.arg(rtype)
 
-    rid <- .sql_add_resource(x, rname, rtype, NA_character_, ext)
-    bfcrpath(x, rids = rid)
+    .sql_add_resource(x, rname, rtype, NA_character_, ext)
 })
 
 #' @export
@@ -383,8 +382,8 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(rtype == "web" || file.exists(fpath))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
-    rid <- .sql_add_resource(x, rname, rtype, fpath)
-    rpath <- bfcrpath(x, rids = rid)
+    rpath <- .sql_add_resource(x, rname, rtype, fpath)
+    rid <- names(rpath)
     if (rtype %in% c("local", "relative")) {
         switch(
             action,

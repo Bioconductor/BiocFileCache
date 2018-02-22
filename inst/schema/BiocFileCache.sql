@@ -29,7 +29,6 @@ INSERT INTO resource (
     :rname, :rpath, :rtype, :fpath, :last_modified_time, :etag
 );
 UPDATE resource SET rid = "BFC" || id;
-SELECT rid, rname FROM resource;
 -- REMOVE
 DELETE FROM resource WHERE rid IN (%s);
 -- UPDATE_PATH
