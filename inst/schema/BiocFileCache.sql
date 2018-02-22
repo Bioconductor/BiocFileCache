@@ -31,7 +31,7 @@ INSERT INTO resource (
 UPDATE resource SET rid = "BFC" || id;
 SELECT rid, rname FROM resource;
 -- REMOVE
-DELETE FROM resource WHERE rid IN (:rid);
+DELETE FROM resource WHERE rid IN (%s);
 -- UPDATE_PATH
 UPDATE resource
 SET rpath = :rpath, access_time = CURRENT_TIMESTAMP
@@ -39,7 +39,7 @@ WHERE rid = :rid;
 -- UPDATE_TIME
 UPDATE resource
 SET access_time = CURRENT_TIMESTAMP
-WHERE rid = :rid;
+WHERE rid IN (%s);
 -- UPDATE_RNAME
 UPDATE resource
 SET rname = :rname, access_time = CURRENT_TIMESTAMP

@@ -223,7 +223,7 @@ setMethod("[[", c("BiocFileCacheBase", "character", "missing"),
 {
     stopifnot(length(i) == 1L, i %in% bfcrid(x))
 
-    .sql_update_time(x, i)
+    .sql_set_time(x, i)
     .sql_get_rpath(x, i)
 })
 
@@ -238,7 +238,7 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
     stopifnot(length(i) == 1L, length(value) == 1L)
     stopifnot(file.exists(value))
 
-    .sql_update_time(x, i)
+    .sql_set_time(x, i)
     .sql_set_rpath(x, i, value)
     rtype <- unname(.sql_get_rtype(x, i))
     if (identical(rtype, "relative") || identical(rtype, "web")) {
@@ -472,7 +472,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 {
     stopifnot(!missing(rid), length(rid) > 0L, all(rid %in% bfcrid(x)))
 
-    .sql_update_time(x, rid)
+    .sql_set_time(x, rid)
     path <- .sql_get_rpath(x, rid)
     is_web <- .sql_get_rtype(x, rid) == "web"
     fpath <- .sql_get_fpath(x, rid[is_web])
@@ -511,7 +511,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         stop("specify either 'rnames' or 'rids' not both.")
 
     update_time_and_path <- function(x, i) {
-        .sql_update_time(x, i)
+        .sql_set_time(x, i)
         .sql_get_rpath(x, i)
     }
 
@@ -594,7 +594,7 @@ setMethod("bfcupdate", "BiocFileCache",
 
     for (i in seq_along(rids)) {
 
-        .sql_update_time(x, rids[i])
+        .sql_set_time(x, rids[i])
 
         if (!is.null(rname)) {
             .sql_set_rname(x, rids[i], rname[i])
@@ -943,7 +943,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         stop("rids not all web resources")
 
     helper <- function(x, rid) {
-        .sql_update_time(x, rid)
+        .sql_set_time(x, rid)
         file_time <- .sql_get_last_modified(x, rid)
         fpath <- .sql_get_fpath(x, rid)
         file_etag <-  .sql_get_etag(x, rid)
@@ -1007,7 +1007,7 @@ setMethod("bfcdownload", "BiocFileCache",
         all(.sql_get_rtype(x, rid) == "web")
     )
 
-    .sql_update_time(x, rid)
+    .sql_set_time(x, rid)
 
     if (ask && any(file.exists(.sql_get_rpath(x, rid)))) {
         doit <- .util_ask(

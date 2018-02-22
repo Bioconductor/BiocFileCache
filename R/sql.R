@@ -134,7 +134,8 @@
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- REMOVE")
-    .sql_db_execute(bfc, sql, rid = rid)
+    cmd <- sprintf(sql, paste0("'", rid, "'", collapse = ","))
+    .sql_db_execute(bfc, cmd)
 }
 
 .sql_get_resource_table <-
@@ -213,11 +214,12 @@
     .sql_db_execute(bfc, sql, rid = rid, rpath = rpath)
 }
 
-.sql_update_time <-
+.sql_set_time <-
     function(bfc, rid)
 {
     sql <- .sql_cmd("-- UPDATE_TIME")
-    .sql_db_execute(bfc, sql, rid = rid)
+    cmd <- sprintf(sql, paste0("'", rid, "'", collapse = ","))
+    .sql_db_execute(bfc, cmd)
 }
 
 .sql_set_rname <-
