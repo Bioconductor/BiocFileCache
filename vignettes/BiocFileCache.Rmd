@@ -810,13 +810,13 @@ save(list = ls(), file=filepath)
 
 ## Cache to manage package data
 
-A package may desire to use BiocFileCache to manage remote data. The following 
-is example code providing some best practice guidelines. 
+A package may desire to use BiocFileCache to manage remote data. The following
+is example code providing some best practice guidelines.
 
 1. Creating the cache
 
 Assumingly, the cache could potentially be called in a variety of places within
-code, examples, and vignette. It is desirable to have a wrapper to the 
+code, examples, and vignette. It is desirable to have a wrapper to the
 BiocFileCache constructor. The following is a suggested example for a package
 called `MyNewPackage`:
 
@@ -826,15 +826,15 @@ called `MyNewPackage`:
     BiocFileCache::BiocFileCache(cache)
 }
 ```
-Essentially this will create a unique cache for the package. If run 
+Essentially this will create a unique cache for the package. If run
 interactively, the user will have the option to permanently create the package
 cache, else a temporary directory will be used.
 
 2. Resources in the cache
 
 Managing remote resources then involves a function that will query to see if the
-resource has been added, if it is not it will add to the cache and if it has it 
-checks if the file needs to be updated. 
+resource has been added, if it is not it will add to the cache and if it has it
+checks if the file needs to be updated.
 
 
 ```
@@ -843,16 +843,54 @@ download_data_file <- function( verbose = FALSE ) {
 
     bfc <- .get_cache()
     if( nrow( BiocFileCache::bfcquery(bfc, "geneFileV2") ) == 0 ) {
-        if( verbose ) message( "Downloading GENE file" )
-        BiocFileCache::bfcadd(bfc, "geneFileV2", fileURL )
+	if( verbose ) message( "Downloading GENE file" )
+	BiocFileCache::bfcadd(bfc, "geneFileV2", fileURL )
     } else {
-        rid <- BiocFileCache::bfcquery(bfc, "geneFileV2")[["rid"]]
-        if (BiocFileCache::bfcneedsupdate(bfc, rid)
-            BiocFileCache::bfcdownload(bfc, rid)
-    }       
+	rid <- BiocFileCache::bfcquery(bfc, "geneFileV2")[["rid"]]
+	if (BiocFileCache::bfcneedsupdate(bfc, rid)
+	    BiocFileCache::bfcdownload(bfc, rid)
+    }
 }
 
 ```
+
+## Specialty Advanced Use Case
+
+A case has been identified where it may be desired to do some processing of the
+raw downloaded file before saving the resource into the cache. This can be done
+through specific options of the `bfcadd` and `bfcdownload` functions.
+
+1. Add the resource with `bfcadd` using the `download=FALSE` argument.
+2. Download the resource with `bfcdownload` using the `FUN` argument.
+
+The FUN argument is the name of a function to be performed before saving a file into the cache.  The default is `file.rename`.  The function must take in ONLY two arguments:
+
+1. Character(1) Input file name (The file retrieved from downloading from the web)
+2. Character(1) Output file name (A newly written file)
+
+The function should return a status indicator if it was successful or not. A dummy example:
+
+```
+# function that truncates file to only the first few lines
+headFile <-
+    function(file, output)
+{
+    dat <- readLines(file)
+    dat <- head(dat)
+    writeLines(dat, output)
+    TRUE
+}
+
+url="http://www.UniProt.org/docs/speclist.txt"
+rid = names(bfcadd(bfc, rname="testFunUsage", fpath=url, download=FALSE))
+bfcdownload(bfc, rid, FUN=headFile)
+
+```
+
+
+
+
+
 
 # Summary
 

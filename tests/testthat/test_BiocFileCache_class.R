@@ -88,7 +88,7 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(
         .sql_get_fpath(bfc,names(path)), setNames(basename, names(path))
     )
-                     
+
 
     fl <- tempfile(); file.create(fl)
     path <- bfcadd(bfc, fl, rtype = "relative")
@@ -485,6 +485,22 @@ test_that("bfcdownload works", {
     time3 <- file.info(.sql_get_rpath(bfc, rid3))[["ctime"]]
     expect_true(time1 < time3)
     expect_error(bfcdownload(bfc, rid1))
+
+    url <- "http://www.UniProt.org/docs/speclist.txt"
+    headFile <-
+    function(url, file)
+        {
+            dat <- readLines(url)
+            dat <- head(dat, n=3L)
+            writeLines(dat, file)
+            TRUE
+        }
+    rid <- names(bfcadd(bfc, rname="testFun", fpath=url, download=FALSE))
+    temp <- bfcdownload(bfc, rid, FUN=headFile)
+    file <- readLines(temp)
+    expect_identical(length(file), 3L)
+
+    expect_error(bfcdownload(bfc, rid, ask=FALSE, FUN=rnorm))
 
     .biocfilecache_flags$set_ask_response(response)
 })
