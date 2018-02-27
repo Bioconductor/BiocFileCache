@@ -134,7 +134,7 @@
     rpath <- .sql_get_rpath(bfc, rid)
 
     status <- Map(function(rpath, fpath) {
-        temppath <- tempfile()
+        temppath <- tempfile(tmpdir=bfccache(bfc))
 
         status <- .httr_download(fpath, temppath, proxy, config)
         if (!status)

@@ -1018,7 +1018,7 @@ setMethod("bfcdownload", "BiocFileCache",
     if (doit)
         .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
 
-    bfcrpath(x, rid=rid)
+    bfcrpath(x, rids=rid)
 })
 
 
