@@ -37,7 +37,7 @@
 {
     schema_version <- .sql_schema_version(bfc)
 
-    if (!.biocfilecache_flags$get_update_asked())
+    if (.biocfilecache_flags$get_update_asked())
         return(schema_version)
 
     ## This is necessary for a few modifications from the old schema
@@ -110,7 +110,9 @@
     newpaths <- gsub(badpaths, pattern=pattern, replacement="")
     message("Updating rpath for the following web resources:\n",
             "  ", paste0("'", wid, "'", collapse=" "))
-    .sql_set_rpath(bfc, wid, newpaths[i])
+    for(i in seq_along(wid)){
+        .sql_set_rpath(bfc, wid[i], newpaths[i])
+    }
 
     ## change local/relative lmt to NA
     nonweb <- setdiff(.get_all_rids(bfc), wid)
