@@ -1,14 +1,14 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
 
-.CURRENT_SCHEMA_VERSION <- "0.99.3"
+.CURRENT_SCHEMA_VERSION <- "0.99.4"
 
-.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.1", "0.99.2", "0.99.3")
+.SUPPORTED_SCHEMA_VERSIONS <- c("0.99.1", "0.99.2", "0.99.3", "0.99.4")
 
 .RESERVED <- list(                       # dynamically, in .onLoad?
     TABLES = c("metadata", "resource", "sqlite_sequence"),
     COLUMNS = c(
         "id", "rname", "create_time", "access_time", "rpath", "rtype",
-        "fpath", "last_modified_time", "etag"
+        "fpath", "last_modified_time", "etag", "expires"
     )
 )
 
@@ -99,6 +99,7 @@
     cache_info <- .httr_get_cache_info(fpath)
     .sql_set_last_modified(bfc, rid, cache_info[["modified"]])
     .sql_set_etag(bfc, rid, cache_info[["etag"]])
+    .sql_set_expires(bfc, rid, cache_info[["expires"]])
     bfc
 }
 

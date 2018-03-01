@@ -117,6 +117,11 @@ The table of resource files includes the following information:
    resource to determine if the local copy is stale and needs to be updated. If
    it is not available or your resource is not a remote resource, the etag will
    be marked as NA.
+ * `expires`: For a remote resource, the expires (if available) information for
+   the local copy of the data. This information is checked against the
+   `Sys.time` to determine if the local copy needs to be updated. If it is not
+   available or your resource is not a remote resource, the expires will be
+   marked as NA.
 
 Now that we have created the cache object and location, let's explore adding
 files that the cache will manage!
@@ -298,11 +303,14 @@ of the data.
 
 `bfcneedsupdate()` is a method that will check the local copy of the data's
 etag and last_modifed time to the etag and last_modified time of the remote
-resource. The cache saves this information when the web resource is initially
-added. The etag information is used definitively if it is available, if it is
-not available it checks the last_modified time. If the resource does
-not have a last_modified tag either, it is undetermined. If the resource has
-not been download yet, it is `TRUE`.
+resource as well as an expires time. The cache saves this information when the
+web resource is initially added. The expires time is checked against the current
+Sys.time to see if the local resource has expired. If so the resource will deem
+need to be updated; if unavailable or not expired will check the etag and
+last_modified_time. The etag information is used definitively if it is
+available, if it is not available it checks the last_modified time. If the
+resource does not have a last_modified tag either, it is undetermined. If the
+resource has not been download yet, it is `TRUE`.
 
 **Note:** This function does not automatically download the remote source if it
   is out of date.  Please see `bfcdownload()`.
@@ -559,8 +567,8 @@ create the location. If the user opts 'N', the cache will be created in a
 temporary directory and this function will have to be run again upon a new R
 session. The original data.frame must contain the required BiocFileCache columns
 `rtype`, `rpath`, and `fpath` as described in the section 1.2 "Creating /
-Loading the Cache". The optional columns `rname`, `last_modified_time`, and
-`etag` may also be specified in the original data.frame although are not
+Loading the Cache". The optional columns `rname`, `last_modified_time`, `etag`
+and `expires` may also be specified in the original data.frame although are not
 required and will be populated with defaults if missing. For resources with
 `rtype="local"`, the `actionLocal` will control if the local copy of the file is
 copied or moved to the cache location, or if it is left asis on the local

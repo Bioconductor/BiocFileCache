@@ -395,7 +395,8 @@ For 'bfcneedsupdate': named logical vector if resource
     than in BiocFileCache; \code{NA}: web resource etag and modified time
     could not be determined. If the etag is available the function will use
     that information definitively and only compare last modified time if
-    etag is not available.
+    etag is not available. If there is an \code{expires} time that will be
+    used to initially determine if the resource should be updated.
 
 For 'bfcdownload': character(1) path to downloaded resource
     in cache.

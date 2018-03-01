@@ -927,7 +927,8 @@ setMethod("bfcneedsupdate", "missing",
 #'     than in BiocFileCache; \code{NA}: web resource etag and modified time
 #'     could not be determined. If the etag is available the function will use
 #'     that information definitively and only compare last modified time if
-#'     etag is not available.
+#'     etag is not available. If there is an \code{expires} time that will be
+#'     used to initially determine if the resource should be updated.
 #' @examples
 #' bfcneedsupdate(bfc0, "BFC5")
 #' @aliases bfcneedsupdate
@@ -946,23 +947,35 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         file_time <- .sql_get_last_modified(x, rid)
         fpath <- .sql_get_fpath(x, rid)
         file_etag <-  .sql_get_etag(x, rid)
+        file_expires <- .sql_get_expires(x, rid)
         cache_info <- .httr_get_cache_info(fpath)
         web_time <- cache_info[["modified"]]
         web_etag <- cache_info[["etag"]]
 
-        checkTime <- FALSE
-        if (is.na(web_etag) || is.na(file_etag)) {
-            checkTime <- TRUE
-        } else {
-            res <- !identical(unname(file_etag), web_etag)
-        }
+        if (!is.na(file_expires))
+            expired <- as.Date(file_expires, optional=TRUE) <= Sys.Date()
+        else
+            expired <- FALSE
 
-        if (checkTime) {
-            if (is.na(file_time) || is.na(web_time)) {
-                res <- NA
+        checkTime <- FALSE
+        if (expired){
+            res <- TRUE
+            checkTime <- FALSE
+        } else {
+
+            if (is.na(web_etag) || is.na(file_etag)) {
+                checkTime <- TRUE
             } else {
-                res <- as.Date(web_time, optional=TRUE) >
-                    as.Date(file_time, optional=TRUE)
+                res <- !identical(unname(file_etag), web_etag)
+            }
+
+            if (checkTime) {
+                if (is.na(file_time) || is.na(web_time)) {
+                    res <- NA
+                } else {
+                    res <- as.Date(web_time, optional=TRUE) >
+                        as.Date(file_time, optional=TRUE)
+                }
             }
         }
         res

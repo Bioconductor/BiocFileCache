@@ -19,14 +19,15 @@ CREATE TABLE resource (
     rtype TEXT,
     fpath TEXT,
     last_modified_time DATETIME DEFAULT NA,
-    etag TEXT DEFAULT NA
+    etag TEXT DEFAULT NA,
+    expires DATETIME DEFAULT NA
 );
 -- INSERT
 SELECT rid FROM resource;
 INSERT INTO resource (
-    rname, rpath, rtype, fpath, last_modified_time, etag
+    rname, rpath, rtype, fpath, last_modified_time, etag, expires
 ) VALUES (
-    :rname, :rpath, :rtype, :fpath, :last_modified_time, :etag
+    :rname, :rpath, :rtype, :fpath, :last_modified_time, :etag, :expires
 );
 UPDATE resource SET rid = "BFC" || id;
 -- REMOVE
@@ -59,10 +60,17 @@ WHERE rid = :rid;
 UPDATE resource
 SET etag  = :etag, access_time = CURRENT_TIMESTAMP
 WHERE rid = :rid;
+-- UPDATE_EXPIRES
+UPDATE resource
+SET expires  = :expires, access_time = CURRENT_TIMESTAMP
+WHERE rid = :rid;
 -- MIGRATION_0_99_1_to_0_99_2
 -- MIGRATION_0_99_2_to_0_99_3
 ALTER TABLE resource
 ADD etag TEXT;
+-- MIGRATION_0_99_3_to_0_99_4
+ALTER TABLE resource
+ADD expires DATETIME;
 -- MIGRATION_UPDATE_METADATA
 UPDATE metadata
 SET value = :value

@@ -180,11 +180,11 @@ rid5 <- names(add5)
 test_that("bfcinfo works", {
     # print all
     expect_identical(dim(as.data.frame(bfcinfo(bfc))),
-                     c(5L, 9L))
+                     c(5L, 10L))
     expect_is(bfcinfo(bfc), "tbl_df")
     # print subset
     expect_identical(dim(as.data.frame(bfcinfo(bfc, paste0("BFC", 1:3)))),
-                     c(3L, 9L))
+                     c(3L, 10L))
     # print one found and one not found
     expect_error(bfcinfo(bfc, c(1, 6)))
 
@@ -430,14 +430,12 @@ test_that("bfcneedsupdate works", {
     # test out of bounds
     expect_error(bfcneedsupdate(bfc, 7))
 
-    # test last modified not available
-    expect_false(bfcneedsupdate(bfc, rid3))
-
-    # test last modified not available
-    link = "http://google.com"
+    # test expires and last modified not available
+    link = "http://httpbin.org/get"
     bfcupdate(bfc, rid3, fpath=link, ask=FALSE)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
     expect_true(is.na(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time))
+    expect_true(is.na(as.data.frame(bfcinfo(bfc,rid3))$expires))
 
     # remove those that aren't web
     expect_identical(
@@ -462,6 +460,8 @@ test_that("bfcneedsupdate works", {
                      cache_info[["etag"]])
     expect_true(!is.na(bfcneedsupdate(bfc, rid3)))
     expect_true(!is.na(as.data.frame(bfcinfo(bfc,rid3))$etag))
+    # wiki has expires so manually set to NA for testing
+    .sql_set_expires(bfc, rid3, NA_character_)
     expect_false(bfcneedsupdate(bfc, rid3))
     .sql_set_etag(bfc, rid3, "somethingElse")
     expect_true(bfcneedsupdate(bfc, rid3))
@@ -471,6 +471,13 @@ test_that("bfcneedsupdate works", {
                   as.character(as.Date(.sql_get_last_modified(bfc, rid3)) - 1))
     expect_true(bfcneedsupdate(bfc, rid3))
 
+    # maually test expires
+    .sql_set_expires(bfc, rid3, as.character(as.Date(Sys.time()) + 2))
+    .sql_set_etag(bfc, rid3, NA_character_)
+    .sql_set_last_modified(bfc, rid3,NA_character_)
+    expect_true(is.na(bfcneedsupdate(bfc, rid3)))
+    .sql_set_expires(bfc, rid3, as.character(as.Date(Sys.time()) -1))
+    expect_true(bfcneedsupdate(bfc, rid3))
 })
 
 test_that("bfcdownload works", {

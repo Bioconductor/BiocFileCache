@@ -68,7 +68,7 @@ test_that("makeBiocFileCacheFromDataFrame works",{
     expect_identical(length(.get_nonrelative_ids(newbfc)), 0L)
     # neither web file will be found, only local and sqlite
     expect_identical(length(list.files(bfccache(newbfc))), 2L)
-    expect_identical(ncol(bfcinfo(newbfc)), 12L)
+    expect_identical(ncol(bfcinfo(newbfc)), 13L)
     expect_identical(length(bfcmetalist(newbfc)), 1L)
     expect_identical(bfcinfo(newbfc)$origID, temp$origID)
     expect_identical(bfcinfo(newbfc)$etag, temp$etag)
@@ -84,7 +84,7 @@ test_that("makeBiocFileCacheFromDataFrame works",{
         temp,cache=newcache, actionLocal="copy", actionWeb="copy",
         metadataName="resourceMetadata", ask = FALSE
     )
-    expect_identical(ncol(bfcinfo(newbfc)), 15L)
+    expect_identical(ncol(bfcinfo(newbfc)), 16L)
 
     removebfc(newbfc, ask=FALSE)
     # fail because required not available
@@ -106,7 +106,7 @@ test_that("makeBiocFileCacheFromDataFrame works",{
     newbfc <- makeBiocFileCacheFromDataFrame(
         temp, cache=newcache, actionLocal="copy", actionWeb="copy", ask = FALSE
     )
-    expect_identical(ncol(bfcinfo(newbfc)), 9L)
+    expect_identical(ncol(bfcinfo(newbfc)), 10L)
     expect_identical(length(bfcmetalist(newbfc)), 0L)
     removebfc(newbfc, ask=FALSE)
 })

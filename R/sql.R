@@ -122,6 +122,7 @@
         bfc, sql[[2]],
         rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
         last_modified_time = as.Date(NA_character_), etag = NA_character_,
+        expires = NA_character_,
         con = con
     )
     .sql_db_execute(bfc, sql[[3]], con = con)
@@ -287,6 +288,18 @@
 {
     sql <- .sql_cmd("-- UPDATE_ETAG")
     .sql_db_execute(bfc, sql, rid = rid, etag = etag)
+}
+.sql_get_expires <-
+    function(bfc, rid)
+{
+    .sql_get_field(bfc, rid, "expires")
+}
+
+.sql_set_expires <-
+    function(bfc, rid, expires)
+{
+    sql <- .sql_cmd("-- UPDATE_EXPIRES")
+    .sql_db_execute(bfc, sql, rid = rid, expires = expires)
 }
 
 .sql_set_fpath <-
