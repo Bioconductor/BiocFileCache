@@ -20,7 +20,7 @@ CREATE TABLE resource (
     fpath TEXT,
     last_modified_time DATETIME DEFAULT NA,
     etag TEXT DEFAULT NA,
-    expires DATETIME DEFAULT CURRENT_TIMESTAMP
+    expires DATETIME DEFAULT NA
 );
 -- INSERT
 SELECT rid FROM resource;
@@ -68,6 +68,9 @@ WHERE rid = :rid;
 -- MIGRATION_0_99_2_to_0_99_3
 ALTER TABLE resource
 ADD etag TEXT;
+-- MIGRATION_0_99_3_to_0_99_4
+ALTER TABLE resource
+ADD expires DATETIME;
 -- MIGRATION_UPDATE_METADATA
 UPDATE metadata
 SET value = :value
