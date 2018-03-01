@@ -185,10 +185,10 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(),
-  ask = TRUE)
+  ask = TRUE, FUN)
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(),
-  ask = TRUE)
+  ask = TRUE, FUN)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -296,6 +296,14 @@ using \code{&} logic across query element. By default, case sensitive.}
 \code{||} logic across multiple field elements. By default,
 matches pattern agains rname, rpath, and fpath. If exact
 matching, may only be a single value.}
+
+\item{FUN}{A specialized implemented function designed by the user. This
+function can be used to perform and save the results of a post download
+processing step rather than direct output. The function should ONLY take in
+two file names: the first the raw downloaded file and the second the output
+file for saved results. The output of the function should be TRUE/FALSE if
+step was successful. See vignette section on Specialty Advance Use Case for
+more details.}
 
 \item{verbose}{logical(1) If descriptive message and list of issues
 should be included as output.}

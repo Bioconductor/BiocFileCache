@@ -129,9 +129,12 @@
 }
 
 .util_download_and_rename <-
-    function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid))
+    function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid), FUN)
 {
     rpath <- .sql_get_rpath(bfc, rid)
+
+    if (missing(FUN))
+        FUN <- file.rename
 
     status <- Map(function(rpath, fpath) {
         temppath <- tempfile(tmpdir=bfccache(bfc))
@@ -140,11 +143,16 @@
         if (!status)
             return("download failed")
 
-        status <- file.rename(temppath, rpath)
-        if (!status)
-            return("file.rename() failed")
+        status <- tryCatch({
+            FUN(temppath, rpath)
+        }, error = function(err){
+            warning("FUN() failed",
+                    "\n  reason: ", conditionMessage(err),
+                    call.=FALSE)
+            FALSE
+        })
 
-        TRUE
+        status
     }, rpath, fpath)
 
     ok <- vapply(status, isTRUE, logical(1))

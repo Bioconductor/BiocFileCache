@@ -976,7 +976,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcdownload",
-    function(x, rid, proxy="", config=list(), ask=TRUE)
+    function(x, rid, proxy="", config=list(), ask=TRUE, FUN)
     standardGeneric("bfcdownload"),
     signature = "x"
 )
@@ -985,12 +985,20 @@ setGeneric("bfcdownload",
 #' @aliases bfcdownload,missing-method
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "missing",
-    function(x, rid, proxy="", config=list(), ask=TRUE)
+    function(x, rid, proxy="", config=list(), ask=TRUE, FUN)
 {
-    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config, ask=ask)
+    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config, ask=ask,
+                FUN=FUN)
 })
 
 #' @describeIn BiocFileCache Redownload resource to location in cache
+#' @param FUN A specialized implemented function designed by the user. This
+#' function can be used to perform and save the results of a post download
+#' processing step rather than direct output. The function should ONLY take in
+#' two file names: the first the raw downloaded file and the second the output
+#' file for saved results. The output of the function should be TRUE/FALSE if
+#' step was successful. See vignette section on Specialty Advance Use Case for
+#' more details.
 #' @return For 'bfcdownload': character(1) path to downloaded resource
 #'     in cache.
 #' @examples
@@ -998,7 +1006,7 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="", config=list(), ask=TRUE)
+    function(x, rid, proxy="", config=list(), ask=TRUE, FUN)
 {
     stopifnot(
         !missing(rid), length(rid) > 0L,
@@ -1016,7 +1024,7 @@ setMethod("bfcdownload", "BiocFileCache",
         doit <- TRUE
     }
     if (doit)
-        .util_download_and_rename(x, rid, proxy, config, "bfcdownload()")
+        .util_download_and_rename(x, rid, proxy, config, "bfcdownload()", FUN=FUN)
 
     bfcrpath(x, rids=rid)
 })
