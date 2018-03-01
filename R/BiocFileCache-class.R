@@ -510,7 +510,6 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         stop("specify either 'rnames' or 'rids' not both.")
 
     update_time_and_path <- function(x, i) {
-        .sql_set_time(x, i)
         .sql_get_rpath(x, i)
     }
 
@@ -943,7 +942,6 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         stop("rids not all web resources")
 
     helper <- function(x, rid) {
-        .sql_set_time(x, rid)
         file_time <- .sql_get_last_modified(x, rid)
         fpath <- .sql_get_fpath(x, rid)
         file_etag <-  .sql_get_etag(x, rid)
@@ -1222,7 +1220,7 @@ setMethod("exportbfc", "BiocFileCacheBase",
 
     res <- vapply(ids, .util_export_file, character(1),
                   bfc=x, dir=dir)
-
+    .sql_set_time(x, ids)
     # 'relative' = ok, 'web'= not download
     # 'local' = file not in cache, 'NA' = file not found
     if (any(res == "web", na.rm=TRUE)) {
