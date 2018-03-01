@@ -45,8 +45,8 @@ time but if a cache is saved in a permanent location this should
 only have to be run once. The original data.frame must have the
 required columns 'rtype', 'fpath', and 'rpath'; See the vignette
 for more information on the expected information contained in these
-columns. Similarly, the optional columns 'rname', 'etag', and
-'last_modified_time' may be included. Any additional columns not
-listed as required or optional will be kept as an additional
+columns. Similarly, the optional columns 'rname', 'etag',
+'last_modified_time', and 'expires' may be included. Any additional columns
+not listed as required or optional will be kept as an additional
 metadata table in the BiocFileCache database.
 }

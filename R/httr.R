@@ -11,13 +11,17 @@
         ci <- cache_info(response)
         last_mod <- as.character(ci$modified)
         etag <- gsub("\"", "",as.character(ci$etag))
+        expires <- as.character(ci$expires)
         if (length(last_mod) == 0L)
             last_mod <- NA_character_
         if (length(etag) == 0L)
             etag <- NA_character_
-        c(etag = etag, modified = last_mod)
+        if (length(expires) == 0L)
+            expires <- NA_character_
+        c(etag = etag, modified = last_mod, expires = expires)
     },  error = function(err) {
-        c(etag = NA_character_, modified = NA_character_)
+        c(etag = NA_character_, modified = NA_character_,
+          expires = NA_character_)
     })
 }
 
