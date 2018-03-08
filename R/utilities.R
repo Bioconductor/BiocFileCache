@@ -104,13 +104,13 @@
 }
 
 .util_download <-
-    function(bfc, rid, proxy, config, call)
+    function(bfc, rid, proxy, config, call, ...)
 {
     rpath <- .sql_get_rpath(bfc, rid)
     fpath <- .sql_get_fpath(bfc, rid)
     status <- Map(
         .httr_download, fpath, rpath,
-        MoreArgs = list(proxy = proxy, config = config)
+        MoreArgs = list(proxy = proxy, config = config, ...)
     )
     ok <- vapply(status, isTRUE, logical(1))
     if (!all(ok)) {
@@ -130,7 +130,8 @@
 }
 
 .util_download_and_rename <-
-    function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid), FUN)
+    function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid),
+             FUN, ...)
 {
     rpath <- .sql_get_rpath(bfc, rid)
 
@@ -140,7 +141,7 @@
     status <- Map(function(rpath, fpath) {
         temppath <- tempfile(tmpdir=bfccache(bfc))
 
-        status <- .httr_download(fpath, temppath, proxy, config)
+        status <- .httr_download(fpath, temppath, proxy, config, ...)
         if (!status)
             return("download failed")
 

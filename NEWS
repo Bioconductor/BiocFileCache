@@ -29,6 +29,10 @@ SCHEMA CHANGE
 
 USER-VISIBLE CHANGES
 
+    o (v. 1.3.38) ... argument exposed and pased to GET, this includes bfcadd
+    which original ... was pasesed to file.copy. This use of ... is used in bfc
+    functions bfcadd(), bfcupdate() and bfcdownload() which could potential
+    download the file.
     o (v. 1.3.30) bfcnew(), bfcadd(), accept vector arguments;
       performance improvements and
     o (v. 1.3.25) bfcinfo and bfcquery will show full rpaths even if

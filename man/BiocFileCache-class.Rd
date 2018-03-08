@@ -146,7 +146,7 @@ bfcrid(x)
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
 \S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
-  fpath = NULL, proxy = "", config = list(), ask = TRUE)
+  fpath = NULL, proxy = "", config = list(), ask = TRUE, ...)
 
 bfcmeta(x, name, ...) <- value
 
@@ -185,10 +185,10 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(),
-  ask = TRUE, FUN)
+  ask = TRUE, FUN, ...)
 
 \S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(),
-  ask = TRUE, FUN)
+  ask = TRUE, FUN, ...)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -233,8 +233,9 @@ of \code{BiocFileCache()}.}
 
 \item{j}{Ignored.}
 
-\item{...}{For 'bfcadd': For \code{action="copy"}, additional
-arguments passed to \code{file.copy}. For 'bfcrpaths':
+\item{...}{For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional arguments
+passed to internal download functions
+for use with \code{httr::GET}. For 'bfcrpaths':
 Additional arguments passed to 'bfcadd'. For 'bfcquery':
 Additional arguments passed to \code{grepl}. For 'exportbfc':
 Additional arguments to the selected outputMethod function. See
