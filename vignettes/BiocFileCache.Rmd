@@ -862,43 +862,52 @@ download_data_file <- function( verbose = FALSE ) {
 
 ```
 
-## Specialty Advanced Use Case
+## Processing web resources before caching
 
-A case has been identified where it may be desired to do some processing of the
-raw downloaded file before saving the resource into the cache. This can be done
-through specific options of the `bfcadd` and `bfcdownload` functions.
+A case has been identified where it may be desired to do some
+processing of web-based resources before saving the resource in the
+cache. This can be done through specific options of the `bfcadd()` and
+`bfcdownload()` functions.
 
-1. Add the resource with `bfcadd` using the `download=FALSE` argument.
-2. Download the resource with `bfcdownload` using the `FUN` argument.
+1. Add the resource with `bfcadd()` using the `download=FALSE` argument.
+2. Download the resource with `bfcdownload()` using the `FUN` argument.
 
-The FUN argument is the name of a function to be performed before saving a file into the cache.  The default is `file.rename`.  The function must take in ONLY two arguments:
+The `FUN` argument is the name of a function to be applied before
+saving the downloaded file into the cache.  The default is
+`file.rename`, simply copying the downloaded file into the cache. A
+user-supplied function must take ONLY two arguments. When invoked, the
+arguments will be:
 
-1. Character(1) Input file name (The file retrieved from downloading from the web)
-2. Character(1) Output file name (A newly written file)
+1. `character(1)` A temporary file containing the resource as
+   retrieved from the web.
+2. `character(1)` The BiocFileCache location where the processed file
+   should be saved.
 
-The function should return a status indicator if it was successful or not. A dummy example:
+The function should return a `TRUE` on success or a `character(1)`
+description for failure on error. As an example:
 
-```
-# function that truncates file to only the first few lines
-headFile <-
-    function(file, output)
+```{r}
+url <- "http://www.UniProt.org/docs/speclist.txt"
+
+headFile <-                         # how to process file before caching
+    function(from, to)
 {
-    dat <- readLines(file)
-    dat <- head(dat)
-    writeLines(dat, output)
+    dat <- readLines(from)
+    writeLines(head(dat), to)
     TRUE
 }
 
-url="http://www.UniProt.org/docs/speclist.txt"
-rid = names(bfcadd(bfc, rname="testFunUsage", fpath=url, download=FALSE))
-bfcdownload(bfc, rid, FUN=headFile)
+rid <- bfcquery(bfc, url, "fpath")$rid
+if (!length(rid))                   # not in cache, add but do not download
+    rid <- names(bfcadd(bfc, url, download = FALSE))
 
+update <- bfcneedsupdate(bfc, rid)  # TRUE if newly added or stale
+if (!isFALSE(update))               # download & process
+    bfcdownload(bfc, rid, ask = FALSE, FUN = headFile)
+
+rpath <- bfcrpath(bfc, rids=rid)    # path to processed result
+readLines(rpath)                    # read processed result
 ```
-
-
-
-
-
 
 # Summary
 
