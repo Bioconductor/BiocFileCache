@@ -255,7 +255,6 @@ matched the query, use `bfccount()`.
 bfccount(q1)
 ```
 
-
  * `[`
 
 `[` allows for subsetting of the BiocFileCache object.  The output will be a
@@ -360,7 +359,9 @@ bfcinfo(bfc, "BFC1")
 Now let's update a web resource
 
 ```{r}
-library(dplyr)
+suppressPackageStartupMessages({
+    library(dplyr)
+})
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
 bfcupdate(bfc, "BFC6", fpath=url, rname="Duplicate", ask=FALSE)
 bfcinfo(bfc, "BFC6") %>% select(rid, rpath, fpath)
@@ -606,7 +607,6 @@ newbfc <- makeBiocFileCacheFromDataFrame(tbl,
 
 ```
 
-
 ## Cleaning or Removing Cache
 
 Finally, there are two function involved with cleaning or deleting the cache:
@@ -693,8 +693,10 @@ bfc <- BiocFileCache("~/my-experiment/results")
 We perform our analysis...
 
 ```{r, eval=FALSE}
-library(DESeq2)
-library(airway)
+suppressPackageStartupMessages({
+    library(DESeq2)
+    library(airway)
+})
 data(airway)
 dds <- DESeqDataData(airway, design = ~ cell + dex)
 result <- DESeq(dds)
@@ -716,8 +718,10 @@ result <- readRDS(bfcrpath(bfc, "airway / DESeq standard analysis"))
 Once might imagine the following workflow:
 
 ```{r eval=FALSE}
-library(BiocFileCache)
-library(rtracklayer)
+suppressPackageStartupMessages({
+    library(BiocFileCache)
+    library(rtracklayer)
+})
 
 # load the cache
 path <- file.path(tempdir(), "tempCacheDir")
@@ -749,10 +753,8 @@ if (bfccount(res) == 0L) {
   }
 }
 
-
 # ans is the path of the file to load
 ans
-
 
 # we know because we search for the url that the file is a .gtf.gz,
 # if we searched on other terms we can use 'bfcpath' to see the
@@ -770,9 +772,10 @@ info = import(temp)
 # and if not start tracking it is using `bfcrpath`
 #
 
-
-library(BiocFileCache)
-library(rtracklayer)
+suppressPackageStartupMessages({
+    library(BiocFileCache)
+    library(rtracklayer)
+})
 
 # load the cache
 path <- file.path(tempdir(), "tempCacheDir")
@@ -828,8 +831,10 @@ code, examples, and vignette. It is desirable to have a wrapper to the
 BiocFileCache constructor. The following is a suggested example for a package
 called `MyNewPackage`:
 
-```
-.get_cache <- function() {
+```{r, eval=FALSE}
+.get_cache <-
+    function()
+{
     cache <- rappdirs::user_cache_dir(appname="MyNewPackage")
     BiocFileCache::BiocFileCache(cache)
 }
@@ -844,22 +849,24 @@ Managing remote resources then involves a function that will query to see if the
 resource has been added, if it is not it will add to the cache and if it has it
 checks if the file needs to be updated.
 
-
-```
-download_data_file <- function( verbose = FALSE ) {
+```{r, eval=FALSE}
+download_data_file <-
+    function( verbose = FALSE )
+{
     fileURL <- "http://a_path_to/someremotefile.tsv.gz"
 
     bfc <- .get_cache()
-    if( nrow( BiocFileCache::bfcquery(bfc, "geneFileV2") ) == 0 ) {
-	if( verbose ) message( "Downloading GENE file" )
-	BiocFileCache::bfcadd(bfc, "geneFileV2", fileURL )
-    } else {
-	rid <- BiocFileCache::bfcquery(bfc, "geneFileV2")[["rid"]]
-	if (BiocFileCache::bfcneedsupdate(bfc, rid)
-	    BiocFileCache::bfcdownload(bfc, rid)
+    rid <- bfcquery(bfc, "geneFileV2", "rname")$rid
+    if (!length(rid)) {
+         if( verbose )
+             message( "Downloading GENE file" )
+         rid <- names(bfcadd(bfc, "geneFileV2", fileURL ))
     }
+    if (!isFALSE(bfcneedsupdate(bfc, rid)))
+        bfcdownload(bfc, rid)
+        
+    bfcrpath(bfc, rids = rid)
 }
-
 ```
 
 ## Processing web resources before caching
