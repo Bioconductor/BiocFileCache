@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.2
+----------------------
+
+BUG CORRECTION
+
+    o (v. 1.2.3) correct trycatch with cache_info. cache_info bug workaround
+    orginally output NA even if present, now manually grab values if present
+
 CHANGES IN VERSION 1.1
 ----------------------
 

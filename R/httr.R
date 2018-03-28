@@ -10,7 +10,12 @@
     tryCatch({
         as.character(cache_info(response)$modified)
     },  error = function(err) {
-        NA
+        if ("last-modified" %in% names(response$headers)){
+            modified = as.character(response[["headers"]]["last-modified"])
+        } else {
+            modified = NA
+        }
+        modified
     })
 }
 
