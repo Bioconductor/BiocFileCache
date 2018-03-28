@@ -20,8 +20,23 @@
             expires <- NA_character_
         c(etag = etag, modified = last_mod, expires = expires)
     },  error = function(err) {
-        c(etag = NA_character_, modified = NA_character_,
-          expires = NA_character_)
+
+        if ("etag" %in% names(response$headers)){
+            etag = as.character(response[["headers"]]["etag"])
+        } else {
+            etag = NA_character_
+        }
+        if ("last-modified" %in% names(response$headers)){
+            modified = as.character(response[["headers"]]["last-modified"])
+        } else {
+            modified = NA_character_
+        }
+         if ("expires" %in% names(response$headers)){
+            expires = as.character(response[["headers"]]["expires"])
+        } else {
+            expires = NA_character_
+        }
+        c(etag = etag, modified = modified, expires = expires)
     })
 }
 
