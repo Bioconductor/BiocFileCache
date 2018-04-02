@@ -295,7 +295,7 @@ setGeneric("bfcadd",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
-        download=TRUE, config=list(), ...
+        download=TRUE, config=list(), ext=NA_character_, ...
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
@@ -307,11 +307,12 @@ setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
-        download=TRUE, config=list(), ...
+        download=TRUE, config=list(), ext=NA_character_, ...
     )
 {
     bfcadd(x=BiocFileCache(), rname=rname, fpath=fpath, rtype=rtype,
-           action=action, proxy=proxy, download=download, config=config, ...)
+           action=action, proxy=proxy, download=download, config=config,
+           ext=ext, ...)
 })
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -370,7 +371,7 @@ setMethod("bfcadd", "BiocFileCache",
         x, rname, fpath = rname,
         rtype = c("auto", "relative", "local", "web"),
         action = c("copy", "move", "asis"),
-        proxy = "", download = TRUE, config = list(),
+        proxy = "", download = TRUE, config = list(), ext=NA_character_,
         ...)
 {
     stopifnot(
@@ -383,7 +384,7 @@ setMethod("bfcadd", "BiocFileCache",
     stopifnot(rtype == "web" || file.exists(fpath))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
-    rpath <- .sql_add_resource(x, rname, rtype, fpath)
+    rpath <- .sql_add_resource(x, rname, rtype, fpath, ext)
     rid <- names(rpath)
     if (rtype %in% c("local", "relative")) {
         switch(

@@ -123,11 +123,13 @@ bfcrid(x)
 
 \S4method{bfcadd}{missing}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", download = TRUE, config = list(), ...)
+  proxy = "", download = TRUE, config = list(), ext = NA_character_,
+  ...)
 
 \S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", download = TRUE, config = list(), ...)
+  proxy = "", download = TRUE, config = list(), ext = NA_character_,
+  ...)
 
 \S4method{bfcinfo}{missing}(x, rids)
 

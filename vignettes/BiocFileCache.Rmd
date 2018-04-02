@@ -858,13 +858,13 @@ download_data_file <-
     bfc <- .get_cache()
     rid <- bfcquery(bfc, "geneFileV2", "rname")$rid
     if (!length(rid)) {
-         if( verbose )
-             message( "Downloading GENE file" )
-         rid <- names(bfcadd(bfc, "geneFileV2", fileURL ))
+	 if( verbose )
+	     message( "Downloading GENE file" )
+	 rid <- names(bfcadd(bfc, "geneFileV2", fileURL ))
     }
     if (!isFALSE(bfcneedsupdate(bfc, rid)))
-        bfcdownload(bfc, rid)
-        
+	bfcdownload(bfc, rid)
+
     bfcrpath(bfc, rids = rid)
 }
 ```
@@ -915,6 +915,20 @@ if (!isFALSE(update))               # download & process
 rpath <- bfcrpath(bfc, rids=rid)    # path to processed result
 readLines(rpath)                    # read processed result
 ```
+
+Note: By default bfcadd uses the webfile name as the saved local file. If the
+processing step involves saving the data in a different format, utilize the
+bfcadd argument `ext` to assign an extension to identify the type of file that
+was saved.
+For example
+```
+url = "http://httpbin.org/get"
+bfcadd("myfile", url, download=FALSE)
+# would save a file `<uniqueid>_get` in the cache
+bfcadd("myfile", url, download=FALSE, ext=".Rdata")
+# would save a file `<uniqueid>_get.Rdata` in the cache
+```
+
 
 # Summary
 
