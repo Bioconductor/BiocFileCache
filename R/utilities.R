@@ -146,7 +146,9 @@
             return("download failed")
 
         status <- tryCatch({
-            FUN(temppath, rpath)
+            st <- FUN(temppath, rpath)
+            if (file.exists(temppath)){ file.remove(temppath) }
+            st
         }, error = function(err){
             warning("FUN() failed",
                     "\n  reason: ", conditionMessage(err),
