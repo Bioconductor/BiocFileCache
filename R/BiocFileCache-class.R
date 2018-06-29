@@ -334,13 +334,13 @@ setMethod("bfcadd", "missing",
 #' @param download logical(1) If \code{rtype=web}, should remote
 #'     resource be downloaded locally immediately.
 #' @param config list() passed as config argument in \code{httr::GET}
-#' @param ... For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional arguments
-#'     passed to internal download functions
-#'     for use with \code{httr::GET}. For 'bfcrpaths':
-#'     Additional arguments passed to 'bfcadd'. For 'bfcquery':
-#'     Additional arguments passed to \code{grepl}. For 'exportbfc':
-#'     Additional arguments to the selected outputMethod function. See
-#'     \code{utils::tar} or \code{utils::zip} for more
+#' @param ... For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional
+#'     arguments passed to internal download functions for use with
+#'     \code{httr::GET}. For 'bfcrpaths': Additional arguments passed
+#'     to 'bfcadd', or \code{exact} passed to 'bfcquery'. For
+#'     'bfcquery': Additional arguments passed to \code{grepl}. For
+#'     'exportbfc': Additional arguments to the selected outputMethod
+#'     function. See \code{utils::tar} or \code{utils::zip} for more
 #'     information. For 'importbfc': Additional arguments to the
 #'     selected archiveMethod function. See \code{utils::untar} or
 #'     \code{utils::unzip} for more information.
@@ -483,7 +483,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcrpath",
-    function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
+    function(x, rnames, ..., rids, exact = FALSE) standardGeneric("bfcrpath"),
     signature = "x"
 )
 
@@ -491,7 +491,7 @@ setGeneric("bfcrpath",
 #' @aliases bfcrpath,missing-method
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "missing",
-    function(x, rnames, ..., rids)
+    function(x, rnames, ..., rids, exact = FALSE)
 {
     bfcrpath(x=BiocFileCache(), rnames=rnames, ..., rids=rids)
 })
@@ -501,14 +501,15 @@ setMethod("bfcrpath", "missing",
 #'     add it to the cache with 'bfcadd'
 #' @param rnames character() to match against rnames.  Each element of
 #'     \code{rnames} is treated as a regular expression, and must
-#'     match exactly one record.
+#'     match exactly one record. Use \code{exact = TRUE} to use exact
+#'     rather than regular expression matching.
 #' @return For 'bfcrpath': The local file path location to load.
 #' @examples
 #' bfcrpath(bfc0, rids = rid3)
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "BiocFileCacheBase",
-    function(x, rnames, ..., rids)
+    function(x, rnames, ..., rids, exact = FALSE)
 {
     if (!missing(rnames) && !missing(rids))
         stop("specify either 'rnames' or 'rids' not both.")
@@ -517,13 +518,16 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         .sql_get_rpath(x, i)
     }
 
-    add_or_return_rname <- function(x, rname, ...) {
-        res <- bfcrid(bfcquery(x, rname, field="rname"))
+    add_or_return_rname <- function(x, rname, ..., exact) {
+        res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
         if (length(res) == 0L) {
             tryCatch({
                 bfcadd(x, rname, ...)
             }, error=function(e) {
-                warning(conditionMessage(e))
+                warning(
+                    "\ntrying to add rname '", rname, "' produced error:",
+                    "\n  ", conditionMessage(e)
+                )
                 NA_character_
             })
         } else if (length(res) == 1L) {
@@ -539,14 +543,16 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         rids <- bfcrid(x)
 
     if (!missing(rnames)) {
-        rpaths <- vapply(rnames, add_or_return_rname, character(1), x=x, ...)
+        rpaths <- vapply(
+            rnames, add_or_return_rname, character(1), x=x, ..., exact = exact
+        )
         if (anyNA(rpaths)) {
             rmdx <- setdiff(bfcrid(x), rids)
             if (length(rmdx) > 0L)
                 bfcremove(x, rmdx)
             stop("not all 'rnames' found or valid.")
         }
-        setNames(rpaths, .fix_rnames(x, names(rpaths)))
+        setNames(rpaths, .fix_rnames(x, names(rpaths), exact = exact))
     } else {
         stopifnot(all(rids %in% bfcrid(x)))
         update_time_and_path(x, rids)
@@ -821,7 +827,7 @@ setMethod("bfcquerycols", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcquery",
-    function(x, query, field=c("rname", "rpath", "fpath"), ...)
+    function(x, query, field=c("rname", "rpath", "fpath"), ..., exact = FALSE)
         standardGeneric("bfcquery"),
     signature = "x"
 )
@@ -830,7 +836,7 @@ setGeneric("bfcquery",
 #' @aliases bfcquery,missing-method
 #' @exportMethod bfcquery
 setMethod("bfcquery", "missing",
-    function(x, query, field=c("rname", "rpath", "fpath"), ...)
+    function(x, query, field=c("rname", "rpath", "fpath"), ..., exact = FALSE)
 {
     bfcquery(x=BiocFileCache(), query=query, field=field, ...)
 })
@@ -838,11 +844,15 @@ setMethod("bfcquery", "missing",
 #' @describeIn BiocFileCache query resource
 #' @param query character() Regular expression pattern(s) to match in
 #'     resource. It will match the pattern against \code{fields},
-#'     using \code{&} logic across query element. By default, case sensitive.
+#'     using \code{&} logic across query element. By default, case
+#'     sensitive. When \code{exact = TRUE}, \code{query} uses exact
+#'     matching.
 #' @param field character() column names in resource to query, using
 #'     \code{||} logic across multiple field elements. By default,
 #'     matches pattern agains rname, rpath, and fpath. If exact
 #'     matching, may only be a single value.
+#' @param exact logical(1) when FALSE, treat \code{query} as a regular
+#'     expression. When TRUE, use exact matching.
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
 #'     the database whose \code{field} contained query. If multiple
 #'     values are given, the resource must contain all of the
@@ -854,7 +864,7 @@ setMethod("bfcquery", "missing",
 #' @aliases bfcquery
 #' @exportMethod bfcquery
 setMethod("bfcquery", "BiocFileCacheBase",
-    function(x, query, field=c("rname", "rpath", "fpath"), ...)
+    function(x, query, field=c("rname", "rpath", "fpath"), ..., exact = FALSE)
 {
     stopifnot(is.character(query))
     stopifnot(all(field %in% .get_all_colnames(x)))
@@ -862,8 +872,12 @@ setMethod("bfcquery", "BiocFileCacheBase",
     name <- basename(tempfile(""))
     tbl <- .sql_get_resource_table(x)
     keep <- TRUE
+    FUN <-
+        if (exact) {
+            function(pattern, x, ...) x == pattern
+        } else grepl
     for (q in query)
-        keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q, ...))
+        keep <- keep & Reduce(`|`, lapply(tbl[field], FUN, pattern = q, ...))
     rids <- intersect(tbl$rid[keep], bfcrid(x))
     bfcinfo(x, rids)
 })

@@ -141,9 +141,9 @@ bfcrid(x)
 
 \S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
-\S4method{bfcrpath}{missing}(x, rnames, ..., rids)
+\S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = FALSE)
 
-\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = FALSE)
 
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
@@ -171,10 +171,10 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcquerycols}{BiocFileCacheBase}(x)
 
 \S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
-  ...)
+  ..., exact = FALSE)
 
 \S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
-  "fpath"), ...)
+  "fpath"), ..., exact = FALSE)
 
 \S4method{bfccount}{missing}(x)
 
@@ -235,13 +235,13 @@ of \code{BiocFileCache()}.}
 
 \item{j}{Ignored.}
 
-\item{...}{For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional arguments
-passed to internal download functions
-for use with \code{httr::GET}. For 'bfcrpaths':
-Additional arguments passed to 'bfcadd'. For 'bfcquery':
-Additional arguments passed to \code{grepl}. For 'exportbfc':
-Additional arguments to the selected outputMethod function. See
-\code{utils::tar} or \code{utils::zip} for more
+\item{...}{For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional
+arguments passed to internal download functions for use with
+\code{httr::GET}. For 'bfcrpaths': Additional arguments passed
+to 'bfcadd', or \code{exact} passed to 'bfcquery'. For
+'bfcquery': Additional arguments passed to \code{grepl}. For
+'exportbfc': Additional arguments to the selected outputMethod
+function. See \code{utils::tar} or \code{utils::zip} for more
 information. For 'importbfc': Additional arguments to the
 selected archiveMethod function. See \code{utils::untar} or
 \code{utils::unzip} for more information.}
@@ -287,7 +287,11 @@ resource be downloaded locally immediately.}
 
 \item{rnames}{character() to match against rnames.  Each element of
 \code{rnames} is treated as a regular expression, and must
-match exactly one record.}
+match exactly one record. Use \code{exact = TRUE} to use exact
+rather than regular expression matching.}
+
+\item{exact}{logical(1) when FALSE, treat \code{query} as a regular
+expression. When TRUE, use exact matching.}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
@@ -295,7 +299,9 @@ match exactly one record.}
 
 \item{query}{character() Regular expression pattern(s) to match in
 resource. It will match the pattern against \code{fields},
-using \code{&} logic across query element. By default, case sensitive.}
+using \code{&} logic across query element. By default, case
+sensitive. When \code{exact = TRUE}, \code{query} uses exact
+matching.}
 
 \item{field}{character() column names in resource to query, using
 \code{||} logic across multiple field elements. By default,

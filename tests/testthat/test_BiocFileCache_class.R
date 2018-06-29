@@ -228,7 +228,24 @@ test_that("bfcpath and bfcrpath works", {
     expect_identical(bfccount(bfcinfo(bfc)), 6L)
     expect_identical(unname(.sql_get_field(bfc, "BFC7", "rname")), url)
     expect_identical(unname(.sql_get_fpath(bfc, "BFC7")), url)
+})
 
+test_that("bfcquery, bfcrpath allow regular expressions and exact matches", {
+    bfc <- BiocFileCache(tempfile(), ask = FALSE)
+    file.create(fl <- tempfile())
+    fl1 <- bfcadd(bfc, "fl1", fl)
+    fl10 <- bfcadd(bfc, "fl10", fl)
+    ## bfcquery
+    expect_identical(NROW(bfcquery(bfc, "fl1", "rname")), 2L)
+    expect_identical(NROW(bfcquery(bfc, "fl1", "rname", exact = TRUE)), 1L)
+    expect_identical(NROW(bfcquery(bfc, "fl", "rname", exact = TRUE)), 0L)
+    ## bfcrpath
+    expect_error(
+        suppressWarnings(bfcrpath(bfc, "fl1")),
+        "not all 'rnames' found or valid."
+    )
+    expect_identical(bfcrpath(bfc, "fl1", exact = TRUE), fl1)
+    expect_identical(bfcrpath(bfc, "fl1$"), fl1)
 })
 
 test_that("check_rtype works", {
