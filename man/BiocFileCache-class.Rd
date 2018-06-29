@@ -285,7 +285,9 @@ resource be downloaded locally immediately.}
 
 \item{rid}{character(1) Unique resource id.}
 
-\item{rnames}{character() list of rnames to search and match on.}
+\item{rnames}{character() to match against rnames.  Each element of
+\code{rnames} is treated as a regular expression, and must
+match exactly one record.}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
@@ -429,9 +431,9 @@ The package defines 'BiocFileCache', 'BiocFileCacheBase' and
 
 Slots unique to 'BiocFileCache' and  related classes:
 \itemize{
-  \item{'cache': }{character(1), Describes the On-disk location
-    (directory path) of the cache}
-  \item{'rid': }{character(), List of the unique rids in the cache. }
+  \item{'cache': }{character(1) on-disk location (directory path) of the
+      cache}
+  \item{'rid': }{character() of unique rids in the cache. }
 }
 
 The cache creates an RSQLite database to keep track of local and remote
@@ -506,7 +508,7 @@ add it to the cache with 'bfcadd'
 
 \item \code{bfcmetaremove}: remove meta data table in database
 
-\item \code{bfcmetalist}: retrieve list of metadata table
+\item \code{bfcmetalist}: retrieve listing of metadata tables
 
 \item \code{bfcmeta}: retrieve metadata table
 

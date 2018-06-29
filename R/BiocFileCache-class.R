@@ -30,9 +30,9 @@
 #'
 #' Slots unique to 'BiocFileCache' and  related classes:
 #' \itemize{
-#'   \item{'cache': }{character(1), Describes the On-disk location
-#'     (directory path) of the cache}
-#'   \item{'rid': }{character(), List of the unique rids in the cache. }
+#'   \item{'cache': }{character(1) on-disk location (directory path) of the
+#'       cache}
+#'   \item{'rid': }{character() of unique rids in the cache. }
 #' }
 #'
 #' The cache creates an RSQLite database to keep track of local and remote
@@ -499,7 +499,9 @@ setMethod("bfcrpath", "missing",
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
 #'     in the cache the path is returned, if it is not it will try to
 #'     add it to the cache with 'bfcadd'
-#' @param rnames character() list of rnames to search and match on.
+#' @param rnames character() to match against rnames.  Each element of
+#'     \code{rnames} is treated as a regular expression, and must
+#'     match exactly one record.
 #' @return For 'bfcrpath': The local file path location to load.
 #' @examples
 #' bfcrpath(bfc0, rids = rid3)
@@ -527,7 +529,8 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         } else if (length(res) == 1L) {
             update_time_and_path(x, res)
         } else {
-            warning("rname: '", rname ,"' is not unique.")
+            warning("'rnames' regular expression pattern '", rname,
+                    "' is not unique.")
             NA_character_
         }
     }
@@ -541,14 +544,13 @@ setMethod("bfcrpath", "BiocFileCacheBase",
             rmdx <- setdiff(bfcrid(x), rids)
             if (length(rmdx) > 0L)
                 bfcremove(x, rmdx)
-            stop("all 'rnames' not found or valid.")
+            stop("not all 'rnames' found or valid.")
         }
         setNames(rpaths, .fix_rnames(x, names(rpaths)))
     } else {
         stopifnot(all(rids %in% bfcrid(x)))
         update_time_and_path(x, rids)
     }
-
 })
 
 #' @export
@@ -739,7 +741,7 @@ setMethod("bfcmetalist", "missing",
     bfcmetalist(x=BiocFileCache())
 })
 
-#' @describeIn BiocFileCache retrieve list of metadata table
+#' @describeIn BiocFileCache retrieve listing of metadata tables
 #' @return For 'bfcmetalist': returns a character() of all metadata tables
 #'     currently in the database. If no metadata tables are available returns
 #'     character(0)
