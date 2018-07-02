@@ -483,7 +483,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcrpath",
-    function(x, rnames, ..., rids, exact = FALSE) standardGeneric("bfcrpath"),
+    function(x, rnames, ..., rids) standardGeneric("bfcrpath"),
     signature = "x"
 )
 
@@ -491,7 +491,7 @@ setGeneric("bfcrpath",
 #' @aliases bfcrpath,missing-method
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "missing",
-    function(x, rnames, ..., rids, exact = FALSE)
+    function(x, rnames, ..., rids)
 {
     bfcrpath(x=BiocFileCache(), rnames=rnames, ..., rids=rids)
 })
@@ -509,7 +509,7 @@ setMethod("bfcrpath", "missing",
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "BiocFileCacheBase",
-    function(x, rnames, ..., rids, exact = FALSE)
+    function(x, rnames, ..., rids)
 {
     if (!missing(rnames) && !missing(rids))
         stop("specify either 'rnames' or 'rids' not both.")
@@ -518,8 +518,8 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         .sql_get_rpath(x, i)
     }
 
-    add_or_return_rname <- function(x, rname, ..., exact) {
-        res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
+    add_or_return_rname <- function(x, rname, ...) {
+        res <- bfcrid(bfcquery(x, rname, field="rname", exact = TRUE))
         if (length(res) == 0L) {
             tryCatch({
                 bfcadd(x, rname, ...)
@@ -544,7 +544,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
 
     if (!missing(rnames)) {
         rpaths <- vapply(
-            rnames, add_or_return_rname, character(1), x=x, ..., exact = exact
+            rnames, add_or_return_rname, character(1), x=x, ...
         )
         if (anyNA(rpaths)) {
             rmdx <- setdiff(bfcrid(x), rids)
@@ -552,7 +552,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
                 bfcremove(x, rmdx)
             stop("not all 'rnames' found or valid.")
         }
-        setNames(rpaths, .fix_rnames(x, names(rpaths), exact = exact))
+        setNames(rpaths, .fix_rnames(x, names(rpaths)))
     } else {
         stopifnot(all(rids %in% bfcrid(x)))
         update_time_and_path(x, rids)

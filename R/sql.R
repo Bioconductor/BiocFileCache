@@ -323,11 +323,11 @@
 }
 
 .fix_rnames <-
-    function(bfc, rnames, exact)
+    function(bfc, rnames)
 {
     stopifnot(!missing(rnames))
     unname(vapply(rnames, function(bfc, rname) {
-        bfcrid(bfcquery(bfc, rname, field = "rname", exact = exact))
+        bfcrid(bfcquery(bfc, rname, field = "rname", exact = TRUE))
     }, character(1), bfc=bfc))
 }
 

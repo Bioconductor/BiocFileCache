@@ -141,9 +141,9 @@ bfcrid(x)
 
 \S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
-\S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = FALSE)
+\S4method{bfcrpath}{missing}(x, rnames, ..., rids)
 
-\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = FALSE)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids)
 
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
@@ -290,9 +290,6 @@ resource be downloaded locally immediately.}
 match exactly one record. Use \code{exact = TRUE} to use exact
 rather than regular expression matching.}
 
-\item{exact}{logical(1) when FALSE, treat \code{query} as a regular
-expression. When TRUE, use exact matching.}
-
 \item{rpath}{character() vector of replacement rpaths.}
 
 \item{name}{character(1) name of metadata table.}
@@ -307,6 +304,9 @@ matching.}
 \code{||} logic across multiple field elements. By default,
 matches pattern agains rname, rpath, and fpath. If exact
 matching, may only be a single value.}
+
+\item{exact}{logical(1) when FALSE, treat \code{query} as a regular
+expression. When TRUE, use exact matching.}
 
 \item{FUN}{A specialized implemented function designed by the user. This
 function can be used to perform and save the results of a post download
