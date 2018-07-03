@@ -4,7 +4,12 @@ CHANGES IN VERSION 1.5
 NEW FEATURES
 
     o (v. 1.5.1) Add 'exact = ' for exact matching in bfcquery(),
-      bfcrpath().
+      bfcrpath(). (v. 1.5.2) defaults to TRUE for bfcrpath()
+
+BUG FIX
+
+    o (v. 1.5.2) bfcrpath() more robust when adding regular expression
+      rnames.
 
 CHANGES IN VERSION 1.3
 ----------------------
