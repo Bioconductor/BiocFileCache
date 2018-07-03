@@ -483,7 +483,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcrpath",
-    function(x, rnames, ..., rids, exact = FALSE) standardGeneric("bfcrpath"),
+    function(x, rnames, ..., rids, exact = TRUE) standardGeneric("bfcrpath"),
     signature = "x"
 )
 
@@ -491,25 +491,24 @@ setGeneric("bfcrpath",
 #' @aliases bfcrpath,missing-method
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "missing",
-    function(x, rnames, ..., rids, exact = FALSE)
+    function(x, rnames, ..., rids, exact = TRUE)
 {
-    bfcrpath(x=BiocFileCache(), rnames=rnames, ..., rids=rids)
+    bfcrpath(x=BiocFileCache(), rnames=rnames, ..., rids=rids, exact=exact)
 })
 
 #' @describeIn BiocFileCache display rpath of resource. If 'rnames' is
 #'     in the cache the path is returned, if it is not it will try to
 #'     add it to the cache with 'bfcadd'
 #' @param rnames character() to match against rnames.  Each element of
-#'     \code{rnames} is treated as a regular expression, and must
-#'     match exactly one record. Use \code{exact = TRUE} to use exact
-#'     rather than regular expression matching.
+#'     \code{rnames} must match exactly one record. Use \code{exact =
+#'     FALSE} to use regular expression matching.
 #' @return For 'bfcrpath': The local file path location to load.
 #' @examples
 #' bfcrpath(bfc0, rids = rid3)
 #' @aliases bfcrpath
 #' @exportMethod bfcrpath
 setMethod("bfcrpath", "BiocFileCacheBase",
-    function(x, rnames, ..., rids, exact = FALSE)
+    function(x, rnames, ..., rids, exact = TRUE)
 {
     if (!missing(rnames) && !missing(rids))
         stop("specify either 'rnames' or 'rids' not both.")
@@ -522,6 +521,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
         if (length(res) == 0L) {
             tryCatch({
+                message("adding rname '", rname, "'")
                 names(bfcadd(x, rname, ...))
             }, error=function(e) {
                 warning(
@@ -533,8 +533,9 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         } else if (length(res) == 1L) {
             names(update_time_and_path(x, res))
         } else {
-            warning("'rnames' regular expression pattern '", rname,
-                    "' is not unique.")
+            warning("'rnames' regular expression pattern",
+                    "\n    '", rname, "'",
+                    "\n  is not unique; use 'bfcquery()' to see matches.")
             NA_character_
         }
     }
@@ -852,7 +853,9 @@ setMethod("bfcquery", "missing",
 #'     matches pattern agains rname, rpath, and fpath. If exact
 #'     matching, may only be a single value.
 #' @param exact logical(1) when FALSE, treat \code{query} as a regular
-#'     expression. When TRUE, use exact matching.
+#'     expression. When TRUE, use exact matching. For \code{bfcquery},
+#'     the default is \code{FALSE} (regular expression matching; for
+#'     \code{bfcrpath}, the default is \code{TRUE} (exact matching).
 #' @return For 'bfcquery': A \code{bfc_tbl} of current resources in
 #'     the database whose \code{field} contained query. If multiple
 #'     values are given, the resource must contain all of the

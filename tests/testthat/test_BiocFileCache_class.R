@@ -241,11 +241,11 @@ test_that("bfcquery, bfcrpath allow regular expressions and exact matches", {
     expect_identical(NROW(bfcquery(bfc, "fl", "rname", exact = TRUE)), 0L)
     ## bfcrpath
     expect_error(
-        suppressWarnings(bfcrpath(bfc, "fl1")),
-        "not all 'rnames' found or valid."
+        suppressWarnings(bfcrpath(bfc, "fl1", exact = FALSE)),
+        "not all 'rnames' found or unique."
     )
     expect_identical(bfcrpath(bfc, "fl1", exact = TRUE), fl1)
-    expect_identical(bfcrpath(bfc, "fl1$"), fl1)
+    expect_identical(bfcrpath(bfc, "fl1$", exact = FALSE), fl1)
 })
 
 test_that("check_rtype works", {

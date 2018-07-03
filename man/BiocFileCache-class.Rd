@@ -141,9 +141,9 @@ bfcrid(x)
 
 \S4method{bfcpath}{BiocFileCacheBase}(x, rid)
 
-\S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = FALSE)
+\S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = TRUE)
 
-\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = FALSE)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = TRUE)
 
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
@@ -286,12 +286,13 @@ resource be downloaded locally immediately.}
 \item{rid}{character(1) Unique resource id.}
 
 \item{rnames}{character() to match against rnames.  Each element of
-\code{rnames} is treated as a regular expression, and must
-match exactly one record. Use \code{exact = TRUE} to use exact
-rather than regular expression matching.}
+\code{rnames} must match exactly one record. Use \code{exact =
+FALSE} to use regular expression matching.}
 
 \item{exact}{logical(1) when FALSE, treat \code{query} as a regular
-expression. When TRUE, use exact matching.}
+expression. When TRUE, use exact matching. For \code{bfcquery},
+the default is \code{FALSE} (regular expression matching; for
+\code{bfcrpath}, the default is \code{TRUE} (exact matching).}
 
 \item{rpath}{character() vector of replacement rpaths.}
 
