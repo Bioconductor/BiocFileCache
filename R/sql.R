@@ -322,15 +322,6 @@
     tbl %>% .formatID
 }
 
-.fix_rnames <-
-    function(bfc, rnames, exact)
-{
-    stopifnot(!missing(rnames))
-    unname(vapply(rnames, function(bfc, rname) {
-        bfcrid(bfcquery(bfc, rname, field = "rname", exact = exact))
-    }, character(1), bfc=bfc))
-}
-
 .get_all_colnames <-
     function(bfc)
 {

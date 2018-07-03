@@ -522,7 +522,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
         if (length(res) == 0L) {
             tryCatch({
-                bfcadd(x, rname, ...)
+                names(bfcadd(x, rname, ...))
             }, error=function(e) {
                 warning(
                     "\ntrying to add rname '", rname, "' produced error:",
@@ -531,7 +531,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
                 NA_character_
             })
         } else if (length(res) == 1L) {
-            update_time_and_path(x, res)
+            names(update_time_and_path(x, res))
         } else {
             warning("'rnames' regular expression pattern '", rname,
                     "' is not unique.")
@@ -543,16 +543,16 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         rids <- bfcrid(x)
 
     if (!missing(rnames)) {
-        rpaths <- vapply(
+        rids0 <- vapply(
             rnames, add_or_return_rname, character(1), x=x, ..., exact = exact
         )
-        if (anyNA(rpaths)) {
+        if (anyNA(rids0)) {
             rmdx <- setdiff(bfcrid(x), rids)
             if (length(rmdx) > 0L)
                 bfcremove(x, rmdx)
-            stop("not all 'rnames' found or valid.")
+            stop("not all 'rnames' found or unique.")
         }
-        setNames(rpaths, .fix_rnames(x, names(rpaths), exact = exact))
+        bfcrpath(x, rids = rids0)
     } else {
         stopifnot(all(rids %in% bfcrid(x)))
         update_time_and_path(x, rids)
