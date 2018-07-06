@@ -11,6 +11,12 @@ BUG FIX
     o (v. 1.5.2) bfcrpath() more robust when adding regular expression
       rnames.
 
+USER-VISIBLE CHANGES
+
+    o (v. 1.5.4) bfcpath() implementation change. Only displays rpath and can
+    work with multiple rids. bfcpath only for rpath access while bfcrpath is the
+    option to get or add. 
+
 CHANGES IN VERSION 1.3
 ----------------------
 

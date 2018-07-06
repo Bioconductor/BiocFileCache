@@ -137,9 +137,9 @@ bfcrid(x)
 
 \S4method{bfcrid}{tbl_bfc}(x)
 
-\S4method{bfcpath}{missing}(x, rid)
+\S4method{bfcpath}{missing}(x, rids)
 
-\S4method{bfcpath}{BiocFileCacheBase}(x, rid)
+\S4method{bfcpath}{BiocFileCacheBase}(x, rids)
 
 \S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = TRUE)
 
@@ -283,8 +283,6 @@ resource be downloaded locally immediately.}
 
 \item{rids}{character() Vector of rids.}
 
-\item{rid}{character(1) Unique resource id.}
-
 \item{rnames}{character() to match against rnames.  Each element of
 \code{rnames} must match exactly one record. Use \code{exact =
 FALSE} to use regular expression matching.}
@@ -308,6 +306,8 @@ matching.}
 \code{||} logic across multiple field elements. By default,
 matches pattern agains rname, rpath, and fpath. If exact
 matching, may only be a single value.}
+
+\item{rid}{character(1) Unique resource id.}
 
 \item{FUN}{A specialized implemented function designed by the user. This
 function can be used to perform and save the results of a post download
@@ -368,8 +368,7 @@ For 'bfcadd': named character(1), the path to save your
 For 'bfcinfo': A \code{bfc_tbl} of current resources in the
     database.
 
-For 'bfcpath': the file path location to load and original
-    source information for web resources.
+For 'bfcpath': the file path location to load
 
 For 'bfcrpath': The local file path location to load.
 
@@ -503,7 +502,7 @@ from the cache.
 
 \item \code{bfcrid}: Get the rids of the object
 
-\item \code{bfcpath}: display paths of resource
+\item \code{bfcpath}: display rpaths of resource.
 
 \item \code{bfcrpath}: display rpath of resource. If 'rnames' is
 in the cache the path is returned, if it is not it will try to

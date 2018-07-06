@@ -278,13 +278,13 @@ location.
 The `[[` will access the `rpath` saved in the `BiocFileCache`. Retrieving this
 location will return the path to the local version of the resource; allowing the
 user to then use this path in any load/read methods most appropriate for the
-resource. The `bfcpath()` returns a named character vector also displaying the
-local file that can be used for retrieval. If the resource is a remote resource,
-`bfcpath()` will also return the path to the original source saved as
-`fpath`. The `bfcrpath()` returns a named character vector only displaying the
-local file. `bfcrpath()` can also be used to add a resource into the
-cache. `bfcrpath()` can take an argument `rnames`; if the element in `rnames`
-is not found, it will try and add to the cache with `bfcadd()`.
+resource. The `bfcpath()` and `bfcrpath()` both return a named character vector
+also displaying the local file that can be used for retrieval. `bfcpath`
+requires `rids` while `bfcrpath()` can use `rids` or `rnames` (but not
+both). `bfcrpath()` can be used to add a resource into the cache when `rnames
+are specified; if the element in `rnames` is not found, it will try and add to
+the cache with `bfcadd()`.
+
 
 ```{r}
 bfc[["BFC2"]]

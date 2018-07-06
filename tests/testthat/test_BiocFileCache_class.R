@@ -202,9 +202,9 @@ test_that("bfcpath and bfcrpath works", {
     expect_identical(bfcpath(bfc, rid1), bfcrpath(bfc, rids=rid1))
 
     # web file
-    expect_identical(length(bfcpath(bfc, rid3)), 2L)
-    expect_identical(names(bfcpath(bfc, rid3)), c(as.character(rid3), "fpath"))
-    expect_identical(bfcpath(bfc, rid3)[1], bfcrpath(bfc, rids=rid3))
+    expect_identical(length(bfcpath(bfc, rid3)), 1L)
+    expect_identical(names(bfcpath(bfc, rid3)), as.character(rid3))
+    expect_identical(bfcpath(bfc, rid3), bfcrpath(bfc, rids=rid3))
 
     # index not found
     expect_error(bfcpath(bfc, 6))
@@ -216,7 +216,10 @@ test_that("bfcpath and bfcrpath works", {
     # multiple files
     expect_identical(length(bfcrpath(bfc, rids=paste0("BFC", 1:3))), 3L)
     expect_identical(length(bfcrpath(bfc)), 5L)
-
+    expect_identical(length(bfcpath(bfc)), length(bfc))
+    expect_identical(length(bfcpath(bfc, rids=paste0("BFC", 1:3))), 3L)
+    expect_identical(length(bfcpath(bfc)), length(bfcrpath(bfc)))
+    
     # test bfcrpath with rname
     expect_identical(length(bfcrpath(bfc, c("test-1", "test-3"))), 2L)
     suppressWarnings(expect_error(bfcrpath(bfc, "test")))

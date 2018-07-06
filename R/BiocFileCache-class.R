@@ -447,7 +447,7 @@ setMethod("bfcrid", "tbl_bfc", function(x) .get_tbl_rid(x))
 
 #' @export
 setGeneric("bfcpath",
-    function(x, rid) standardGeneric("bfcpath"),
+    function(x, rids) standardGeneric("bfcpath"),
     signature = "x"
 )
 
@@ -455,30 +455,28 @@ setGeneric("bfcpath",
 #' @aliases bfcpath,missing-method
 #' @exportMethod bfcpath
 setMethod("bfcpath", "missing",
-    function(x, rid)
+    function(x, rids)
 {
-    bfcpath(x=BiocFileCache(), rid=rid)
+    bfcpath(x=BiocFileCache(), rids=rids)
 })
 
-#' @describeIn BiocFileCache display paths of resource
-#' @param rid character(1) Unique resource id.
-#' @return For 'bfcpath': the file path location to load and original
-#'     source information for web resources.
+#' @describeIn BiocFileCache display rpaths of resource.
+#' @return For 'bfcpath': the file path location to load
 #' @examples
 #' bfcpath(bfc0, rid3)
 #' @aliases bfcpath
 #' @exportMethod bfcpath
 setMethod("bfcpath", "BiocFileCacheBase",
-    function(x, rid)
+    function(x, rids)
 {
-    stopifnot(!missing(rid), length(rid) > 0L, all(rid %in% bfcrid(x)))
+    if (missing(rids))
+        rids <-  bfcrid(x)
+            
+    stopifnot(length(rids) > 0L, all(rids %in% bfcrid(x)))
 
-    .sql_set_time(x, rid)
-    path <- .sql_get_rpath(x, rid)
-    is_web <- .sql_get_rtype(x, rid) == "web"
-    fpath <- .sql_get_fpath(x, rid[is_web])
-    names(fpath) <- rep("fpath", length(fpath))
-    c(path, fpath)
+    .sql_set_time(x, rids)
+    path <- .sql_get_rpath(x, rids)
+    path
 })
 
 #' @export
@@ -1015,6 +1013,7 @@ setGeneric("bfcdownload",
 
 #' @rdname BiocFileCache-class
 #' @aliases bfcdownload,missing-method
+#' @param rid character(1) Unique resource id.
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "missing",
     function(x, rid, proxy="", config=list(), ask=TRUE, FUN, ...)
