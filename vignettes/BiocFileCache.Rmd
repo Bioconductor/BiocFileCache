@@ -29,11 +29,12 @@ out of date and require a new download.
 ## Installation and Loading
 
 `BiocFileCache` is a _Bioconductor_ package and can be installed through
-`biocLite`.
+`BiocManager::install()`.
 
 ```{r, eval = FALSE}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite("BiocFileCache", dependencies = TRUE)
+if (!"BiocManager" %in% rownames(installed.packages()))
+     install.packages("BiocManager")
+BiocManager::install("BiocFileCache", dependencies=TRUE)
 ```
 
 After the package is installed, it can be loaded into _R_ workspace by
