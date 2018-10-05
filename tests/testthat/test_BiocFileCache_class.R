@@ -513,7 +513,7 @@ test_that("bfcdownload works", {
     expect_true(time1 < time3)
     expect_error(bfcdownload(bfc, rid1))
 
-    url <- "http://www.UniProt.org/docs/speclist.txt"
+    url <- "http://bioconductor.org/packages/stats/bioc/BiocFileCache/BiocFileCache_stats.tab"
     headFile <-
     function(url, file)
         {

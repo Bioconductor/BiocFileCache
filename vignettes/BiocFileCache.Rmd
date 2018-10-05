@@ -895,7 +895,7 @@ The function should return a `TRUE` on success or a `character(1)`
 description for failure on error. As an example:
 
 ```{r}
-url <- "http://www.UniProt.org/docs/speclist.txt"
+url <- "http://bioconductor.org/packages/stats/bioc/BiocFileCache/BiocFileCache_stats.tab"
 
 headFile <-                         # how to process file before caching
     function(from, to)
