@@ -531,7 +531,9 @@ setMethod("bfcrpath", "BiocFileCacheBase",
         } else if (length(res) == 1L) {
             names(update_time_and_path(x, res))
         } else {
-            warning("'rnames' regular expression pattern",
+            warning("'rnames' ",
+                    if (exact) "exact" else "regular expression",
+                    " pattern",
                     "\n    '", rname, "'",
                     "\n  is not unique; use 'bfcquery()' to see matches.")
             NA_character_
@@ -837,7 +839,7 @@ setGeneric("bfcquery",
 setMethod("bfcquery", "missing",
     function(x, query, field=c("rname", "rpath", "fpath"), ..., exact = FALSE)
 {
-    bfcquery(x=BiocFileCache(), query=query, field=field, ...)
+    bfcquery(x=BiocFileCache(), query=query, field=field, ..., exact = exact)
 })
 
 #' @describeIn BiocFileCache query resource
@@ -870,7 +872,6 @@ setMethod("bfcquery", "BiocFileCacheBase",
     stopifnot(is.character(query))
     stopifnot(all(field %in% .get_all_colnames(x)))
 
-    name <- basename(tempfile(""))
     tbl <- .sql_get_resource_table(x)
     keep <- TRUE
     FUN <-
