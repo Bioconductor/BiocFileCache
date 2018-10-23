@@ -2,6 +2,7 @@
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
 #' @importFrom dplyr %>% tbl select_ collect summarize filter_ n left_join
+#' @importFrom curl curl_escape
 
 .formatID <- . %>% collect(Inf) %>% `[[`("rid")
 
@@ -111,7 +112,10 @@
 
     fpath[is.na(fpath)] <- rpath[is.na(fpath)]
     ext[is.na(ext)] <- ""
-    rpath <- sprintf("%s_%s%s", rpath, basename(fpath), ext)
+    bfname <- basename(Fpatho)
+    if (.Platform$OS.type == "windows")
+        bfname <- curl_escape(bfname)
+    rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
     con <- dbConnect(SQLite(), .sql_dbfile(bfc))
     on.exit(dbDisconnect(con))
