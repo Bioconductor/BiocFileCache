@@ -52,7 +52,7 @@
         ## Download the resource in a way that supports https
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
             response <- suppressWarnings({
-                GET(websource, progress(), config=config,
+                GET(websource, progress(con = stderr()), config=config,
                     write_disk(localfile, overwrite=TRUE), proxy=proxy, ...)
             })
             cat("\n") ## line break after progress bar
