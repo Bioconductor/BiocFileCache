@@ -120,3 +120,21 @@ test_that(".sql_get_rpath() works", {
     expected <- setNames(c(fpath, expected, expected), rid)
     expect_identical(.sql_get_rpath(bfc, rid), expected)
 })
+
+test_that(".sql_add_resource() changes remote special", {
+
+    url =
+        "https://s3.amazonaws.com/annotationhub/ncbi/uniprot/3.7/org.'Caballeronia_concitans'.eg.sqlite"
+    bfc <- BiocFileCache(tempfile(), ask = FALSE)
+    rpath <- path.expand(tempfile("", bfccache(bfc)))
+    ext <- ""
+    bfname <- basename(url)
+    bfname <- curl::curl_escape(bfname)
+    rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
+    id1 <- bfcadd(bfc, url)
+    expect_identical(unname(.sql_get_rname(bfc, names(id1))), url)
+    expect_identical(unname(.sql_get_fpath(bfc, names(id1))), url)
+    # can't do identical because different random identifier
+    expect_true(grepl(bfname, basename(unname(.sql_get_rpath(bfc, names(id1))))))
+
+})
