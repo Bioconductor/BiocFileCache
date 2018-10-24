@@ -112,7 +112,7 @@
 
     fpath[is.na(fpath)] <- rpath[is.na(fpath)]
     ext[is.na(ext)] <- ""
-    bfname <- basename(Fpatho)
+    bfname <- basename(fpath)
     bfname <- curl_escape(bfname)
     rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
