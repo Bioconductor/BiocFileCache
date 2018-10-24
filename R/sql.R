@@ -113,8 +113,7 @@
     fpath[is.na(fpath)] <- rpath[is.na(fpath)]
     ext[is.na(ext)] <- ""
     bfname <- basename(Fpatho)
-    if (.Platform$OS.type == "windows")
-        bfname <- curl_escape(bfname)
+    bfname <- curl_escape(bfname)
     rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
     con <- dbConnect(SQLite(), .sql_dbfile(bfc))
