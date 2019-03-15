@@ -601,7 +601,13 @@ bfcdownload(bfc0, "BFC5")
 bfcremove(bfc0, rid3)
 bfcinfo(bfc0)
 bfcsync(bfc0)
-bfcremove(bfc0, "BFC1")
+if (!interactive()){
+   # in interactive mode, in the sync above
+   # this was probably already removed
+   # noninteractive mode does not remove resources
+   # so can remove manually here
+   bfcremove(bfc0, "BFC1")
+}
 bfcsync(bfc0, FALSE)
 \dontrun{exportbfc(bfc)}
 \dontrun{importbfc("ExportBiocFileCache.tar")}
