@@ -148,7 +148,7 @@ returns a path location to save data to. (optionally) you can add the file
 extension if you know the type of file that will be saved:
 
 ```{r}
-savepath <- bfcnew(bfc, "NewResource", ext="RData")
+savepath <- bfcnew(bfc, "NewResource", ext=".RData")
 savepath
 
 ## now we can use that path in any save function

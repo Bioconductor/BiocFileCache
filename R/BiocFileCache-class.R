@@ -378,26 +378,36 @@ setMethod("bfcadd", "BiocFileCache",
         is.character(rname), length(rname) > 0L, !any(is.na(rname)),
         is.character(fpath), length(fpath) > 0L, !any(is.na(fpath))
     )
-    action <- match.arg(action)
-    rtype <- match.arg(rtype)
-    rtype <- .util_standardize_rtype(rtype, fpath, action)
-    stopifnot(rtype == "web" || file.exists(fpath))
+    stopifnot(all(action %in% c("copy", "move", "asis")),
+              all(rtype %in% c("auto", "relative", "local", "web")))
+    if (missing(rtype)) rtype <- match.arg(rtype)
+    if (missing(action)) action <- match.arg(action)
+    stopifnot((length(action) == 1) || (length(action) == length(fpath)))
+    stopifnot((length(rtype) == 1) || (length(rtype) == length(fpath)))
+    if (length(action) == 1) action = rep(action, length(fpath))
+    if (length(rtype) == 1) rtype = rep(rtype, length(fpath))
+
+    rtype <- .util_standardize_rtype_vec(rtype, fpath, action)
+    stopifnot(all(rtype == "web" | file.exists(fpath)))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
     rpath <- .sql_add_resource(x, rname, rtype, fpath, ext)
     rid <- names(rpath)
-    if (rtype %in% c("local", "relative")) {
-        switch(
-            action,
-            copy = file.copy(fpath, rpath),
-            move = file.rename(fpath, rpath),
-            asis = {
-                .sql_set_rpath(x, rid, fpath)
-                rpath <- bfcrpath(x, rids = rid)
-            }
-        )
-    } else if (download) {              # rtype == "web"
-        .util_download(x, rid, proxy, config, "bfcadd()", ...)
+
+    for(i in seq_along(rpath)){
+        if (rtype[i] %in% c("local", "relative")) {
+            switch(
+                action[i],
+                copy = file.copy(fpath[i], rpath[i]),
+                move = file.rename(fpath[i], rpath[i]),
+                asis = {
+                    .sql_set_rpath(x, rid[i], fpath[i])
+                    rpath[i] <- bfcrpath(x, rids = rid[i])
+                }
+                )
+        } else if (download) {              # rtype == "web"
+            .util_download(x, rid[i], proxy, config, "bfcadd()", ...)
+        }
     }
 
     rpath
@@ -471,7 +481,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 {
     if (missing(rids))
         rids <-  bfcrid(x)
-            
+
     stopifnot(length(rids) > 0L, all(rids %in% bfcrid(x)))
 
     .sql_set_time(x, rids)
