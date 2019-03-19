@@ -105,10 +105,10 @@
 .sql_add_resource <-
     function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
-    rpath <- path.expand(tempfile("", bfccache(bfc)))
+    rpath <- rep(path.expand(tempfile("", bfccache(bfc))), length(fpath))
     rtype <- unname(rtype)
-    if (identical(rtype, "relative") || identical(rtype, "web"))
-        rpath <- basename(rpath)
+    dx <- rtype == "relative" | rtype == "web"
+    rpath[dx] <- basename(rpath[dx])
 
     fpath[is.na(fpath)] <- rpath[is.na(fpath)]
     ext[is.na(ext)] <- ""
