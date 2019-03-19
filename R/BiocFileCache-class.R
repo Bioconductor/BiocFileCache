@@ -343,7 +343,8 @@ setMethod("bfcadd", "missing",
 #'     function. See \code{utils::tar} or \code{utils::zip} for more
 #'     information. For 'importbfc': Additional arguments to the
 #'     selected archiveMethod function. See \code{utils::untar} or
-#'     \code{utils::unzip} for more information.
+#'     \code{utils::unzip} for more information. For 'bfcneedsupdates',
+#'     arguments passed to as.Date (such as format).
 #' @return For 'bfcadd': named character(1), the path to save your
 #'     object / file.  The name of the character is the unique rid for
 #'     the resource.
@@ -471,7 +472,7 @@ setMethod("bfcpath", "BiocFileCacheBase",
 {
     if (missing(rids))
         rids <-  bfcrid(x)
-            
+
     stopifnot(length(rids) > 0L, all(rids %in% bfcrid(x)))
 
     .sql_set_time(x, rids)
@@ -924,7 +925,7 @@ setMethod("bfccount", "tbl_bfc",
 
 #' @export
 setGeneric("bfcneedsupdate",
-    function(x, rids) standardGeneric("bfcneedsupdate"),
+    function(x, rids, ...) standardGeneric("bfcneedsupdate"),
     signature = "x"
 )
 
@@ -932,9 +933,9 @@ setGeneric("bfcneedsupdate",
 #' @aliases bfcneedsupdate,missing-method
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "missing",
-    function(x, rids)
+    function(x, rids, ...)
 {
-    bfcneedsupdate(x=BiocFileCache(), rids=rids)
+    bfcneedsupdate(x=BiocFileCache(), rids=rids, ...)
 })
 
 #' @describeIn BiocFileCache check if a resource needs to be updated
@@ -953,7 +954,7 @@ setMethod("bfcneedsupdate", "missing",
 #' @aliases bfcneedsupdate
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "BiocFileCacheBase",
-    function(x, rids)
+    function(x, rids, ...)
 {
     if (missing(rids))
         rids <- .get_all_web_rids(x)
@@ -970,10 +971,17 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         web_time <- cache_info[["modified"]]
         web_etag <- cache_info[["etag"]]
 
-        if (!is.na(file_expires))
-            expired <- as.Date(file_expires, optional=TRUE) <= Sys.Date()
-        else
+        if (!is.na(file_expires)){
+            expired <- as.Date(file_expires, optional=TRUE, ...) <= Sys.Date()
+            if (is.na(expired)){
+                message("Could not convert to date.",
+                        "\n  consider rerunning specifing a date format for:",
+                        "\n    ", file_expires)
+                expired <- FALSE
+            }
+        } else {
             expired <- FALSE
+        }
 
         checkTime <- FALSE
         if (expired){
@@ -991,8 +999,8 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
                 if (is.na(file_time) || is.na(web_time)) {
                     res <- NA
                 } else {
-                    res <- as.Date(web_time, optional=TRUE) >
-                        as.Date(file_time, optional=TRUE)
+                    res <- as.Date(web_time, optional=TRUE, ...) >
+                        as.Date(file_time, optional=TRUE, ...)
                 }
             }
         }

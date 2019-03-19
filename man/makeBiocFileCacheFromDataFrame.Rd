@@ -7,11 +7,12 @@
 \title{Make BiocFileCache objects from an existing data.frame}
 \usage{
 makeBiocFileCacheFromDataFrame(df, cache, actionLocal = c("move", "copy",
-  "asis"), actionWeb = c("move", "copy"), metadataName, ..., ask = TRUE)
+  "asis"), actionWeb = c("move", "copy"), metadataName, ...,
+  ask = TRUE)
 
 \S4method{makeBiocFileCacheFromDataFrame}{ANY}(df, cache,
-  actionLocal = c("move", "copy", "asis"), actionWeb = c("move", "copy"),
-  metadataName, ..., ask = TRUE)
+  actionLocal = c("move", "copy", "asis"), actionWeb = c("move",
+  "copy"), metadataName, ..., ask = TRUE)
 }
 \arguments{
 \item{df}{data.frame or tibble to convert}
