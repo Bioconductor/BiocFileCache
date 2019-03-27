@@ -37,7 +37,6 @@
 .util_standardize_rtype_vec <-
     function(rtype, fpath, action)
 {
-
     stopifnot(length(rtype) == length(fpath),
               length(fpath) == length(action))
 
@@ -47,13 +46,11 @@
            },
            character(1), USE.NAMES=FALSE, rtype=rtype, fpath=fpath,
            action=action)
-
 }
 
 .util_standardize_rtype <-
     function(rtype, fpath, action)
 {
-
     if (identical(unname(rtype), "auto")) {
         test <- startsWith(fpath, "http") || startsWith(fpath, "ftp")
         if (test)
