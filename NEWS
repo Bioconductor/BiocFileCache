@@ -1,3 +1,14 @@
+CHANGES IN VERSION 1.7
+----------------------
+
+BUG FIX
+
+    o (1.7.2) Fix bug in multi path addition through bfcadd/bfcrpaths. The
+    function was assuming all files had same rtype and action. Now can
+    vectorize
+    o (1.7.1) Fix man documentation example. Interactive vs non interactive
+    session
+
 CHANGES IN VERSION 1.5
 ----------------------
 
@@ -15,7 +26,7 @@ USER-VISIBLE CHANGES
 
     o (v. 1.5.4) bfcpath() implementation change. Only displays rpath and can
     work with multiple rids. bfcpath only for rpath access while bfcrpath is the
-    option to get or add. 
+    option to get or add.
 
 CHANGES IN VERSION 1.3
 ----------------------
