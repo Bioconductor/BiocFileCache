@@ -387,7 +387,7 @@ setMethod("bfcadd", "BiocFileCache",
     if (length(action) == 1) action = rep(action, length(fpath))
     if (length(rtype) == 1) rtype = rep(rtype, length(fpath))
 
-    rtype <- .util_standardize_rtype_vec(rtype, fpath, action)
+    rtype <- .util_standardize_rtype(rtype, fpath, action)
     stopifnot(all(rtype == "web" | file.exists(fpath)))
     stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 

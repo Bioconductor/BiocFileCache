@@ -34,7 +34,7 @@
     })
 })
 
-.util_standardize_rtype_vec <-
+.util_standardize_rtype <-
     function(rtype, fpath, action)
 {
     stopifnot(length(rtype) == length(fpath),
@@ -42,13 +42,13 @@
 
     vapply(seq_along(fpath),
            function(i, rtype, fpath, action){
-               .util_standardize_rtype(rtype[i], fpath[i], action[i])
+               .util_standardize_rtype_helper(rtype[i], fpath[i], action[i])
            },
            character(1), USE.NAMES=FALSE, rtype=rtype, fpath=fpath,
            action=action)
 }
 
-.util_standardize_rtype <-
+.util_standardize_rtype_helper<-
     function(rtype, fpath, action)
 {
     if (identical(unname(rtype), "auto")) {

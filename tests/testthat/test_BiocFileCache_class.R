@@ -252,7 +252,7 @@ test_that("bfcquery, bfcrpath allow regular expressions and exact matches", {
 })
 
 test_that("check_rtype works", {
-    fun <- .util_standardize_rtype
+    fun <- .util_standardize_rtype_helper
 
     # test web types
     expect_identical(fun("auto", "http://somepath.com"), "web")
