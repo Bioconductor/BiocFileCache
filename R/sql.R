@@ -126,14 +126,23 @@
 
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
     original_rid <- .sql_db_get_query(bfc, sql[[1]])[["rid"]]
+    if (.Platform$OS.type == "unix") {
+        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
+                         cache_size = 64000L, synchronous = "off",
+                         vfs ="unix-none")
+
+    }else{
+        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
+                         cache_size = 64000L, synchronous = "off")
+    }
     .sql_db_execute(
         bfc, sql[[2]],
         rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
         last_modified_time = as.Date(NA_character_), etag = NA_character_,
-        expires = NA_character_
+        expires = NA_character_, con=con
     )
-    .sql_db_execute(bfc, sql[[3]])
-
+    .sql_db_execute(bfc, sql[[3]], con=con)
+    dbDisconnect(con)
     rid <- .sql_db_get_query(bfc, sql[[1]])[["rid"]]
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
