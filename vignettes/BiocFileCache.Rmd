@@ -102,7 +102,7 @@ The table of resource files includes the following information:
    recommend descriptive key words and identifiers.
  * `create_time`: The date and time a resource is added to the cache.
  * `access_time`: The date and time a resource is utilized within the cache. The
-   access time is updated when the resource is updated or accessed.
+   access time is updated when the resource is updated or downloaded.
  * `rpath`: resource path. This is the path to the local file.
  * `rtype`: resource type. Either "local" or "web", indicating if the resource
    has a remote origin.

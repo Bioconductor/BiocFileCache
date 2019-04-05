@@ -223,7 +223,6 @@ setMethod("[[", c("BiocFileCacheBase", "character", "missing"),
 {
     stopifnot(length(i) == 1L, i %in% bfcrid(x))
 
-    .sql_set_time(x, i)
     .sql_get_rpath(x, i)
 })
 
@@ -484,7 +483,6 @@ setMethod("bfcpath", "BiocFileCacheBase",
 
     stopifnot(length(rids) > 0L, all(rids %in% bfcrid(x)))
 
-    .sql_set_time(x, rids)
     path <- .sql_get_rpath(x, rids)
     path
 })
