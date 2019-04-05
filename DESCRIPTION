@@ -1,6 +1,6 @@
 Package: BiocFileCache
 Title: Manage Files Across Sessions
-Version: 1.7.3
+Version: 1.7.4
 Authors@R: c(person("Lori", "Shepherd",
       email = "lori.shepherd@roswellpark.org",
       role = c("aut", "cre")),
@@ -21,6 +21,7 @@ Imports:
     utils,
     dplyr,
     RSQLite,
+    AnnotationDbi,
     DBI,
     rappdirs,
     curl,
