@@ -33,13 +33,49 @@
     cmds
 }
 
+.sql_connect_RO <-
+    function(dbfile)
+{
+    ## See notes in AnnotationDbi::dbFileConnect
+    ## did not want to import AnnotationDbi in BFC because it is large
+    ## overkill for this function
+    if (!file.exists(dbfile))
+        stop("DB file '", dbfile, "' not found")
+
+    if (.Platform$OS.type == "unix") {
+        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                  synchronous="off", flags=SQLITE_RO, vfs="unix-none")
+    } else {
+        ## Use default 'vfs' on Windows.
+        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                  synchronous="off", flags=SQLITE_RO)
+    }
+}
+
+.sql_connect_RW <-
+    function(dbfile)
+{
+    ## We also need a RW function to allow writing to the cache
+
+    if (.Platform$OS.type == "unix") {
+        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                  synchronous="off", vfs="unix-none")
+    } else {
+        ## Use default 'vfs' on Windows.
+        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                  synchronous="off")
+    }
+}
+
+
 .sql_schema_version <-
     function(bfc)
 {
-    con <- dbFileConnect(.sql_dbfile(bfc))
-    on.exit(dbDisconnect(con))
-    src <- src_dbi(con)
-    tbl <- tbl(src, "metadata") %>% collect(Inf)
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        src <- src_dbi(con)
+        tbl <- tbl(src, "metadata") %>% collect(Inf)
+        }, finally={dbDisconnect(con)})
     tbl$value[tbl$key=="schema_version"]
 }
 
@@ -53,18 +89,9 @@
         param <- NULL
 
     if (missing(con)) {
-        if (.Platform$OS.type == "unix") {
-            con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                             cache_size = 64000L, synchronous = "off",
-                             vfs ="unix-none")
-
-        }else{
-            con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                             cache_size = 64000L, synchronous = "off")
-        }
+        con <- .sql_connect_RW(.sql_dbfile(bfc))
         on.exit(dbDisconnect(con))
     }
-
     dbExecute(con, sql, param = param)
 }
 
@@ -76,10 +103,9 @@
         param <- NULL
 
     if (missing(con)) {
-        con <-  dbFileConnect(.sql_dbfile(bfc))
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
         on.exit(dbDisconnect(con))
     }
-
     dbGetQuery(con, sql, param)
 }
 
@@ -90,21 +116,24 @@
 {
     fl <- .sql_dbfile(bfc)
     if (!file.exists(fl)) {
-        ## update metadata table
-        sql <- .sql_cmd("-- METADATA")
-        .sql_db_execute(bfc, sql)
+        tryCatch({
+            con <- .sql_connect_RW(.sql_dbfile(bfc))
+            ## update metadata table
+            sql <- .sql_cmd("-- METADATA")
+            .sql_db_execute(bfc, sql, con=con)
 
-        sql <- .sql_cmd("-- INSERT_METADATA")
-        package_version <- as.character(packageVersion("BiocFileCache"))
-        .sql_db_execute(
-            bfc, sql,
-            key = c('schema_version', 'package_version'),
-            value = c(.CURRENT_SCHEMA_VERSION, package_version)
-        )
+            sql <- .sql_cmd("-- INSERT_METADATA")
+            package_version <- as.character(packageVersion("BiocFileCache"))
+            .sql_db_execute(
+                bfc, sql,
+                key = c('schema_version', 'package_version'),
+                value = c(.CURRENT_SCHEMA_VERSION, package_version),
+                con=con)
 
-        ## create new resource table
-        sql <- .sql_cmd("-- TABLE")
-        .sql_db_execute(bfc, sql)
+            ## create new resource table
+            sql <- .sql_cmd("-- TABLE")
+            .sql_db_execute(bfc, sql, con=con)
+        }, finally={dbDisconnect(con)})
     }
     .sql_validate_version(bfc)
     fl
@@ -125,25 +154,24 @@
     rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
-    original_rid <- .sql_db_get_query(bfc, sql[[1]])[["rid"]]
-    if (.Platform$OS.type == "unix") {
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off",
-                         vfs ="unix-none")
-
-    }else{
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off")
-    }
-    .sql_db_execute(
-        bfc, sql[[2]],
-        rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
-        last_modified_time = as.Date(NA_character_), etag = NA_character_,
-        expires = NA_character_, con=con
-    )
-    .sql_db_execute(bfc, sql[[3]], con=con)
-    dbDisconnect(con)
-    rid <- .sql_db_get_query(bfc, sql[[1]])[["rid"]]
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        original_rid <- .sql_db_get_query(bfc, sql[[1]], con=con)[["rid"]]
+    }, finally={dbDisconnect(con)})
+    tryCatch({
+        con <- .sql_connect_RW(.sql_dbfile(bfc))
+        .sql_db_execute(
+            bfc, sql[[2]],
+            rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
+            last_modified_time = as.Date(NA_character_), etag = NA_character_,
+            expires = NA_character_, con=con
+            )
+        .sql_db_execute(bfc, sql[[3]], con=con)
+    }, finally={dbDisconnect(con)})
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        rid <- .sql_db_get_query(bfc, sql[[1]],con=con)[["rid"]]
+     }, finally={dbDisconnect(con)})
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
 
@@ -158,26 +186,27 @@
 .sql_get_resource_table <-
     function(bfc, rids)
 {
-    con <- dbFileConnect(.sql_dbfile(bfc))
-    on.exit(dbDisconnect(con))
-    src <- src_dbi(con)
-    tbl <- tbl(src, "resource")
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        src <- src_dbi(con)
+        tbl <- tbl(src, "resource")
 
-    if (missing(rids)) {
-    } else if (length(rids) == 0) {
-        tbl <- tbl %>% filter_(~ rid == NA_character_)
-    } else if (length(rids) == 1) {
-        tbl <- tbl %>% filter_(~ rid == rids)
-    } else {
-        tbl <- tbl %>% filter_(~ rid %in% rids)
-    }
+        if (missing(rids)) {
+        } else if (length(rids) == 0) {
+            tbl <- tbl %>% filter_(~ rid == NA_character_)
+        } else if (length(rids) == 1) {
+            tbl <- tbl %>% filter_(~ rid == rids)
+        } else {
+            tbl <- tbl %>% filter_(~ rid %in% rids)
+        }
 
-    ## join metadata
-    meta <- setdiff(dbListTables(con), .RESERVED$TABLES)
-    for (m in meta)
-        tbl <- left_join(tbl, tbl(src, m), by="rid")
+        ## join metadata
+        meta <- setdiff(dbListTables(con), .RESERVED$TABLES)
+        for (m in meta)
+            tbl <- left_join(tbl, tbl(src, m), by="rid")
 
-    tbl <- tbl %>% collect
+        tbl <- tbl %>% collect
+    }, finally={dbDisconnect(con)})
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% select_(~ -id)
 }
@@ -359,53 +388,41 @@
 .sql_meta_gets <-
     function(bfc, name, value, ...)
 {
-    if (.Platform$OS.type == "unix") {
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off",
-                         vfs ="unix-none")
-
-    }else{
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off")
-    }
-    on.exit(dbDisconnect(con))
-    dbWriteTable(con, name, value, ...)
+    tryCatch({
+        con <- .sql_connect_RW(.sql_dbfile(bfc))
+        dbWriteTable(con, name, value, ...)
+    }, finally={dbDisconnect(con)})
 }
 
 .sql_meta_remove <-
     function(bfc, name, ...)
 {
-    if (.Platform$OS.type == "unix") {
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off",
-                         vfs ="unix-none")
-
-    }else{
-        con <- dbConnect(SQLite(), dbname=.sql_dbfile(bfc),
-                         cache_size = 64000L, synchronous = "off")
-    }
-    on.exit(dbDisconnect(con))
-    if (dbExistsTable(con, name))
-        dbRemoveTable(con, name, ...)
+    tryCatch({
+        con <- .sql_connect_RW(.sql_dbfile(bfc))
+        if (dbExistsTable(con, name))
+            dbRemoveTable(con, name, ...)
+    }, finally={dbDisconnect(con)})
 }
 
 .sql_meta <-
     function(bfc, name, ...)
 {
-    con <- dbFileConnect(.sql_dbfile(bfc))
-    on.exit(dbDisconnect(con))
-    if (!dbExistsTable(con, name))
-        stop("'", name, "' not found in database")
-    dbReadTable(con, name, ...)
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        if (!dbExistsTable(con, name))
+            stop("'", name, "' not found in database")
+        dbReadTable(con, name, ...)
+    }, finally={dbDisconnect(con)})
 }
 
 .sql_meta_list <-
     function(bfc)
 {
-    con <- dbFileConnect(.sql_dbfile(bfc))
-    on.exit(dbDisconnect(con))
-    res <- dbListTables(con)
-    setdiff(res, .RESERVED$TABLES)
+    tryCatch({
+        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        res <- dbListTables(con)
+        setdiff(res, .RESERVED$TABLES)
+    }, finally={dbDisconnect(con)})
 }
 
 .sql_filter_metadata <-
