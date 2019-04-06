@@ -616,11 +616,16 @@ Finally, there are two function involved with cleaning or deleting the cache:
  * `removebfc()`
 
 `cleanbfc()` will evaluate the resources in the `BiocFileCache` object and
-determine which, if any, have not been accessed in a specified number of
-days. If `ask=TRUE`, each entry that is above that threshold will ask if it
-should be removed from the cache object and the file deleted (only deleted if in
-`bfccache(bfc)` location). If `ask=FALSE`, it does not ask about each file and
-automatically removes and deletes the file. The default number of days is 120.
+determine which, if any, have not been created, redownloaded, or updated in a
+specified number of days. If `ask=TRUE`, each entry that is above that threshold
+will ask if it should be removed from the cache object and the file deleted
+(only deleted if in `bfccache(bfc)` location). If `ask=FALSE`, it does not ask
+about each file and automatically removes and deletes the file. The default
+number of days is 120. If a resource has not needed any updates, this function
+could give a false positive. It is also does not take into account how many time
+the resource was loaded by retrieving the path (ie. via [[, bfcpath, bfcrpath),
+so may not be an accurate indication of how often the resource is
+utilized. Please use this function with caution.
 
 ```{r eval=FALSE}
 cleanbfc(bfc)
