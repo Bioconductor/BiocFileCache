@@ -155,22 +155,18 @@
 
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
     tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
-        original_rid <- .sql_db_get_query(bfc, sql[[1]], con=con)[["rid"]]
-    }, finally={dbDisconnect(con)})
-    tryCatch({
         con <- .sql_connect_RW(.sql_dbfile(bfc))
+        dbExecute(con, sql[[1]])
+        original_rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
         .sql_db_execute(
-            bfc, sql[[2]],
+            bfc, sql[[3]],
             rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
             last_modified_time = as.Date(NA_character_), etag = NA_character_,
             expires = NA_character_, con=con
             )
-        .sql_db_execute(bfc, sql[[3]], con=con)
-    }, finally={dbDisconnect(con)})
-    tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
-        rid <- .sql_db_get_query(bfc, sql[[1]],con=con)[["rid"]]
+        .sql_db_execute(bfc, sql[[4]], con=con)
+        rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
+        dbExecute(con, sql[[5]])
      }, finally={dbDisconnect(con)})
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }

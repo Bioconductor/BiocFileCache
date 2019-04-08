@@ -23,6 +23,7 @@ CREATE TABLE resource (
     expires DATETIME DEFAULT NA
 );
 -- INSERT
+BEGIN TRANSACTION;
 SELECT rid FROM resource;
 INSERT INTO resource (
     rname, rpath, rtype, fpath, last_modified_time, etag, expires
@@ -30,6 +31,7 @@ INSERT INTO resource (
     :rname, :rpath, :rtype, :fpath, :last_modified_time, :etag, :expires
 );
 UPDATE resource SET rid = "BFC" || id;
+COMMIT;
 -- REMOVE
 DELETE FROM resource WHERE rid IN (%s);
 -- UPDATE_PATH
