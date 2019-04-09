@@ -1,14 +1,13 @@
 -- IF UPDATE SCHEME CHANGE VARIABLES IN utilities.R
--- METADATA
+-- CREATE_DB
+BEGIN TRANSACTION;
 CREATE TABLE metadata (
     key TEXT UNIQUE NOT NULL,
     value TEXT
 );
--- INSERT_METADATA
 INSERT INTO metadata (
     key, value
 ) VALUES (:key, :value);
--- TABLE
 CREATE TABLE resource (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     rid TEXT,
@@ -22,6 +21,7 @@ CREATE TABLE resource (
     etag TEXT DEFAULT NA,
     expires DATETIME DEFAULT NA
 );
+COMMIT;
 -- INSERT
 BEGIN TRANSACTION;
 SELECT rid FROM resource;

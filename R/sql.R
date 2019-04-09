@@ -116,23 +116,21 @@
 {
     fl <- .sql_dbfile(bfc)
     if (!file.exists(fl)) {
+        sql <- strsplit(.sql_cmd("-- CREATE_DB"), ";")[[1]]
         tryCatch({
             con <- .sql_connect_RW(.sql_dbfile(bfc))
+            dbExecute(con, sql[[1]])
             ## update metadata table
-            sql <- .sql_cmd("-- METADATA")
-            .sql_db_execute(bfc, sql, con=con)
-
-            sql <- .sql_cmd("-- INSERT_METADATA")
+            .sql_db_execute(bfc, sql[[2]], con=con)
             package_version <- as.character(packageVersion("BiocFileCache"))
             .sql_db_execute(
-                bfc, sql,
+                bfc, sql[[3]],
                 key = c('schema_version', 'package_version'),
                 value = c(.CURRENT_SCHEMA_VERSION, package_version),
                 con=con)
-
             ## create new resource table
-            sql <- .sql_cmd("-- TABLE")
-            .sql_db_execute(bfc, sql, con=con)
+            .sql_db_execute(bfc, sql[[4]], con=con)
+            dbExecute(con, sql[[5]])
         }, finally={dbDisconnect(con)})
     }
     .sql_validate_version(bfc)
