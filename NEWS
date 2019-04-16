@@ -3,8 +3,11 @@ CHANGES IN VERSION 1.7
 
 BUG FIX
 
-    o (1.7.7) Make creation of database atomic commits
-    o (1.7.7) Make adding resource to database atomic commits 
+    o (1.7.10) Fix date comparison to use as.POSIXlt instead of as.Date. This
+    catches the rare edge case if a remote resource is updated twice in a day
+    and a download happened in between the two.
+    o (1.7.9) Make creation of database atomic commits
+    o (1.7.8) Make adding resource to database atomic commits
     o (1.7.4) Limit where possible opening database in RW mode. Use read-only
     mode whereever possible to avoid database locking
     o (1.7.2) Fix bug in multi path addition through bfcadd/bfcrpaths. The

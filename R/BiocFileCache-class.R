@@ -999,8 +999,8 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
                 if (is.na(file_time) || is.na(web_time)) {
                     res <- NA
                 } else {
-                    res <- as.Date(web_time, optional=TRUE) >
-                        as.Date(file_time, optional=TRUE)
+                    res <- as.POSIXlt(web_time, optional=TRUE) >
+                        as.POSIXlt(file_time, optional=TRUE)
                 }
             }
         }
