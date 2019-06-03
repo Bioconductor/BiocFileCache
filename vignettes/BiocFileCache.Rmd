@@ -785,7 +785,7 @@ suppressPackageStartupMessages({
 
 # load the cache
 path <- file.path(tempdir(), "tempCacheDir")
-bfc <- BiocFileCache(path)
+bfc <- BiocFileCache(path, ask=FALSE)
 
 # the web resources of interest
 url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
