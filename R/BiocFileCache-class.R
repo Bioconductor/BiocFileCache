@@ -1133,7 +1133,14 @@ setMethod("bfcsync", "missing",
 #'     descriptive messages will also be included.
 #' @examples
 #' bfcsync(bfc0)
-#' bfcremove(bfc0, "BFC1")
+#'
+#' if (!interactive()){
+#'    # in interactive mode, in the sync above
+#'    # this was probably already removed
+#'    # noninteractive mode does not remove resources
+#'    # so can remove manually here
+#'    bfcremove(bfc0, "BFC1")
+#' }
 #' bfcsync(bfc0, FALSE)
 #' @aliases bfcsync
 #' @importFrom utils capture.output
