@@ -36,7 +36,9 @@ makeCachedActiveBinding <- function(sym, fun, env=.GlobalEnv, verbose=FALSE)
             if (verbose)
                 cat("OK\n")
         } else {
-            cat("using cached value for active binding '", sym, "'\n", sep="")
+            if (verbose)
+                cat("using cached value for active binding '", sym, "'\n",
+                    sep="")
         }
         val
     }
