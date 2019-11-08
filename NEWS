@@ -1,3 +1,19 @@
+CHANGES IN VERSION 1.11
+----------------------
+
+BUG FIX
+
+    o (1.11.2) Fixes run of examples. Different result manual vs interactive so
+    have conditional that will allow complete example if run by user rather than
+    run automatically through the checks. 
+
+NEW FEATURES
+
+    o (1.11.1) Add makeCachedActiveBinding(). Allows data to be cached during
+    ActiveBinding call. Avoids callback function executing data retrieval
+    everytime.
+
+
 CHANGES IN VERSION 1.7
 ----------------------
 
