@@ -39,7 +39,6 @@
 \alias{bfcupdate}
 \alias{bfcmeta<-}
 \alias{bfcmeta<-,BiocFileCacheBase-method}
-\alias{bfcmeta<-}
 \alias{bfcmetaremove,missing-method}
 \alias{bfcmetaremove,BiocFileCacheBase-method}
 \alias{bfcmetaremove}
@@ -85,7 +84,8 @@
 \alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
-BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"), ask = TRUE)
+BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"),
+  ask = TRUE)
 
 \S4method{bfccache}{BiocFileCacheBase}(x)
 
@@ -108,7 +108,8 @@ bfcrid(x)
 
 \S4method{[}{BiocFileCache,missing,missing}(x, i, j, ..., drop = TRUE)
 
-\S4method{[}{BiocFileCacheReadOnly,missing,missing}(x, i, j, ..., drop = TRUE)
+\S4method{[}{BiocFileCacheReadOnly,missing,missing}(x, i, j, ...,
+  drop = TRUE)
 
 \S4method{[[}{BiocFileCacheBase,character,missing}(x, i, j)
 
@@ -118,18 +119,18 @@ bfcrid(x)
 \S4method{bfcnew}{missing}(x, rname, rtype = c("relative", "local"),
   ext = NA_character_)
 
-\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"),
-  ext = NA_character_)
+\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative",
+  "local"), ext = NA_character_)
 
 \S4method{bfcadd}{missing}(x, rname, fpath = rname, rtype = c("auto",
   "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", download = TRUE, config = list(), ext = NA_character_,
-  ...)
+  proxy = "", download = TRUE, config = list(),
+  ext = NA_character_, ...)
 
-\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname, rtype = c("auto",
-  "relative", "local", "web"), action = c("copy", "move", "asis"),
-  proxy = "", download = TRUE, config = list(), ext = NA_character_,
-  ...)
+\S4method{bfcadd}{BiocFileCache}(x, rname, fpath = rname,
+  rtype = c("auto", "relative", "local", "web"), action = c("copy",
+  "move", "asis"), proxy = "", download = TRUE, config = list(),
+  ext = NA_character_, ...)
 
 \S4method{bfcinfo}{missing}(x, rids)
 
@@ -143,12 +144,14 @@ bfcrid(x)
 
 \S4method{bfcrpath}{missing}(x, rnames, ..., rids, exact = TRUE)
 
-\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = TRUE)
+\S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids,
+  exact = TRUE)
 
 \S4method{bfcupdate}{missing}(x, rids, value, ...)
 
-\S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL, rpath = NULL,
-  fpath = NULL, proxy = "", config = list(), ask = TRUE, ...)
+\S4method{bfcupdate}{BiocFileCache}(x, rids, rname = NULL,
+  rpath = NULL, fpath = NULL, proxy = "", config = list(),
+  ask = TRUE, ...)
 
 bfcmeta(x, name, ...) <- value
 
@@ -170,11 +173,11 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcquerycols}{BiocFileCacheBase}(x)
 
-\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath", "fpath"),
-  ..., exact = FALSE)
-
-\S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname", "rpath",
+\S4method{bfcquery}{missing}(x, query, field = c("rname", "rpath",
   "fpath"), ..., exact = FALSE)
+
+\S4method{bfcquery}{BiocFileCacheBase}(x, query, field = c("rname",
+  "rpath", "fpath"), ..., exact = FALSE)
 
 \S4method{bfccount}{missing}(x)
 
@@ -189,8 +192,8 @@ bfcmeta(x, name, ...) <- value
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(),
   ask = TRUE, FUN, ...)
 
-\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(),
-  ask = TRUE, FUN, ...)
+\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "",
+  config = list(), ask = TRUE, FUN, ...)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -200,15 +203,16 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcsync}{BiocFileCache}(x, verbose = TRUE, ask = TRUE)
 
-\S4method{exportbfc}{missing}(x, rids, outputFile = "BiocFileCacheExport.tar",
-  outputMethod = c("tar", "zip"), verbose = TRUE, ...)
+\S4method{exportbfc}{missing}(x, rids,
+  outputFile = "BiocFileCacheExport.tar", outputMethod = c("tar",
+  "zip"), verbose = TRUE, ...)
 
 \S4method{exportbfc}{BiocFileCacheBase}(x, rids,
-  outputFile = "BiocFileCacheExport.tar", outputMethod = c("tar", "zip"),
-  verbose = TRUE, ...)
+  outputFile = "BiocFileCacheExport.tar", outputMethod = c("tar",
+  "zip"), verbose = TRUE, ...)
 
-\S4method{importbfc}{character}(filename, archiveMethod = c("untar", "unzip"),
-  exdir = ".", ...)
+\S4method{importbfc}{character}(filename, archiveMethod = c("untar",
+  "unzip"), exdir = ".", ...)
 
 \S4method{cleanbfc}{missing}(x, days = 120, ask = TRUE)
 
@@ -601,6 +605,7 @@ bfcdownload(bfc0, "BFC5")
 bfcremove(bfc0, rid3)
 bfcinfo(bfc0)
 bfcsync(bfc0)
+
 if (!interactive()){
    # in interactive mode, in the sync above
    # this was probably already removed
