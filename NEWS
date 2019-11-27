@@ -13,6 +13,8 @@ NEW FEATURES
     ActiveBinding call. Avoids callback function executing data retrieval
     everytime.
 
+    o (1.11.3) Only asks for / reports use of temporary cache once per
+    session. https://github.com/Bioconductor/TENxBrainData/issues/7
 
 CHANGES IN VERSION 1.7
 ----------------------
