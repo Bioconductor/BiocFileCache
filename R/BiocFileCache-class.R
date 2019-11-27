@@ -94,20 +94,18 @@ BiocFileCache <-
 
     if (!file.exists(cache)) {
         ans <- !ask
-        test <- !.biocfilecache_flags$get_create_asked() || !missing(cache)
-        if (test && ask) {
-            ans <- .util_ask(cache,
-                             "\n  does not exist, create directory?")
-            if (missing(cache))
-                .biocfilecache_flags$set_create_asked()
+        if (ask && !.biocfilecache_flags$get_create_asked()) {
+            ans <- .util_ask(cache, "\n  does not exist, create directory?")
+            .biocfilecache_flags$set_create_asked()
         }
         if (ans) {
             dir.create(cache, recursive=TRUE)
         } else {
             cache <- file.path(tempdir(), "BiocFileCache")
-            message("Using temporary cache ", cache)
-            if (!file.exists(cache))
+            if (!file.exists(cache)) {
+                message("using temporary cache ", cache)
                 dir.create(cache, recursive=TRUE)
+            }
         }
     }
     bfc <- .BiocFileCache(cache=cache)
