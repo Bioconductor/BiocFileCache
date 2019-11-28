@@ -20,8 +20,8 @@ package.}
 troubleshooting).}
 }
 \description{
-Like \code{\link{makeActiveBinding}} but the value of the active binding
-gets only evaluated once and is "remembered".
+Like \code{\link{makeActiveBinding}} but the value of the active
+binding gets only evaluated once and is "remembered".
 }
 \examples{
 makeCachedActiveBinding("x", function() runif(1), verbose=TRUE)
