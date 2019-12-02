@@ -7,20 +7,20 @@
 makeCachedActiveBinding(sym, fun, env = .GlobalEnv, verbose = FALSE)
 }
 \arguments{
-\item{sym}{See \code{\link[base]{makeActiveBinding}} in
-the \pkg{base} package.}
+\item{sym}{See \code{\link{makeActiveBinding}} in the \pkg{base}
+package.}
 
-\item{fun}{See \code{\link[base]{makeActiveBinding}} in
-the \pkg{base} package.}
+\item{fun}{See \code{\link{makeActiveBinding}} in the \pkg{base}
+package.}
 
-\item{env}{See \code{\link[base]{makeActiveBinding}} in
-the \pkg{base} package.}
+\item{env}{See \code{\link{makeActiveBinding}} in the \pkg{base}
+package.}
 
 \item{verbose}{Set to TRUE to see caching in action (useful for
 troubleshooting).}
 }
 \description{
-Like \code{\link[base]{makeActiveBinding}} but the value of the active
+Like \code{\link{makeActiveBinding}} but the value of the active
 binding gets only evaluated once and is "remembered".
 }
 \examples{

@@ -1,14 +1,14 @@
 #' makeCachedActiveBinding
 #'
-#' Like \code{\link[base]{makeActiveBinding}} but the value of the active
+#' Like \code{\link{makeActiveBinding}} but the value of the active
 #' binding gets only evaluated once and is "remembered".
 #'
-#' @param sym See \code{\link[base]{makeActiveBinding}} in
-#'     the \pkg{base} package.
-#' @param fun See \code{\link[base]{makeActiveBinding}} in
-#'     the \pkg{base} package.
-#' @param env See \code{\link[base]{makeActiveBinding}} in
-#'     the \pkg{base} package.
+#' @param sym See \code{\link{makeActiveBinding}} in the \pkg{base}
+#'     package.
+#' @param fun See \code{\link{makeActiveBinding}} in the \pkg{base}
+#'     package.
+#' @param env See \code{\link{makeActiveBinding}} in the \pkg{base}
+#'     package.
 #' @param verbose Set to TRUE to see caching in action (useful for
 #'     troubleshooting).
 #'
