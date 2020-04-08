@@ -1,7 +1,7 @@
 #' @import RSQLite
 #' @importFrom DBI dbExecute dbSendStatement
 #' @import dbplyr
-#' @importFrom dplyr %>% tbl select_ collect summarize filter_ n left_join
+#' @importFrom dplyr %>% tbl select collect summarize filter n left_join
 #' @importFrom curl curl_escape
 
 .formatID <- . %>% collect(Inf) %>% `[[`("rid")
@@ -187,11 +187,11 @@
 
         if (missing(rids)) {
         } else if (length(rids) == 0) {
-            tbl <- tbl %>% filter_(~ rid == NA_character_)
+            tbl <- tbl %>% dplyr::filter(rid == NA_character_)
         } else if (length(rids) == 1) {
-            tbl <- tbl %>% filter_(~ rid == rids)
+            tbl <- tbl %>% dplyr::filter(rid == rids)
         } else {
-            tbl <- tbl %>% filter_(~ rid %in% rids)
+            tbl <- tbl %>% dplyr::filter(rid %in% rids)
         }
 
         ## join metadata
@@ -202,7 +202,7 @@
         tbl <- tbl %>% collect
     }, finally={dbDisconnect(con)})
     class(tbl) <- c("tbl_bfc", class(tbl))
-    tbl %>% select_(~ -id)
+    tbl %>% dplyr::select(-id)
 }
 
 .sql_get_nrows <-
@@ -214,8 +214,8 @@
 .sql_get_field <-
     function(bfc, id, field)
 {
-    tbl <- .sql_get_resource_table(bfc) %>% filter_(~ rid %in% id) %>%
-        select_(~ rid, field) %>% collect(Inf)
+    tbl <- .sql_get_resource_table(bfc) %>% dplyr::filter(rid %in% id) %>%
+        dplyr::select(rid, field) %>% collect(Inf)
     setNames(tbl[[field]], tbl[["rid"]])
 }
 
@@ -281,7 +281,7 @@
     function(bfc, days)
 {
     mytbl <- .sql_get_resource_table(bfc) %>%
-        select_(~ rid, ~ access_time) %>% collect(Inf)
+        dplyr::select(rid, access_time) %>% collect(Inf)
     accessDate <- as.Date(as.character(mytbl$access_time))
     diffTime <- Sys.Date() - accessDate
     mytbl[diffTime > days, 1] %>% .formatID
@@ -290,14 +290,14 @@
 .get_all_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% select_("rid") %>% .formatID
+    .sql_get_resource_table(bfc) %>% dplyr::select("rid") %>% .formatID
 }
 
 .get_all_web_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% filter_(~ rtype == "web") %>%
-        select_("rid") %>% .formatID
+    .sql_get_resource_table(bfc) %>% dplyr::filter(rtype == "web") %>%
+        dplyr::select("rid") %>% .formatID
 
 }
 

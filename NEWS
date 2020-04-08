@@ -3,6 +3,7 @@ CHANGES IN VERSION 1.11
 
 BUG FIX
 
+    o (1.11.5) Update dplyr functions for dplyr_1.0.0 release 
     o (1.11.2) Fixes run of examples. Different result manual vs interactive so
     have conditional that will allow complete example if run by user rather than
     run automatically through the checks. 

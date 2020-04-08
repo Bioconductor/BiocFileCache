@@ -1,6 +1,6 @@
 Package: BiocFileCache
 Title: Manage Files Across Sessions
-Version: 1.11.4
+Version: 1.11.5
 Authors@R: c(person("Lori", "Shepherd",
       email = "lori.shepherd@roswellpark.org",
       role = c("aut", "cre")),
@@ -30,7 +30,7 @@ DevelopmentURL: https://github.com/Bioconductor/BiocFileCache
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.0
 biocViews: DataImport
 VignetteBuilder: knitr
 Suggests:
