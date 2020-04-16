@@ -569,7 +569,8 @@ BiocFileCache.
 
 \item \code{cleanbfc}: Remove old/unused files in
 BiocFileCache. If file to be removed is not in the bfccache
-location it will not be deleted.
+location it will not be deleted. Setting \code{days=-Inf}
+will remove all cached files.
 
 \item \code{removebfc}: Completely remove the BiocFileCache
 
