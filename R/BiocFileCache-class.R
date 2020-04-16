@@ -1382,7 +1382,8 @@ setMethod("cleanbfc", "missing",
 
 #' @describeIn BiocFileCache Remove old/unused files in
 #'     BiocFileCache. If file to be removed is not in the bfccache
-#'     location it will not be deleted.
+#'     location it will not be deleted. Setting \code{days=-Inf}
+#'     will remove all cached files.
 #' @param days integer(1) Number of days between accessDate and
 #'     currentDate; if exceeded entry will be deleted.
 #' @return For 'cleanbfc': updated BiocFileCache, invisibly.
