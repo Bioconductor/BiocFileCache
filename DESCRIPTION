@@ -1,6 +1,6 @@
 Package: BiocFileCache
 Title: Manage Files Across Sessions
-Version: 1.11.6
+Version: 1.12.0
 Authors@R: c(person("Lori", "Shepherd",
       email = "lori.shepherd@roswellpark.org",
       role = c("aut", "cre")),
