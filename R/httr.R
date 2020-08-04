@@ -46,6 +46,15 @@
 {
     ## retrieve file from hub to cache
     tryCatch({
+
+        if(!is(proxy, "request")){
+            if (proxy == ""){
+                proxy = NULL
+            }else{
+                proxy = use_proxy(proxy)
+            }
+        }
+
         if (!all(file.exists(dirname(localfile))))
             dir.create(dirname(localfile), recursive=TRUE)
 
@@ -53,13 +62,13 @@
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
             response <- suppressWarnings({
                 GET(websource, progress(con = stderr()), config=config,
-                    write_disk(localfile, overwrite=TRUE), proxy=proxy, ...)
+                    write_disk(localfile, overwrite=TRUE), proxy, ...)
             })
             cat("\n") ## line break after progress bar
         } else {
             response <- suppressWarnings({
                 GET(websource, write_disk(localfile, overwrite=TRUE),
-                    proxy=proxy, config=config, ...)
+                    proxy, config=config, ...)
             })
         }
         if (length(status_code(response))) {

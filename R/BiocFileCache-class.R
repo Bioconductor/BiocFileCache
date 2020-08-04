@@ -386,7 +386,6 @@ setMethod("bfcadd", "BiocFileCache",
 
     rtype <- .util_standardize_rtype(rtype, fpath, action)
     stopifnot(all(rtype == "web" | file.exists(fpath)))
-    stopifnot(is.character(proxy), length(proxy) == 1L, !is.na(proxy))
 
     rpath <- .sql_add_resource(x, rname, rtype, fpath, ext)
     rid <- names(rpath)
