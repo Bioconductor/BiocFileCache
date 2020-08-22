@@ -165,7 +165,7 @@
 .sql_add_resource <-
     function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
-    rpath <- rep(path.expand(tempfile("", bfccache(bfc))), length(fpath))
+    rpath <- rep(path.expand(.threadsafe_tempfile(bfc, pattern="")), length(fpath))
     rtype <- unname(rtype)
     dx <- rtype == "relative" | rtype == "web"
     rpath[dx] <- basename(rpath[dx])
