@@ -144,19 +144,6 @@
         stop(call, " failed; see warnings()")
 }
 
-.threadsafe_tempfile <- function(bfc, tmpdir=bfccache(bfc), ...) {
-    loc <- lock(.lock_path(.sql_dbfile(bfc)))
-    on.exit(unlock(loc))
-
-    tmp <- tempfile(tmpdir=tmpdir, ...)
-
-    # touch to exist, so that calls to this function 
-    # in other processes do not use the same file name.
-    write(file=tmp, character(0)) 
-
-    tmp
-}
-
 .util_download_and_rename <-
     function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid),
              FUN, ...)
@@ -167,7 +154,7 @@
         FUN <- file.rename
 
     status <- Map(function(rpath, fpath) {
-        temppath <- .threadsafe_tempfile(bfc)
+        temppath <- tempfile(tmpdir=bfccache(bfc))
 
         status <- .httr_download(fpath, temppath, proxy, config, ...)
         if (!status)
