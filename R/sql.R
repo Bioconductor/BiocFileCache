@@ -165,6 +165,12 @@
 .sql_add_resource <-
     function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
+    # The connection attempt handles locking if another process is adding a
+    # resource at the same time; by trying to connect first, we don't have to
+    # worry about whether the choice of temporary file name is thread-safe.
+    info <- .sql_connect_RW(.sql_dbfile(bfc))
+    on.exit(.sql_disconnect(info))
+
     rpath <- rep(path.expand(tempfile("", bfccache(bfc))), length(fpath))
     rtype <- unname(rtype)
     dx <- rtype == "relative" | rtype == "web"
@@ -177,21 +183,19 @@
     rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
-    tryCatch({
-        info <- .sql_connect_RW(.sql_dbfile(bfc))
-        con <- info$con
-        dbExecute(con, sql[[1]])
-        original_rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
-        .sql_db_execute(
-            bfc, sql[[3]],
-            rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
-            last_modified_time = as.Date(NA_character_), etag = NA_character_,
-            expires = NA_character_, con=con
-            )
-        .sql_db_execute(bfc, sql[[4]], con=con)
-        rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
-        dbExecute(con, sql[[5]])
-     }, finally={.sql_disconnect(info)})
+    con <- info$con
+    dbExecute(con, sql[[1]])
+    original_rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
+    .sql_db_execute(
+        bfc, sql[[3]],
+        rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
+        last_modified_time = as.Date(NA_character_), etag = NA_character_,
+        expires = NA_character_, con=con
+        )
+    .sql_db_execute(bfc, sql[[4]], con=con)
+    rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
+    dbExecute(con, sql[[5]])
+
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
 
