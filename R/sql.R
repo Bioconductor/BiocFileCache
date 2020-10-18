@@ -169,7 +169,7 @@
     # resource at the same time; by trying to connect first, we don't have to
     # worry about whether the choice of temporary file name is thread-safe.
     info <- .sql_connect_RW(.sql_dbfile(bfc))
-    on.exit(.sql_disconnect(info))
+    on.exit(if (!is.null(info)) { .sql_disconnect(info) })
 
     rpath <- rep(path.expand(tempfile("", bfccache(bfc))), length(fpath))
     rtype <- unname(rtype)
@@ -195,6 +195,10 @@
     .sql_db_execute(bfc, sql[[4]], con=con)
     rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
     dbExecute(con, sql[[5]])
+
+    # Free the file, as .sql_get_rpath() reacquires the lock internally.
+    .sql_disconnect(info)
+    info <- NULL
 
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
