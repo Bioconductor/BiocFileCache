@@ -34,7 +34,7 @@
     cmds
 }
 
-.lock_path <- 
+.sql_lock_path <- 
     function(dbfile)
 {
     paste0(dbfile, '.LOCK')
@@ -49,7 +49,7 @@
     if (!file.exists(dbfile))
         stop("DB file '", dbfile, "' not found")
 
-    loc <- lock(.lock_path(dbfile), exclusive=FALSE)
+    loc <- lock(.sql_lock_path(dbfile), exclusive=FALSE)
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
@@ -68,7 +68,7 @@
 {
     ## We also need a RW function to allow writing to the cache
 
-    loc <- lock(.lock_path(dbfile))
+    loc <- lock(.sql_lock_path(dbfile))
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
