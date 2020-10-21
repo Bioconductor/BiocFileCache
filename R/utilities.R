@@ -149,14 +149,14 @@
              FUN, ...)
 {
     rpath <- .sql_get_rpath(bfc, rid)
+    force(fpath)
 
-    if (is.null(info)) {
-                    # The connection is not actually necessary - but we just use it to
-                    # handle thread-safe locking, specifically to avoid race conditions
-                    # from multiple threads choosing the same tempfile name during download.
-        info <- .sql_connect_RW(.sql_dbfile(x))
-        on.exit(.sql_disconnect(info))
-    }
+    # The connection is not actually necessary - but we just use it to
+    # handle thread-safe locking, specifically to avoid race conditions
+    # from multiple threads choosing the same tempfile name during download.
+    info <- .sql_connect_RW(.sql_dbfile(bfc))
+    on.exit(.sql_disconnect(info))
+
     if (missing(FUN))
         FUN <- file.rename
 
