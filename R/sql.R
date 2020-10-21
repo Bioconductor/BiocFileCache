@@ -85,8 +85,8 @@
 .sql_disconnect <- 
     function(info)
 {
-    unlock(info$lock)
     dbDisconnect(info$con)
+    unlock(info$lock)
 }
 
 .sql_schema_version <-
