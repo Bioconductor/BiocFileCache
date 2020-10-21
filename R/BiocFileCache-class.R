@@ -650,14 +650,6 @@ setMethod("bfcupdate", "BiocFileCache",
                 doit <- TRUE
             }
             if (doit) {
-                if (is.null(info)) {
-                    # The connection is not actually necessary - but we just use it to
-                    # handle thread-safe locking, specifically to avoid race conditions
-                    # from multiple threads choosing the same tempfile name during download.
-                    info <- .sql_connect_RW(.sql_dbfile(x))
-                    on.exit(.sql_disconnect(info))
-                }
-
                 .util_download_and_rename(
                     x, rids[i], proxy, config, "bfcupdate()", fpath[i], ...
                 )
