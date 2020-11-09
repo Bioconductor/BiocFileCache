@@ -3,6 +3,7 @@
 #' @import dbplyr
 #' @importFrom dplyr %>% tbl select collect summarize filter n left_join
 #' @importFrom curl curl_escape
+#' @importFrom filelock lock unlock
 
 .formatID <- . %>% collect(Inf) %>% `[[`("rid")
 
@@ -33,6 +34,12 @@
     cmds
 }
 
+.sql_lock_path <- 
+    function(dbfile)
+{
+    paste0(dbfile, '.LOCK')
+}
+
 .sql_connect_RO <-
     function(dbfile)
 {
@@ -42,14 +49,18 @@
     if (!file.exists(dbfile))
         stop("DB file '", dbfile, "' not found")
 
+    loc <- lock(.sql_lock_path(dbfile), exclusive=FALSE)
+
     if (.Platform$OS.type == "unix") {
-        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
-                  synchronous="off", flags=SQLITE_RO, vfs="unix-none")
+        con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                         synchronous="off", flags=SQLITE_RO, vfs="unix-none")
     } else {
         ## Use default 'vfs' on Windows.
-        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
-                  synchronous="off", flags=SQLITE_RO)
+        con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                         synchronous="off", flags=SQLITE_RO)
     }
+
+    list(lock=loc, con=con)
 }
 
 .sql_connect_RW <-
@@ -57,25 +68,36 @@
 {
     ## We also need a RW function to allow writing to the cache
 
+    loc <- lock(.sql_lock_path(dbfile))
+
     if (.Platform$OS.type == "unix") {
-        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
-                  synchronous="off", vfs="unix-none")
+        con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                         synchronous="off", vfs="unix-none")
     } else {
         ## Use default 'vfs' on Windows.
-        dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
-                  synchronous="off")
+        con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
+                         synchronous="off")
     }
+
+    list(lock=loc, con=con)
 }
 
+.sql_disconnect <- 
+    function(info)
+{
+    dbDisconnect(info$con)
+    unlock(info$lock)
+}
 
 .sql_schema_version <-
     function(bfc)
 {
     tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        info <- .sql_connect_RO(.sql_dbfile(bfc))
+        con <- info$con
         src <- src_dbi(con)
         tbl <- tbl(src, "metadata") %>% collect(Inf)
-        }, finally={dbDisconnect(con)})
+        }, finally={.sql_disconnect(info)})
     tbl$value[tbl$key=="schema_version"]
 }
 
@@ -89,8 +111,9 @@
         param <- NULL
 
     if (missing(con)) {
-        con <- .sql_connect_RW(.sql_dbfile(bfc))
-        on.exit(dbDisconnect(con))
+        info <- .sql_connect_RW(.sql_dbfile(bfc))
+        con <- info$con
+        on.exit(.sql_disconnect(info))
     }
     dbExecute(con, sql, param = param)
 }
@@ -103,8 +126,9 @@
         param <- NULL
 
     if (missing(con)) {
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
-        on.exit(dbDisconnect(con))
+        info <- .sql_connect_RO(.sql_dbfile(bfc))
+        con <- info$con      
+        on.exit(.sql_disconnect(info))
     }
     dbGetQuery(con, sql, param)
 }
@@ -118,7 +142,8 @@
     if (!file.exists(fl)) {
         sql <- strsplit(.sql_cmd("-- CREATE_DB"), ";")[[1]]
         tryCatch({
-            con <- .sql_connect_RW(.sql_dbfile(bfc))
+            info <- .sql_connect_RW(.sql_dbfile(bfc))
+            con <- info$con
             dbExecute(con, sql[[1]])
             ## update metadata table
             .sql_db_execute(bfc, sql[[2]], con=con)
@@ -131,7 +156,7 @@
             ## create new resource table
             .sql_db_execute(bfc, sql[[4]], con=con)
             dbExecute(con, sql[[5]])
-        }, finally={dbDisconnect(con)})
+        }, finally={.sql_disconnect(info)})
     }
     .sql_validate_version(bfc)
     fl
@@ -140,6 +165,12 @@
 .sql_add_resource <-
     function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
+    # The connection attempt handles locking if another process is adding a
+    # resource at the same time; by trying to connect first, we don't have to
+    # worry about whether the choice of temporary file name is thread-safe.
+    info <- .sql_connect_RW(.sql_dbfile(bfc))
+    on.exit(if (!is.null(info)) { .sql_disconnect(info) })
+
     rpath <- rep(path.expand(tempfile("", bfccache(bfc))), length(fpath))
     rtype <- unname(rtype)
     dx <- rtype == "relative" | rtype == "web"
@@ -152,20 +183,23 @@
     rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
 
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
-    tryCatch({
-        con <- .sql_connect_RW(.sql_dbfile(bfc))
-        dbExecute(con, sql[[1]])
-        original_rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
-        .sql_db_execute(
-            bfc, sql[[3]],
-            rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
-            last_modified_time = as.Date(NA_character_), etag = NA_character_,
-            expires = NA_character_, con=con
-            )
-        .sql_db_execute(bfc, sql[[4]], con=con)
-        rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
-        dbExecute(con, sql[[5]])
-     }, finally={dbDisconnect(con)})
+    con <- info$con
+    dbExecute(con, sql[[1]])
+    original_rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
+    .sql_db_execute(
+        bfc, sql[[3]],
+        rname = rname, rtype = rtype, fpath = fpath, rpath = rpath,
+        last_modified_time = as.Date(NA_character_), etag = NA_character_,
+        expires = NA_character_, con=con
+        )
+    .sql_db_execute(bfc, sql[[4]], con=con)
+    rid <- .sql_db_get_query(bfc, sql[[2]], con=con)[["rid"]]
+    dbExecute(con, sql[[5]])
+
+    # Free the file, as .sql_get_rpath() reacquires the lock internally.
+    .sql_disconnect(info)
+    info <- NULL
+
     .sql_get_rpath(bfc, setdiff(rid, original_rid))
 }
 
@@ -181,7 +215,8 @@
     function(bfc, rids)
 {
     tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        info <- .sql_connect_RO(.sql_dbfile(bfc))
+        con <- info$con
         src <- src_dbi(con)
         tbl <- tbl(src, "resource")
 
@@ -200,7 +235,7 @@
             tbl <- left_join(tbl, tbl(src, m), by="rid")
 
         tbl <- tbl %>% collect
-    }, finally={dbDisconnect(con)})
+    }, finally={.sql_disconnect(info)})
     class(tbl) <- c("tbl_bfc", class(tbl))
     tbl %>% dplyr::select(-id)
 }
@@ -383,40 +418,44 @@
     function(bfc, name, value, ...)
 {
     tryCatch({
-        con <- .sql_connect_RW(.sql_dbfile(bfc))
+        info <- .sql_connect_RW(.sql_dbfile(bfc))
+        con <- info$con
         dbWriteTable(con, name, value, ...)
-    }, finally={dbDisconnect(con)})
+    }, finally={.sql_disconnect(info)})
 }
 
 .sql_meta_remove <-
     function(bfc, name, ...)
 {
     tryCatch({
-        con <- .sql_connect_RW(.sql_dbfile(bfc))
+        info <- .sql_connect_RW(.sql_dbfile(bfc))
+        con <- info$con
         if (dbExistsTable(con, name))
             dbRemoveTable(con, name, ...)
-    }, finally={dbDisconnect(con)})
+    }, finally={.sql_disconnect(info)})
 }
 
 .sql_meta <-
     function(bfc, name, ...)
 {
     tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        info <- .sql_connect_RO(.sql_dbfile(bfc))
+        con <- info$con
         if (!dbExistsTable(con, name))
             stop("'", name, "' not found in database")
         dbReadTable(con, name, ...)
-    }, finally={dbDisconnect(con)})
+    }, finally={.sql_disconnect(info)})
 }
 
 .sql_meta_list <-
     function(bfc)
 {
     tryCatch({
-        con <- .sql_connect_RO(.sql_dbfile(bfc))
+        info <- .sql_connect_RO(.sql_dbfile(bfc))
+        con <- info$con
         res <- dbListTables(con)
         setdiff(res, .RESERVED$TABLES)
-    }, finally={dbDisconnect(con)})
+    }, finally={.sql_disconnect(info)})
 }
 
 .sql_filter_metadata <-
