@@ -1153,7 +1153,7 @@ setMethod("bfcsync", "BiocFileCache",
     rids <- .get_rid_filenotfound(x)
 
     # files untracked in cache location
-    files <- file.path(bfccache(x), setdiff(dir(bfccache(x)),.CACHE_FILE))
+    files <- file.path(bfccache(x), setdiff(dir(bfccache(x)),c(.CACHE_FILE, .CACHE_FILE_LOCK)))
     paths <- .sql_get_rpath(x, bfcrid(x))
     # normalizePath on windows
     # can't across platform - no opt on linux but added hidden on mac
@@ -1320,6 +1320,9 @@ setMethod("exportbfc", "BiocFileCacheBase",
         fun <- switch(how, tar = tar, zip = zip)
         fun(outputFile, files, ...)
     }
+
+    # remove lock file from export
+    .util_unlink(file.path(dir, .CACHE_FILE_LOCK))
 
     archive(outputFile=outputFile, how=outputMethod, files=files, ...)
     setwd(origdir)

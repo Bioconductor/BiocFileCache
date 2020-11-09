@@ -1,4 +1,5 @@
 .CACHE_FILE <- "BiocFileCache.sqlite"
+.CACHE_FILE_LOCK <- "BiocFileCache.sqlite.LOCK"
 
 .CURRENT_SCHEMA_VERSION <- "0.99.4"
 
