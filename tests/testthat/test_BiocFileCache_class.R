@@ -569,7 +569,8 @@ test_that("exportbfc and importbfc works",{
     expect_identical(bfccount(bfc2), 4L)
     locpath <- file.path(dirloc, "BiocFileCacheExport")
     expect_true(file.exists(file.path(locpath,"BiocFileCache.sqlite")))
-    expect_identical(length(list.files(locpath)), 4L)
+    ## add 1 for file LOCK
+    expect_identical(length(list.files(locpath)), 5L)
     sub <- bfc[c(rid1,rid2)]
     .util_unlink(locpath, recursive=TRUE)
     file.remove(file)
@@ -611,7 +612,7 @@ test_that("bfcsync and bfcremove works", {
     bfcremove(bfc2, rid5)
     files <- file.path(
         bfccache(bfc2),
-        setdiff(list.files(bfccache(bfc2)), "BiocFileCache.sqlite")
+        setdiff(list.files(bfccache(bfc2)), c("BiocFileCache.sqlite", "BiocFileCache.sqlite.LOCK"))
     )
     # normalizePath on windows
     # can't across platform - no opt on linux but added hidden (private)
