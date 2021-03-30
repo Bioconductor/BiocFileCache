@@ -83,7 +83,10 @@
 \alias{show,BiocFileCacheBase-method}
 \title{BiocFileCache class}
 \usage{
-BiocFileCache(cache = user_cache_dir(appname = "BiocFileCache"), ask = TRUE)
+BiocFileCache(
+  cache = user_cache_dir(appname = "BiocFileCache"),
+  ask = interactive()
+)
 
 \S4method{bfccache}{BiocFileCacheBase}(x)
 

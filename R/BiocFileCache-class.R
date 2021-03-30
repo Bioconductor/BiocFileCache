@@ -84,7 +84,7 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=user_cache_dir(appname="BiocFileCache"), ask = TRUE)
+    function(cache=user_cache_dir(appname="BiocFileCache"), ask = interactive())
 {
 
     stopifnot(
