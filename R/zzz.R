@@ -1,5 +1,4 @@
 .onLoad <- function(libname, pkgname) {
-
     cacheChange <- "1.15.1"
     pkgVersion <- as.character(packageVersion(pkgname))
 
@@ -12,7 +11,6 @@
         newlocation <- tools::R_user_dir("BiocFileCache", which="cache")
 
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
-
             msg <- sprintf(
                 "As of %s (> %s), The default caching location has changed.\n  To avoid redownloading previously cached files and use previouly existing default cache\n  see BiocFileCache vignette section:\n  'Default Caching Location Update'",
                 pkgname,
