@@ -12,7 +12,7 @@
 
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
             msg <- sprintf(
-                "As of %s (> %s), The default caching location has changed.\n  To avoid redownloading previously cached files and use previouly existing default cache\n  see BiocFileCache vignette section:\n  'Default Caching Location Update'",
+                "As of %s (> %s), The default caching location has changed. To avoid redownloading previously cached files and use previouly existing default cache see BiocFileCache vignette section: 'Default Caching Location Update' . This message will not be displayed after Bioconductor 3.14",
                 pkgname,
                 cacheChange)
 
