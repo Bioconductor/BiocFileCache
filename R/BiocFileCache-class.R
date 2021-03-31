@@ -1,8 +1,10 @@
 #' @import methods
 #' @import httr
-#' @import rappdirs
 #' @importFrom utils tar zip untar unzip
 #' @importFrom dplyr mutate
+#' @importFrom tools R_user_dir
+#' @importFrom rappdirs user_cache_dir
+
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
     slots=c(cache="character")
@@ -84,7 +86,7 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=user_cache_dir(appname="BiocFileCache"), ask = interactive())
+    function(cache=R_user_dir("BiocFileCache", which="cache"), ask = interactive())
 {
 
     stopifnot(
