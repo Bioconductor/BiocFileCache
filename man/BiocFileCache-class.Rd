@@ -84,7 +84,7 @@
 \title{BiocFileCache class}
 \usage{
 BiocFileCache(
-  cache = user_cache_dir(appname = "BiocFileCache"),
+  cache = R_user_dir("BiocFileCache", which = "cache"),
   ask = interactive()
 )
 

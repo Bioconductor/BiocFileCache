@@ -49,7 +49,7 @@ The initial step to utilizing [BiocFileCache][] in managing files is to create a
 cache object specifying a location. We will create a temporary directory for use
 with examples in this vignette. If a path is not specified upon creation, the
 default location is a directory `~/.BiocFileCache` in the typical user cache
-directory as defined by `rappdirs::user_cache_dir()`.
+directory as defined by `tools::R_user_dir("", which="cache")`.
 
 ```{r}
 path <- tempfile()
@@ -841,7 +841,7 @@ called `MyNewPackage`:
 .get_cache <-
     function()
 {
-    cache <- rappdirs::user_cache_dir(appname="MyNewPackage")
+    cache <- tools::R_user_dir("MyNewPackage", which="cache")
     BiocFileCache::BiocFileCache(cache)
 }
 ```
@@ -940,6 +940,52 @@ bfcadd("myfile", url, download=FALSE, ext=".Rdata")
 
 It is our hope that this package allows for easier management of local and
 remote resources.
+
+
+# Default Caching Location Update
+
+As of BiocFileCache version > 1.15.1, the default caching location has
+changed. The default cache is now controlled by the function `tools::R_user_dir`
+instead of `rappdirs::user_cache_dir`.  Users who have utilized the default
+BiocFileCache, to continue using the created cache, must move the cache and its
+files to the new default location. 
+
+The following steps can be used to move the files to the new location:
+
+1. Determine the old location by running the following in R
+   `rappdirs::user_cache_dir(appname="BiocFileCache")`
+
+2. Determine the new location by running the following in R
+   `tools::R_user_dir("BiocFileCache", which="cache")`
+
+3. Move the files to the new location. You can do this manually or do the
+following steps in R. Remember if you have a lot of cached files, this may take
+awhile.
+
+```{r, eval=FALSE}
+	olddir <- path.expand(rappdirs::user_cache_dir(appname="BiocFileCache"))
+	newdir <- tools::R_user_dir("BiocFileCache", which="cache")
+	dir.create(path=newdir, recursive=TRUE)
+	files <- list.files(olddir, full.names =TRUE)
+	moveres <- vapply(files,
+		FUN=function(fl){
+		  filename = basename(fl)
+		  newname = file.path(newdir, filename)
+		  file.rename(fl, newname)
+		},
+		FUN.VALUE = logical(1))
+	if(all(moveres)) unlink(olddir, recursive=TRUE)
+
+```
+
+# SessionInfo
+
+```{r}
+sessionInfo()
+
+```
+
+
 
 [BiocFileCache]: https://bioconductor.org/packages/BiocFileCache
 [dplyr]: https://cran.r-project.org/package=dplyr
