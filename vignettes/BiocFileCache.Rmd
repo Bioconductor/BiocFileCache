@@ -978,6 +978,11 @@ awhile.
 
 ```
 
+Users may always specify a unique caching location by providing the `cache` argument to the BiocFileCache
+constructor; however users must always specify this location as it will not be
+recognized by default in subsequent runs.
+
+
 # SessionInfo
 
 ```{r}
