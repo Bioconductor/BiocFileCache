@@ -982,6 +982,10 @@ Users may always specify a unique caching location by providing the `cache` argu
 constructor; however users must always specify this location as it will not be
 recognized by default in subsequent runs.
 
+Alternatively, the default caching location may also be controlled by a
+user-wise or system-wide environment variable. Users may set the environment
+variable `BFC_CACHE` to the old location to continue using as default location.
+
 
 # SessionInfo
 

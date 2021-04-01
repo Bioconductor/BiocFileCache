@@ -74,7 +74,7 @@
 #'
 #' @param cache character(1) On-disk location (directory path) of
 #'     cache. For default location see
-#'     \code{\link[rappdirs]{user_cache_dir}}.
+#'     \code{\link[tools]{R_user_dir}}.
 #' @param ask logical(1) Ask before creating, updating, overwriting,
 #'     or removing cache or local file locations.
 #' @return For 'BiocFileCache': a \code{BiocFileCache} instance.
