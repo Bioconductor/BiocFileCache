@@ -86,7 +86,7 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=getBFCOption("BFC_CACHE"), ask = interactive())
+    function(cache=getBFCOption("CACHE"), ask = interactive())
 {
 
     stopifnot(
