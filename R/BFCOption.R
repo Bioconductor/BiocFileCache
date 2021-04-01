@@ -15,7 +15,7 @@ setBFCOption <- function(arg, value)
 
     .bfc_options[[key]] <- switch(key, CACHE={
         value <- as.character(value)
-        stopifnot(isSingleString(value))
+        stopifnot(length(value)==1)
         value
     })
 }
