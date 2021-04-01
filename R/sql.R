@@ -115,7 +115,7 @@
         con <- info$con
         on.exit(.sql_disconnect(info))
     }
-    dbExecute(con, sql, param = param)
+    dbExecute(con, sql, params = param)
 }
 
 .sql_db_get_query <-
