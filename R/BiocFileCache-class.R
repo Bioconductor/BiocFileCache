@@ -86,7 +86,7 @@
 #' @aliases BiocFileCache
 #' @export BiocFileCache
 BiocFileCache <-
-    function(cache=R_user_dir("BiocFileCache", which="cache"), ask = interactive())
+    function(cache=getBFCOption("BFC_CACHE"), ask = interactive())
 {
 
     stopifnot(
@@ -94,7 +94,7 @@ BiocFileCache <-
         is.logical(ask), length(ask) == 1L, !is.na(ask)
     )
 
-    if (cache == R_user_dir("BiocFileCache", which="cache")){
+    if ((cache == R_user_dir("BiocFileCache", which="cache")) && (Sys.getenv("BFC_CACHE")=="")){
         olddefault = rappdirs::user_cache_dir(appname="BiocFileCache")
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
             stop("As of BiocFileCache (<1.15.1), default caching location has changed.\n",
