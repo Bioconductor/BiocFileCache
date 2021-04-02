@@ -30,7 +30,7 @@ makeBiocFileCacheFromDataFrame(
 
 \item{cache}{character(1) On-disk location (directory path) of
 cache. For default location see
-\code{\link[rappdirs]{user_cache_dir}}.}
+\code{\link[tools]{R_user_dir}}.}
 
 \item{actionLocal}{If local copy of file should be moved, copied or
 left in original location. See 'action' param of bfcadd.}
