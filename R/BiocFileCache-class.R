@@ -97,7 +97,7 @@ BiocFileCache <-
     if ((cache == R_user_dir("BiocFileCache", which="cache")) && (Sys.getenv("BFC_CACHE")=="")){
         olddefault = rappdirs::user_cache_dir(appname="BiocFileCache")
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
-            stop("As of BiocFileCache (<1.15.1), default caching location has changed.\n",
+            stop("As of BiocFileCache (>1.15.1), default caching location has changed.\n",
                  "  To continue with default caching location, \n",
                  "  See BiocFileCache vignette section on 'Default Caching Location Update'\n")
         }
