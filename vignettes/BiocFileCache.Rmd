@@ -947,7 +947,7 @@ remote resources.
 As of BiocFileCache version > 1.15.1, the default caching location has
 changed. The default cache is now controlled by the function `tools::R_user_dir`
 instead of `rappdirs::user_cache_dir`.  Users who have utilized the default
-BiocFileCache, to continue using the created cache, must move the cache and its
+BiocFileCache location, to continue using the created cache, must move the cache and its
 files to the new default location or delete the old cache and have to redownload
 any previous files.
 
