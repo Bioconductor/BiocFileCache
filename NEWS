@@ -1,8 +1,24 @@
-CHANGES IN VERSION 1.15
+CHANGES IN VERSION 1.99
 ----------------------
 
-NEW FEATURES
+MAJOR UPDATES
 
+    o (1.99.0) The default caching location has changed. Instead of
+    rappdirs::user_cache_dir using tools::R_user_dir. To avoid conflicting
+    caches, a user will have to manage an old cache location before
+    proceeding. Information for handling an old cache location is provided in
+    the vignette.
+    o (1.99.0) Another major change, a default caching location is automatically
+    created in a non interactive session instead of using a temporary
+    location. In an interactive session, a user is still prompted for
+    permission.
+    o (1.99.0) An enviornment variable may be set system wide or user wide to
+    control the default caching location: BFC_CACHE. Note: do not use R
+    variables or command line export to set this variable. It must be set system
+    wide or user wide for reproducibility in future R sessions or else it must
+    be specified upon ever usage. It must be set before calling
+    library(BiocFileCache) to take effect.
+    o (1.99.0) Fixes partial argument matching error in SQL function SQLExecute
     o (1.15.1) Added file locking for thread-safe SQL operations. Thanks for the PR @LTLA
 
 CHANGES IN VERSION 1.11
