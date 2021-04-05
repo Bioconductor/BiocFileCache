@@ -986,6 +986,24 @@ Alternatively, the default caching location may also be controlled by a
 user-wise or system-wide environment variable. Users may set the environment
 variable `BFC_CACHE` to the old location to continue using as default location.
 
+Lastly, if a user does not care about the already existing default cache, the
+old location may be deleted to move forward with the new default location. This
+option should be used with caution. Once deleted, old cached resources will no
+longer be available and have to be re-downloaded.
+
+**CAUTION** This will remove the old cache and all downloaded resources.
+
+```{r, eval=FALSE}
+library(BiocFileCache)
+BFC_CACHE = rappdirs::user_cache_dir(appname="BiocFileCache")
+Sys.setenv(BFC_CACHE = BFC_CACHE)
+bfc = BiocFileCache(BFC_CACHE)
+## CAUTION: This removes the cache and all downloaded resources
+removebfc(bfc, ask=FALSE)
+
+## create new empty cache in new default location
+bfc = BiocFileCache(ask=FALSE)
+```
 
 # SessionInfo
 
