@@ -1,3 +1,9 @@
+.bfc_options <- new.env(parent=emptyenv())
+
+
+.bfc_option_key <- function(key0=c("CACHE"))
+    match.arg(key0)
+
 #' BFCOption
 #' These functions help get and set an R variable CACHE that controls the
 #' default caching location.
@@ -13,26 +19,13 @@
 #' @return Value of request option or invisible successfully set option
 #' @examples
 #' origPath = getBFCOption('CACHE')
-#' \donttest{ setBFCOption('CACHE', "~/.myBFC") }
+#' \donttest{setBFCOption('CACHE', "~/.myBFC") }
 #' @name BFCOption
-#' @aliases getBFCOption
-#' @aliases setBFCOption
 #' @author Lori Shepherd
+#' @aliases setBFCOption
+#' @aliases getBFCOption
 #' @export getBFCOption
 #' @export setBFCOption
-
-
-.bfc_options <- new.env(parent=emptyenv())
-
-
-.bfc_option_key <- function(key0=c("CACHE"))
-    match.arg(key0)
-
-getBFCOption <- function(arg) {
-    arg <- .bfc_option_key(toupper(arg))
-    .bfc_options[[arg]]
-}
-
 setBFCOption <- function(arg, value)
 {
     key <- .bfc_option_key(toupper(trimws(arg)))
@@ -42,4 +35,9 @@ setBFCOption <- function(arg, value)
         stopifnot(length(value)==1)
         value
     })
+}
+
+getBFCOption <- function(arg) {
+    arg <- .bfc_option_key(toupper(arg))
+    .bfc_options[[arg]]
 }
