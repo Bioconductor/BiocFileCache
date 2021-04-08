@@ -49,7 +49,7 @@ setMethod("makeBiocFileCacheFromDataFrame", "ANY",
     stopifnot(is.data.frame(df))
     DF <- as.data.frame(df, stringsAsFactors = FALSE)
     if (missing(cache))
-        cache <- user_cache_dir(appname="BiocFileCache")
+        cache <- tools::R_user_dir("BiocFileCache", which="cache")
     stopifnot(
         is.character(cache), length(cache) == 1L, !is.na(cache),
         !dir.exists(cache)
