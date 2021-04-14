@@ -97,9 +97,9 @@ BiocFileCache <-
     if ((cache == R_user_dir("BiocFileCache", which="cache")) && (Sys.getenv("BFC_CACHE")=="")){
         olddefault = rappdirs::user_cache_dir(appname="BiocFileCache")
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
-            warning("DEPRECATION: As of BiocFileCache (>1.15.1), default caching location has changed.\n",
+            .Deprecated(msg=paste0("DEPRECATION: As of BiocFileCache (>1.15.1), default caching location has changed.\n",
                  "  Problematic cache: ", path.expand(olddefault),"\n",
-                 "  See https://www.bioconductor.org/packages/devel/bioc/vignettes/BiocFileCache/inst/doc/BiocFileCache.html#default-caching-location-update\n")
+                 "  See https://www.bioconductor.org/packages/devel/bioc/vignettes/BiocFileCache/inst/doc/BiocFileCache.html#default-caching-location-update\n"))
             cache = olddefault
         }
     }
