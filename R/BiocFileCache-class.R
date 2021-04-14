@@ -99,7 +99,7 @@ BiocFileCache <-
         if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
             warning("DEPRECATION: As of BiocFileCache (>1.15.1), default caching location has changed.\n",
                  "  Problematic cache: ", path.expand(olddefault),"\n",
-                 "  See BiocFileCache vignette section on 'Default Caching Location Update'\n")
+                 "  See https://www.bioconductor.org/packages/devel/bioc/vignettes/BiocFileCache/inst/doc/BiocFileCache.html#default-caching-location-update\n")
             cache = olddefault
         }
     }
