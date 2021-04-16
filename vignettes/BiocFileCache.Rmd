@@ -963,21 +963,28 @@ The following steps can be used to move the files to the new location:
 
 3. Move the files to the new location. You can do this manually or do the
 following steps in R. Remember if you have a lot of cached files, this may take
-awhile.
+awhile and you will need permissions on all the files in order to move them.
 
 ```{r, eval=FALSE}
-	olddir <- path.expand(rappdirs::user_cache_dir(appname="BiocFileCache"))
-	newdir <- tools::R_user_dir("BiocFileCache", which="cache")
-	dir.create(path=newdir, recursive=TRUE)
-	files <- list.files(olddir, full.names =TRUE)
-	moveres <- vapply(files,
+
+	moveFiles<-function(package){
+	    olddir <- path.expand(rappdirs::user_cache_dir(appname=package))
+	    newdir <- tools::R_user_dir(package, which="cache")
+	    dir.create(path=newdir, recursive=TRUE)
+	    files <- list.files(olddir, full.names =TRUE)
+	    moveres <- vapply(files,
 		FUN=function(fl){
 		  filename = basename(fl)
 		  newname = file.path(newdir, filename)
 		  file.rename(fl, newname)
 		},
 		FUN.VALUE = logical(1))
-	if(all(moveres)) unlink(olddir, recursive=TRUE)
+	    if(all(moveres)) unlink(olddir, recursive=TRUE)
+	}
+
+
+	package="BiocFileCache"
+	moveFiles(package)
 
 ```
 
@@ -1008,9 +1015,14 @@ The following can be done to delete through R code:
 
 **CAUTION** This will remove the old cache and all downloaded resources.
 
+
 ```{r, eval=FALSE}
 library(BiocFileCache)
-BFC_CACHE = rappdirs::user_cache_dir(appname="BiocFileCache")
+
+
+package = "BiocFileCache"
+
+BFC_CACHE = rappdirs::user_cache_dir(appname=package)
 Sys.setenv(BFC_CACHE = BFC_CACHE)
 bfc = BiocFileCache(BFC_CACHE)
 ## CAUTION: This removes the cache and all downloaded resources
@@ -1018,6 +1030,7 @@ removebfc(bfc, ask=FALSE)
 
 ## create new empty cache in new default location
 bfc = BiocFileCache(ask=FALSE)
+
 ```
 
 # SessionInfo
