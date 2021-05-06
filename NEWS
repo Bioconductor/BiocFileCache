@@ -21,6 +21,11 @@ MAJOR UPDATES
     o (1.99.0) Fixes partial argument matching error in SQL function SQLExecute
     o (1.15.1) Added file locking for thread-safe SQL operations. Thanks for the PR @LTLA
 
+BUG FIX
+
+    o (1.99.6) cleanbfc() incorrect format string; see
+    https://github.com/Bioconductor/BiocFileCache/issues/31
+
 CHANGES IN VERSION 1.11
 ----------------------
 
