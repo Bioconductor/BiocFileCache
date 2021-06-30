@@ -891,16 +891,21 @@ setMethod("bfcquery", "BiocFileCacheBase",
     stopifnot(is.character(query))
     stopifnot(all(field %in% .get_all_colnames(x)))
 
-    tbl <- .sql_get_resource_table(x)
     keep <- TRUE
-    FUN <-
-        if (exact) {
-            function(pattern, x, ...) x == pattern
-        } else grepl
-    for (q in query)
-        keep <- keep & Reduce(`|`, lapply(tbl[field], FUN, pattern = q, ...))
-    rids <- intersect(tbl$rid[keep], bfcrid(x))
-    bfcinfo(x, rids)
+    if (exact) {
+        tryCatch({
+            info <- .sql_connect_RO(.sql_dbfile(x))
+            con <- info$con
+            q <- paste(field, "== :x")
+            dbGetQuery(con, paste0("SELECT * FROM resource WHERE ", paste(q, collapse=" OR ")), param=list(x=query))
+        }, finally={.sql_disconnect(info)})
+    } else {
+        tbl <- .sql_get_resource_table(x)
+        for (q in query)
+            keep <- keep & Reduce(`|`, lapply(tbl[field], grepl, pattern = q, ...))
+        rids <- intersect(tbl$rid[keep], bfcrid(x))
+        bfcinfo(x, rids)
+    }
 })
 
 #' @export
