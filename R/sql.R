@@ -249,9 +249,13 @@
 .sql_get_field <-
     function(bfc, id, field)
 {
-    tbl <- .sql_get_resource_table(bfc) %>% dplyr::filter(rid %in% id) %>%
-        dplyr::select(rid, field) %>% collect(Inf)
-    setNames(tbl[[field]], tbl[["rid"]])
+    info <- .sql_connect_RO(.sql_dbfile(bfc))
+    on.exit(.sql_disconnect(info))
+
+    con <- info$con
+    extras <- paste(rep("?", length(id)), collapse=', ')
+    output <- dbGetQuery(con, sprintf("SELECT rid, %s FROM resource WHERE rid IN (%s)", field, extras), params=as.list(id))
+    setNames(output[[field]], output[["rid"]])
 }
 
 .sql_get_rname <-
@@ -325,7 +329,11 @@
 .get_all_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% dplyr::select("rid") %>% .formatID
+    info <- .sql_connect_RO(.sql_dbfile(bfc))
+    on.exit(.sql_disconnect(info))
+    con <- info$con
+    out <- dbGetQuery(con, "SELECT rid FROM resource")
+    out[,1]
 }
 
 .get_all_web_rids <-
