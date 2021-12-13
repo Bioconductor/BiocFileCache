@@ -7,6 +7,30 @@
 
 .formatID <- . %>% collect(Inf) %>% `[[`("rid")
 
+lock.env <- new.env()
+lock.env$status <- NA
+
+.lock2 <- function(dbfile, exclusive) {
+    if (is.na(lock.env$status)) {
+        lock.env$status <- exclusive
+        lock(.sql_lock_path(dbfile), exclusive = exclusive)
+    } else if (lock.env$status || !exclusive) {
+        # Exclusive lock held by a caller is compatible
+        # with a subsequent request for a shared lock;
+        # we're not escalating privileges here.
+        NULL
+    } else {
+        stop("requested an exclusive lock when caller only holds a shared lock")
+    }
+}
+
+.unlock2 <- function(loc) {
+    if (!is.null(loc)) {
+        lock.env$status <- NA
+        unlock(loc)
+    }
+}
+
 .sql_file <-
     function(bfc, file)
 {
@@ -49,7 +73,7 @@
     if (!file.exists(dbfile))
         stop("DB file '", dbfile, "' not found")
 
-    loc <- lock(.sql_lock_path(dbfile), exclusive=FALSE)
+    loc <- .lock2(.sql_lock_path(dbfile), exclusive=FALSE)
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
@@ -68,7 +92,7 @@
 {
     ## We also need a RW function to allow writing to the cache
 
-    loc <- lock(.sql_lock_path(dbfile))
+    loc <- .lock2(.sql_lock_path(dbfile), exclusive=TRUE)
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
@@ -86,7 +110,7 @@
     function(info)
 {
     dbDisconnect(info$con)
-    unlock(info$lock)
+    .unlock2(info$lock)
 }
 
 .sql_schema_version <-

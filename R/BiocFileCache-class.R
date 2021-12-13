@@ -533,6 +533,8 @@ setMethod("bfcrpath", "BiocFileCacheBase",
     }
 
     add_or_return_rname <- function(x, rname, ..., exact) {
+        locfile <- .lock2(.sql_dbfile(x), exclusive=TRUE)
+        on.exit(.unlock2(locfile))
         res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
         if (length(res) == 0L) {
             tryCatch({
