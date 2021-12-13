@@ -73,7 +73,7 @@ lock.env$status <- NA
     if (!file.exists(dbfile))
         stop("DB file '", dbfile, "' not found")
 
-    loc <- .lock2(.sql_lock_path(dbfile), exclusive=FALSE)
+    loc <- .lock2(dbfile, exclusive=FALSE)
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
@@ -92,7 +92,7 @@ lock.env$status <- NA
 {
     ## We also need a RW function to allow writing to the cache
 
-    loc <- .lock2(.sql_lock_path(dbfile), exclusive=TRUE)
+    loc <- .lock2(dbfile, exclusive=TRUE)
 
     if (.Platform$OS.type == "unix") {
         con <- dbConnect(SQLite(), dbname=dbfile, cache_size=64000L,
