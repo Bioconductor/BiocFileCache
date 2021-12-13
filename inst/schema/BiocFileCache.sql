@@ -34,6 +34,8 @@ UPDATE resource SET rid = "BFC" || id;
 COMMIT;
 -- REMOVE
 DELETE FROM resource WHERE rid IN (%s);
+-- SELECT_QUERY
+SELECT * FROM resource WHERE %s;
 -- UPDATE_PATH
 UPDATE resource
 SET rpath = :rpath, access_time = CURRENT_TIMESTAMP

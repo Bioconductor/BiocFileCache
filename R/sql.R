@@ -162,6 +162,14 @@
     fl
 }
 
+.sql_select_query <-
+    function(bfc, where, ...)
+{
+    sql <- .sql_cmd("-- SELECT_QUERY")
+    cmd <- sprintf(sql, where)
+    .sql_db_get_query(bfc, cmd, ...))
+}
+
 .sql_add_resource <-
     function(bfc, rname, rtype, fpath, ext = NA_character_)
 {
