@@ -67,7 +67,7 @@ test_that("makeBiocFileCacheFromDataFrame works",{
     expect_identical(length(.get_all_web_rids(newbfc)), 2L)
     expect_identical(length(.get_nonrelative_ids(newbfc)), 0L)
     # neither web file will be found, only local and sqlite
-    expect_identical(length(list.files(bfccache(newbfc))), 3L)
+    expect_identical(length(list.files(bfccache(newbfc))), 2L)
     expect_identical(ncol(bfcinfo(newbfc)), 13L)
     expect_identical(length(bfcmetalist(newbfc)), 1L)
     expect_identical(bfcinfo(newbfc)$origID, temp$origID)

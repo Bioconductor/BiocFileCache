@@ -569,8 +569,7 @@ test_that("exportbfc and importbfc works",{
     expect_identical(bfccount(bfc2), 4L)
     locpath <- file.path(dirloc, "BiocFileCacheExport")
     expect_true(file.exists(file.path(locpath,"BiocFileCache.sqlite")))
-    ## add 1 for file LOCK
-    expect_identical(length(list.files(locpath)), 5L)
+    expect_identical(length(list.files(locpath)), 4L)
     sub <- bfc[c(rid1,rid2)]
     .util_unlink(locpath, recursive=TRUE)
     file.remove(file)
