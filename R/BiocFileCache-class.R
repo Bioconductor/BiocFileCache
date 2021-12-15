@@ -907,8 +907,6 @@ setMethod("bfcquery", "BiocFileCacheBase",
     keep <- TRUE
     if (exact) {
         tryCatch({
-            ## info <- .sql_connect_RO(.sql_dbfile(x))
-            ## con <- info$con
             where <- paste(field, "== :query", collapse=" OR ")
             .sql_select_query(x, where, query = query)
         })

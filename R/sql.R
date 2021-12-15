@@ -191,7 +191,7 @@ lock.env$status <- NA
 {
     sql <- .sql_cmd("-- SELECT_QUERY")
     cmd <- sprintf(sql, where)
-    .sql_db_get_query(bfc, cmd, ...))
+    .sql_db_get_query(bfc, cmd, ...)
 }
 
 .sql_add_resource <-
@@ -357,7 +357,8 @@ lock.env$status <- NA
 .get_all_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% dplyr::select("rid") %>% .formatID
+    cmd <- "SELECT rid FROM resource"
+    .sql_db_get_query(bfc, cmd)[,1]
 }
 
 .get_all_web_rids <-
