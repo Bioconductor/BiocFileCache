@@ -535,15 +535,28 @@ setMethod("bfcrpath", "BiocFileCacheBase",
     add_or_return_rname <- function(x, rname, ..., exact) {
         res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
         if (length(res) == 0L) {
+            ## obtain an exclusive lock to add 'rname'
+            id <- "add_or_return_rname"
+            locfile_path <- file.path(bfccache(x), id)
+            locfile <- .lock2(locfile_path, exclusive = TRUE)
             tryCatch({
-                message("adding rname '", rname, "'")
-                names(bfcadd(x, rname, ...))
+                ## need to re-check that the resource is still needed,
+                ## now that we have the exclusive lock
+                res <- bfcrid(bfcquery(x, rname, field="rname", exact = exact))
+                if (length(res) == 0L) {
+                    message("adding rname '", rname, "'")
+                    names(bfcadd(x, rname, ...))
+                } else {
+                    names(update_time_and_path(x, res))
+                }
             }, error=function(e) {
                 warning(
                     "\ntrying to add rname '", rname, "' produced error:",
                     "\n  ", conditionMessage(e)
                 )
                 NA_character_
+            }, finally = function() {
+                .unlock2(locfile_path)
             })
         } else if (length(res) == 1L) {
             names(update_time_and_path(x, res))
