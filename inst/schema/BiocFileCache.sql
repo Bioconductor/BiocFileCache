@@ -38,6 +38,10 @@ DELETE FROM resource WHERE rid IN (%s);
 SELECT * FROM resource WHERE %s;
 -- SELECT_COLUMN
 SELECT rid, %s FROM resource WHERE rid IN (%s);
+-- SELECT_IDS
+SELECT rid FROM resource;
+-- SELECT_WEB
+SELECT rid FROM resource where rtype == 'web';
 -- UPDATE_PATH
 UPDATE resource
 SET rpath = :rpath, access_time = CURRENT_TIMESTAMP

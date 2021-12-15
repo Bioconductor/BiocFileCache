@@ -361,15 +361,15 @@ lock.env$status <- NA
 .get_all_rids <-
     function(bfc)
 {
-    cmd <- "SELECT rid FROM resource"
-    .sql_db_get_query(bfc, cmd)[,1]
+    sql <- .sql_cmd("-- SELECT_IDS")
+    .sql_db_get_query(bfc, sql)[,1]
 }
 
 .get_all_web_rids <-
     function(bfc)
 {
-    cmd <- "SELECT rid FROM resource where rtype == 'web'"
-    .sql_db_get_query(bfc, cmd)[,1]
+    sql <- .sql_cmd("-- SELECT_WEB")
+    .sql_db_get_query(bfc, sql)[,1]
 }
 
 .sql_get_last_modified <-
