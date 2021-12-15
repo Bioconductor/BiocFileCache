@@ -191,7 +191,9 @@ lock.env$status <- NA
 {
     sql <- .sql_cmd("-- SELECT_QUERY")
     cmd <- sprintf(sql, where)
-    .sql_db_get_query(bfc, cmd, ...)
+    res <- .sql_db_get_query(bfc, cmd, ...)
+    class(res) <- c("tbl_bfc", class(res))
+    res
 }
 
 .sql_add_resource <-
