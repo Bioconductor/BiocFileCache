@@ -364,9 +364,8 @@ lock.env$status <- NA
 .get_all_web_rids <-
     function(bfc)
 {
-    .sql_get_resource_table(bfc) %>% dplyr::filter(rtype == "web") %>%
-        dplyr::select("rid") %>% .formatID
-
+    cmd <- "SELECT rid FROM resource where rtype == 'web'"
+    .sql_db_get_query(bfc, cmd)[,1]
 }
 
 .sql_get_last_modified <-
