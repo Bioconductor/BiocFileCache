@@ -36,6 +36,8 @@ COMMIT;
 DELETE FROM resource WHERE rid IN (%s);
 -- SELECT_QUERY
 SELECT * FROM resource WHERE %s;
+-- SELECT_COLUMN
+SELECT rid, %s FROM resource WHERE rid IN (%s);
 -- UPDATE_PATH
 UPDATE resource
 SET rpath = :rpath, access_time = CURRENT_TIMESTAMP

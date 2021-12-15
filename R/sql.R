@@ -281,9 +281,11 @@ lock.env$status <- NA
 .sql_get_field <-
     function(bfc, id, field)
 {
-    tbl <- .sql_get_resource_table(bfc) %>% dplyr::filter(rid %in% id) %>%
-        dplyr::select(rid, field) %>% collect(Inf)
-    setNames(tbl[[field]], tbl[["rid"]])
+    stopifnot(all(id %in% .get_all_rids(bfc)))
+    sql <- .sql_cmd("-- SELECT_COLUMN")
+    cmd <- sprintf(sql, field, paste0("'", id, "'", collapse = ","))
+    res <- .sql_db_get_query(bfc, cmd)
+    setNames(res[[field]], res[["rid"]])
 }
 
 .sql_get_rname <-
