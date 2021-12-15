@@ -1,8 +1,12 @@
 CHANGES IN VERSION 2.3
 ----------------------
 
-BUG FIX
+ENHANCEMENT
 
+    o (2.3.2) Add direct SQL calls for certain retrieval functions to speed up
+    access time. This will speed up the bfcquery function as well as any
+    function tha utilized the underlying .sql_get_field, .get_all_rids or
+    .get_all_web_rids.
     o (2.3.1) Add @LTLA solution for making bfcrpath thread safe
 
 CHANGES IN VERSION 2.1
