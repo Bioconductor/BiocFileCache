@@ -3,6 +3,7 @@ CHANGES IN VERSION 2.3
 
 ENHANCEMENT
 
+    o (2.3.4) Add instructions for a shared cache across multiple users of a system
     o (2.3.2) Add direct SQL calls for certain retrieval functions to speed up
     access time. This will speed up the bfcquery function as well as any
     function tha utilized the underlying .sql_get_field, .get_all_rids or
