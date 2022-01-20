@@ -935,6 +935,27 @@ bfcadd("myfile", url, download=FALSE, ext=".Rdata")
 # would save a file `<uniqueid>_get.Rdata` in the cache
 ```
 
+# Group Cache Access
+
+The situation may occur where a cache is desired to be shared across multiple
+users on a system.  This presents permissions errors.  To allow access to
+multiple users create a group that the users belong to and that the cache
+belongs too. Permissions of potentially two files need to be altered depending
+on what you would like individuals to be able to accomplish with the cache. A
+read-only cache will require manual manipulatios of the
+BiocFileCache.sqlite.LOCK so that the group permissions are `g+rw`. To allow
+users to download files to the shared cache, both the
+BiocFileCache.sqlite.LOCK file and the BiocFileCache.sqlite file will need group
+permissions to `g+rw`. Please google how to create a user group for your system
+of interest. To find the location of the cache to be able to change the group
+and file permissions, you may run the following in R if you used the default location:
+`tools::R_user_dir("BiocFileCache", which="cache")` or if you created a unique
+location, something like the following: `bfc =
+BiocFileCache(cache="someUniquelocation"); bfccache(bfc)`. For quick reference
+in linux you will use `chown currentuser:newgroup` to change the group and
+`chmod` to change the file permissions: `chmod 660` or `chmod g+rw` should
+accomplish the correct permissions.
+
 
 # Summary
 
