@@ -957,6 +957,38 @@ in linux you will use `chown currentuser:newgroup` to change the group and
 accomplish the correct permissions.
 
 
+# Lock file Troubleshooting
+
+Two issues have been commonly reported regarding the lock file.
+
+## Permissions
+
+There could be permission ERROR regarding group and public access. See the
+previous `Group Cache Access` section. 
+
+## Cannot lock file / no lock available
+
+This is an issue with filelock on particular systems. Particular partitions and
+non standard file systems may not support filelock. The solution is to use a
+different section of the system to create the cache. The easiest way to define a
+new cache location is by using environment variables.
+
+In R:
+
+`Sys.setenv(BFC_CACHE=<new cache location>)`
+
+Alternatively, you can set an environment variable globally to avoid having to
+set uniquely in each R session. Please google for specific instructions for
+setting environment variables globally for your particular OS system. 
+
+Other common filelock implemented packages that have specific environment
+variables to control location are:
+
+  * BiocFileCache: BFC_CACHE
+  * ExperimentHub: EXPERIMENT_HUB_CACHE
+  * AnnotationHub: ANNOTATION_HUB_CACHE
+  * biomaRt: BIOMART_CACHE
+
 # Summary
 
 It is our hope that this package allows for easier management of local and
