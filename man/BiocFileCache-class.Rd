@@ -111,9 +111,21 @@ bfcrid(x)
 
 \S4method{[[}{BiocFileCache,character,missing,character}(x, i, j, ...) <- value
 
-\S4method{bfcnew}{missing}(x, rname, rtype = c("relative", "local"), ext = NA_character_)
+\S4method{bfcnew}{missing}(
+  x,
+  rname,
+  rtype = c("relative", "local"),
+  ext = NA_character_,
+  fname = c("auto", "exact")
+)
 
-\S4method{bfcnew}{BiocFileCache}(x, rname, rtype = c("relative", "local"), ext = NA_character_)
+\S4method{bfcnew}{BiocFileCache}(
+  x,
+  rname,
+  rtype = c("relative", "local"),
+  ext = NA_character_,
+  fname = c("auto", "exact")
+)
 
 \S4method{bfcadd}{missing}(
   x,
@@ -125,6 +137,7 @@ bfcrid(x)
   download = TRUE,
   config = list(),
   ext = NA_character_,
+  fname = c("auto", "exact"),
   ...
 )
 
@@ -138,6 +151,7 @@ bfcrid(x)
   download = TRUE,
   config = list(),
   ext = NA_character_,
+  fname = c("auto", "exact"),
   ...
 )
 
@@ -287,6 +301,10 @@ relative or web paths, based on the path prefix.}
 \item{ext}{character(1) A file extension to add to the local
 copy of the file (e.g., \sQuote{sqlite}, \sQuote{txt},
 \sQuote{tar.gz}).}
+
+\item{fname}{character(1). When caching, should the file name have an added
+unique identifier to allow for files of the same name or should an exact
+file name be utilized.}
 
 \item{fpath}{For bfcadd(), character(1) path to current file
 location or remote web resource. If none is given, the rname is
@@ -504,79 +522,79 @@ implementation. e.g 'bfcinfo()' can be used instead of
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{bfccache}: Get the location of the on-disk cache.
+\item \code{bfccache(BiocFileCacheBase)}: Get the location of the on-disk cache.
 
-\item \code{length}: Get the number of objects in the file
+\item \code{length(BiocFileCacheBase)}: Get the number of objects in the file
 cache.
 
-\item \code{bfcrid}: Get the rids of the object.
+\item \code{bfcrid(BiocFileCacheReadOnly)}: Get the rids of the object.
 
-\item \code{[}: Subset a BiocFileCache object.
+\item \code{x[i}: Subset a BiocFileCache object.
 
-\item \code{[[}: Get a file path for select resources from
+\item \code{x[[i}: Get a file path for select resources from
 the cache.
 
-\item \code{[[<-}: Set the file path of selected resources
+\item \code{`[[`(x = BiocFileCache, i = character, j = missing) <- value}: Set the file path of selected resources
 from the cache.
 
-\item \code{bfcnew}: Add a resource to the database
+\item \code{bfcnew(BiocFileCache)}: Add a resource to the database
 
-\item \code{bfcadd}: Add an existing resource to the database
+\item \code{bfcadd(BiocFileCache)}: Add an existing resource to the database
 
-\item \code{bfcinfo}: list resources in database
+\item \code{bfcinfo(BiocFileCacheBase)}: list resources in database
 
-\item \code{bfcrid}: Get the rids of the object
+\item \code{bfcrid(tbl_bfc)}: Get the rids of the object
 
-\item \code{bfcpath}: display rpaths of resource.
+\item \code{bfcpath(BiocFileCacheBase)}: display rpaths of resource.
 
-\item \code{bfcrpath}: display rpath of resource. If 'rnames' is
+\item \code{bfcrpath(BiocFileCacheBase)}: display rpath of resource. If 'rnames' is
 in the cache the path is returned, if it is not it will try to
 add it to the cache with 'bfcadd'
 
-\item \code{bfcupdate}: Update a resource in the cache
+\item \code{bfcupdate(BiocFileCache)}: Update a resource in the cache
 
-\item \code{bfcmeta<-}: add meta data table in database
+\item \code{bfcmeta(BiocFileCacheBase) <- value}: add meta data table in database
 
-\item \code{bfcmetaremove}: remove meta data table in database
+\item \code{bfcmetaremove(BiocFileCacheBase)}: remove meta data table in database
 
-\item \code{bfcmetalist}: retrieve listing of metadata tables
+\item \code{bfcmetalist(BiocFileCacheBase)}: retrieve listing of metadata tables
 
-\item \code{bfcmeta}: retrieve metadata table
+\item \code{bfcmeta(BiocFileCacheBase)}: retrieve metadata table
 
-\item \code{bfcquerycols}: Get all the possible columns to query
+\item \code{bfcquerycols(BiocFileCacheBase)}: Get all the possible columns to query
 
-\item \code{bfcquery}: query resource
+\item \code{bfcquery(BiocFileCacheBase)}: query resource
 
-\item \code{bfccount}: Get the number of objects in the file
+\item \code{bfccount(BiocFileCacheBase)}: Get the number of objects in the file
 cache or query.
 
-\item \code{bfcneedsupdate}: check if a resource needs to be updated
+\item \code{bfcneedsupdate(BiocFileCacheBase)}: check if a resource needs to be updated
 
-\item \code{bfcdownload}: Redownload resource to location in cache
+\item \code{bfcdownload(BiocFileCache)}: Redownload resource to location in cache
 
-\item \code{bfcremove}: Remove a resource to the database.  If
+\item \code{bfcremove(BiocFileCache)}: Remove a resource to the database.  If
 the local file is located in \code{bfccache(x)}, the file will
 also be deleted. This will not delete information in any metadata
 table.
 
-\item \code{bfcsync}: sync cache and resource.
+\item \code{bfcsync(BiocFileCache)}: sync cache and resource.
 
-\item \code{exportbfc}: Create exportable file containing
+\item \code{exportbfc(BiocFileCacheBase)}: Create exportable file containing
 BiocFileCache.
 
-\item \code{importbfc}: Import file created with exportbfc containing
+\item \code{importbfc(character)}: Import file created with exportbfc containing
 BiocFileCache.
 
-\item \code{cleanbfc}: Remove old/unused files in
+\item \code{cleanbfc(BiocFileCache)}: Remove old/unused files in
 BiocFileCache. If file to be removed is not in the bfccache
 location it will not be deleted. Setting \code{days=-Inf}
 will remove all cached files.
 
-\item \code{removebfc}: Completely remove the BiocFileCache
+\item \code{removebfc(BiocFileCache)}: Completely remove the BiocFileCache
 
-\item \code{show}: Display a \code{BiocFileCache} instance.
+\item \code{show(BiocFileCacheBase)}: Display a \code{BiocFileCache} instance.
+
 }}
-
 \examples{
 # bfc <- BiocFileCache()            # global cache
 # bfc

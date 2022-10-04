@@ -24,7 +24,9 @@ test_that("bfcadd and bfcnew works", {
     expect_identical(length(bfc), 1L)
     expect_identical(bfccount(bfcinfo(bfc)), 1L)
     expect_true(file.exists(fl))
-
+    # test that fname used unique identifier
+    expect_false(basename(fl) == basename(rid))
+    
     # test file add and location not in cache
     path <- bfcadd(bfc, 'test-2', fl, rtype='local', action='asis')
     rid <- names(path)
@@ -115,6 +117,14 @@ test_that("bfcadd and bfcnew works", {
 
     fl <- tempfile(); file.create(fl)
     expect_warning(bfcadd(bfc, fl, rtype = "relative", action="asis"))
+
+    # test fname arguments
+    fl_exact = tempfile(fileext=".bam"); file.create(fl_exact)
+    rid <- bfcadd(bfc, fl_exact, fname="exact")
+    expect_identical(basename(fl_exact), basename(rid))
+    rid2 <- bfcadd(bfc, fl_exact, fname="auto")
+    expect_false(basename(fl_exact) ==  basename(rid2))
+
 })
 
 test_that("bfcadd() works for multiple inserts", {
