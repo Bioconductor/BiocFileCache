@@ -214,10 +214,11 @@ lock.env$status <- NA
     ext[is.na(ext)] <- ""
     bfname <- basename(fpath)
     bfname <- curl_escape(bfname)
-    rpath <- ifelse(fname=="auto",
-                    sprintf("%s_%s%s", rpath, bfname, ext),
-                    sprintf("%s%s",bfname, ext))
-
+    if(fname=="auto"){
+        rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
+    }else{
+        rpath <- sprintf("%s%s",bfname, ext)
+    }
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]
     con <- info$con
     dbExecute(con, sql[[1]])
