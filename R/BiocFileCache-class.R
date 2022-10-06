@@ -1484,6 +1484,7 @@ setMethod("removebfc", "BiocFileCache",
 {
     stopifnot(is.logical(ask), length(ask) == 1L, !is.na(ask))
 
+    doit <- FALSE
     txt <- paste("remove cache and", length(x), "resource(s)?")
     if (!ask || .util_ask(txt))
         doit <- .util_unlink(bfccache(x), recursive=TRUE)
