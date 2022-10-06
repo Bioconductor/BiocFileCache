@@ -222,6 +222,18 @@ bfcinfo(bfc)
 
 Now that we are tracking resources, let's explore accessing their information!
 
+### Caveat
+
+Files will by default have a unique identifier added to the start of the
+original file name (identifier_originalName) when added to the cache to allow
+for multiple versions of the same file name. There is an option to override this
+default behavior by using the `fname` argument of `bfcadd` or `bfcnew`. `fname`
+takes one of two options: `unique` or `exact`. The `unique` option behaves as
+default and adds a unique identifier to the original file name. The `exact`
+option wil override and not add a unique identifier and an exact match to the
+original file name will be added.
+
+
 ## Investigating / Accessing Resources
 
 Before we get into exploring individual resources, a helper function.  Most of
