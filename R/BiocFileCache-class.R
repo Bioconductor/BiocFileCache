@@ -260,7 +260,7 @@ setReplaceMethod("[[", c("BiocFileCache", "character", "missing", "character"),
 #' @export
 setGeneric("bfcnew",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_,
-             fname=c("auto", "exact"))
+             fname=c("unique", "exact"))
     standardGeneric("bfcnew"),
     signature = "x"
 )
@@ -270,7 +270,7 @@ setGeneric("bfcnew",
 #' @exportMethod bfcnew
 setMethod("bfcnew", "missing",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_,
-             fname=c("auto", "exact"))
+             fname=c("unique", "exact"))
 {
     bfcnew(x=BiocFileCache(), rname=rname, rtype=rtype, ext=ext, fname=fname)
 })
@@ -281,9 +281,12 @@ setMethod("bfcnew", "missing",
 #' @param ext character(1) A file extension to add to the local
 #'     copy of the file (e.g., \sQuote{sqlite}, \sQuote{txt},
 #'     \sQuote{tar.gz}).
-#' @param fname character(1). When caching, should the file name have an added
-#'     unique identifier to allow for files of the same name or should an exact
-#'     file name be utilized.
+#' @param fname character(1). Options are \sQuote{unique} or
+#'     \sQuote{exact}. \sQuote{unique} provides each bfc resource with a unique
+#'     identifier when storing the file, allowing resources with the same name
+#'     to be stored in the cache. \sQuote{exact} uses the exact file name of the
+#'     resource; only one of foo/my.txt and bar/my.txt could be stored. Default
+#'     is \sQuote{unique}.
 #' @return For 'bfcnew': named character(1), the path to save your
 #'     object / file.  The name of the return value is the unique rid
 #'     for the resource.
@@ -294,7 +297,7 @@ setMethod("bfcnew", "missing",
 #' @exportMethod bfcnew
 setMethod("bfcnew", "BiocFileCache",
     function(x, rname, rtype=c("relative", "local"), ext=NA_character_,
-             fname=c("auto", "exact"))
+             fname=c("unique", "exact"))
 {
     stopifnot(
         is.character(rname), length(rname) > 0L, !any(is.na(rname)),
@@ -312,7 +315,7 @@ setGeneric("bfcadd",
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
         download=TRUE, config=list(), ext=NA_character_,
-        fname=c("auto", "exact"),...
+        fname=c("unique", "exact"),...
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
@@ -325,7 +328,7 @@ setMethod("bfcadd", "missing",
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
         download=TRUE, config=list(), ext=NA_character_,
-        fname=c("auto", "exact"), ...
+        fname=c("unique", "exact"), ...
     )
 {
     bfcadd(x=BiocFileCache(), rname=rname, fpath=fpath, rtype=rtype,
@@ -390,7 +393,7 @@ setMethod("bfcadd", "BiocFileCache",
         rtype = c("auto", "relative", "local", "web"),
         action = c("copy", "move", "asis"),
         proxy = "", download = TRUE, config = list(), ext=NA_character_,
-        fname=c("auto", "exact"),...)
+        fname=c("unique", "exact"),...)
 {
     stopifnot(
         is.character(rname), length(rname) > 0L, !any(is.na(rname)),

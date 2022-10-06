@@ -197,7 +197,7 @@ lock.env$status <- NA
 }
 
 .sql_add_resource <-
-    function(bfc, rname, rtype, fpath, ext = NA_character_, fname = "auto")
+    function(bfc, rname, rtype, fpath, ext = NA_character_, fname = "unique")
 {
     # The connection attempt handles locking if another process is adding a
     # resource at the same time; by trying to connect first, we don't have to
@@ -214,9 +214,9 @@ lock.env$status <- NA
     ext[is.na(ext)] <- ""
     bfname <- basename(fpath)
     bfname <- curl_escape(bfname)
-    if(fname=="auto"){
+    if (fname=="unique") {
         rpath <- sprintf("%s_%s%s", rpath, bfname, ext)
-    }else{
+    } else {
         rpath <- sprintf("%s%s",bfname, ext)
     }
     sql <- strsplit(.sql_cmd("-- INSERT"), ";")[[1]]

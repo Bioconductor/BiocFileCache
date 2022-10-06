@@ -116,7 +116,7 @@ bfcrid(x)
   rname,
   rtype = c("relative", "local"),
   ext = NA_character_,
-  fname = c("auto", "exact")
+  fname = c("unique", "exact")
 )
 
 \S4method{bfcnew}{BiocFileCache}(
@@ -124,7 +124,7 @@ bfcrid(x)
   rname,
   rtype = c("relative", "local"),
   ext = NA_character_,
-  fname = c("auto", "exact")
+  fname = c("unique", "exact")
 )
 
 \S4method{bfcadd}{missing}(
@@ -137,7 +137,7 @@ bfcrid(x)
   download = TRUE,
   config = list(),
   ext = NA_character_,
-  fname = c("auto", "exact"),
+  fname = c("unique", "exact"),
   ...
 )
 
@@ -151,7 +151,7 @@ bfcrid(x)
   download = TRUE,
   config = list(),
   ext = NA_character_,
-  fname = c("auto", "exact"),
+  fname = c("unique", "exact"),
   ...
 )
 
@@ -302,9 +302,12 @@ relative or web paths, based on the path prefix.}
 copy of the file (e.g., \sQuote{sqlite}, \sQuote{txt},
 \sQuote{tar.gz}).}
 
-\item{fname}{character(1). When caching, should the file name have an added
-unique identifier to allow for files of the same name or should an exact
-file name be utilized.}
+\item{fname}{character(1). Options are \sQuote{unique} or
+\sQuote{exact}. \sQuote{unique} provides each bfc resource with a unique
+identifier when storing the file, allowing resources with the same name
+to be stored in the cache. \sQuote{exact} uses the exact file name of the
+resource; only one of foo/my.txt and bar/my.txt could be stored. Default
+is \sQuote{unique}.}
 
 \item{fpath}{For bfcadd(), character(1) path to current file
 location or remote web resource. If none is given, the rname is

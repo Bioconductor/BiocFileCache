@@ -122,7 +122,7 @@ test_that("bfcadd and bfcnew works", {
     fl_exact = tempfile(fileext=".bam"); file.create(fl_exact)
     rid <- bfcadd(bfc, fl_exact, fname="exact")
     expect_identical(basename(fl_exact), basename(rid))
-    rid2 <- bfcadd(bfc, fl_exact, fname="auto")
+    rid2 <- bfcadd(bfc, fl_exact, fname="unique")
     expect_false(basename(fl_exact) ==  basename(rid2))
 
 })
