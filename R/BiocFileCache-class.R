@@ -3,7 +3,6 @@
 #' @importFrom utils tar zip untar unzip
 #' @importFrom dplyr mutate
 #' @importFrom tools R_user_dir
-#' @importFrom rappdirs user_cache_dir
 
 .BiocFileCacheBase = setClass(
     "BiocFileCacheBase",
@@ -93,16 +92,6 @@ BiocFileCache <-
         is.character(cache), length(cache) == 1L, !is.na(cache),
         is.logical(ask), length(ask) == 1L, !is.na(ask)
     )
-
-    if ((cache == R_user_dir("BiocFileCache", which="cache")) && (Sys.getenv("BFC_CACHE")=="")){
-        olddefault = rappdirs::user_cache_dir(appname="BiocFileCache")
-        if (dir.exists(olddefault) && (length(list.files(olddefault)) != 0)){
-            stop(msg=paste0("DEFUNCT: As of BiocFileCache (>1.15.1), default caching location has changed.\n",
-                 "  Problematic cache: ", path.expand(olddefault),"\n",
-                 "  See https://www.bioconductor.org/packages/devel/bioc/vignettes/BiocFileCache/inst/doc/BiocFileCache.html#default-caching-location-update\n"))
-            cache = olddefault
-        }
-    }
 
     if (!file.exists(cache)) {
         ans <- !ask
