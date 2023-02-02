@@ -294,7 +294,7 @@ user to then use this path in any load/read methods most appropriate for the
 resource. The `bfcpath()` and `bfcrpath()` both return a named character vector
 also displaying the local file that can be used for retrieval. `bfcpath`
 requires `rids` while `bfcrpath()` can use `rids` or `rnames` (but not
-both). `bfcrpath()` can be used to add a resource into the cache when `rnames
+both). `bfcrpath()` can be used to add a resource into the cache when `rnames`
 are specified; if the element in `rnames` is not found, it will try and add to
 the cache with `bfcadd()`.
 
