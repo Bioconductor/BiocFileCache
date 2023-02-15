@@ -5,7 +5,11 @@ USER VISIBLE CHANGE
 
     o (2.7.1) Remove rappdirs officially from package after deprecating
     functionality and moving to using default R tools caching location.
-    
+
+BUG FIX
+
+    o (2.7.2) Fix mismatch of arguments from function to generic for bfcupdate
+
 CHANGES IN VERSION 2.5
 ----------------------
 

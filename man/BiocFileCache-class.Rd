@@ -169,18 +169,18 @@ bfcrid(x)
 
 \S4method{bfcrpath}{BiocFileCacheBase}(x, rnames, ..., rids, exact = TRUE)
 
-\S4method{bfcupdate}{missing}(x, rids, value, ...)
+\S4method{bfcupdate}{missing}(x, rids, ...)
 
 \S4method{bfcupdate}{BiocFileCache}(
   x,
   rids,
+  ...,
   rname = NULL,
   rpath = NULL,
   fpath = NULL,
   proxy = "",
   config = list(),
-  ask = TRUE,
-  ...
+  ask = TRUE
 )
 
 bfcmeta(x, name, ...) <- value
