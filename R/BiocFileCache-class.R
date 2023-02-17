@@ -594,7 +594,7 @@ setMethod("bfcrpath", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcupdate",
-    function(x, rids, value, ...) standardGeneric("bfcupdate"),
+    function(x, rids, ...) standardGeneric("bfcupdate"),
     signature = "x"
 )
 
@@ -602,9 +602,9 @@ setGeneric("bfcupdate",
 #' @aliases bfcupdate,missing-method
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "missing",
-    function(x, rids, value, ...)
+    function(x, rids, ...)
 {
-    bfcupdate(x=BiocFileCache(), rids=rids, value=value, ...)
+    bfcupdate(x=BiocFileCache(), rids=rids, ...)
 })
 
 #' @describeIn BiocFileCache Update a resource in the cache
@@ -618,8 +618,8 @@ setMethod("bfcupdate", "missing",
 #' @aliases bfcupdate
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
-    function(x, rids, rname=NULL, rpath=NULL, fpath=NULL,
-             proxy="", config=list(), ask=TRUE, ...)
+    function(x, rids, ..., rname=NULL, rpath=NULL, fpath=NULL,
+             proxy="", config=list(), ask=TRUE)
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -632,6 +632,12 @@ setMethod("bfcupdate", "BiocFileCache",
         is.null(rpath) || is.character(rpath),
         is.null(fpath) || is.character(fpath)
     )
+
+    if(is.null(rname) && is.null(rpath) && is.null(fpath)) {
+        stop("bfcupdate() has nothing to update.",
+             "\n  Please set rname, rpath, or fpath",
+             call.=FALSE)
+    }
 
     info <- NULL
 
