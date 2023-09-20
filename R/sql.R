@@ -120,7 +120,7 @@ lock.env$status <- NA
         info <- .sql_connect_RO(.sql_dbfile(bfc))
         con <- info$con
         src <- src_dbi(con)
-        tbl <- tbl(src, "metadata") %>% collect(Inf)
+        tbl <- tbl(src, "metadata") %>% collect(n = Inf)
         }, finally={.sql_disconnect(info)})
     tbl$value[tbl$key=="schema_version"]
 }
