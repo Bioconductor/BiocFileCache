@@ -124,7 +124,7 @@ test_that(".sql_get_rpath() works", {
 test_that(".sql_add_resource() changes remote special", {
 
     url =
-        "https://s3.amazonaws.com/annotationhub/ncbi/uniprot/3.7/org.'Caballeronia_concitans'.eg.sqlite"
+        "https://bioconductorhubs.blob.core.windows.net/annotationhub/ncbi/uniprot/3.7/org.'Caballeronia_concitans'.eg.sqlite"
     bfc <- BiocFileCache(tempfile(), ask = FALSE)
     rpath <- path.expand(tempfile("", bfccache(bfc)))
     ext <- ""
