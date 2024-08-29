@@ -733,7 +733,7 @@ Retrieve the result at a later date
 result <- readRDS(bfcrpath(bfc, "airway / DESeq standard analysis"))
 ```
 
-Once might imagine the following workflow:
+One might imagine the following workflow:
 
 ```{r eval=FALSE}
 suppressPackageStartupMessages({
@@ -749,7 +749,7 @@ bfc <- BiocFileCache(path)
 url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
 
 # check if url is being tracked
-res <- bfcquery(bfc, url)
+res <- bfcquery(bfc, url, exact = TRUE)
 
 if (bfccount(res) == 0L) {
 
@@ -786,7 +786,7 @@ info = import(temp)
 ```{r eval=TRUE}
 
 #
-# A simplier test to see if something is in the cache
+# A simpler test to see if something is in the cache
 # and if not start tracking it is using `bfcrpath`
 #
 
