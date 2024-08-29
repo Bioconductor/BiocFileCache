@@ -759,7 +759,7 @@ if (bfccount(res) == 0L) {
 } else {
 
   # if it is in cache, get path to load
-  rid = res %>% filter(fpath == url) %>% collect(Inf) %>% `[[`("rid")
+  rid <- res$rid
   ans <- bfcrpath(bfc, rid)
 
   # check to see if the resource needs to be updated
