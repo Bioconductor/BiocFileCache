@@ -1,0 +1,230 @@
+---
+title: "BiocFileCache Troubleshooting"
+author: Lori Shepherd
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{3. BiocFileCache Troubleshooting}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteDepends{rtracklayer}
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(collapse=TRUE)
+```
+
+# Overview
+
+Organization of files on a local machine can be cumbersome. This is especially
+true for local copies of remote resources that may periodically require a new
+download to have the most updated information available. [BiocFileCache][] is
+designed to help manage local and remote resource files stored locally. It
+provides a convenient location to organize files and once added to the cache
+management, the package provides functions to determine if remote resources are
+out of date and require a new download.
+
+## Installation and Loading
+
+`BiocFileCache` is a _Bioconductor_ package and can be installed through
+`BiocManager::install()`.
+
+```{r, eval = FALSE}
+if (!"BiocManager" %in% rownames(installed.packages()))
+     install.packages("BiocManager")
+BiocManager::install("BiocFileCache", dependencies=TRUE)
+```
+
+After the package is installed, it can be loaded into _R_ workspace by
+
+```{r, results='hide', warning=FALSE, message=FALSE}
+library(BiocFileCache)
+```
+
+## Creating / Loading the Cache
+
+The initial step to utilizing [BiocFileCache][] in managing files is to create a
+cache object specifying a location. We will create a temporary directory for use
+with examples in this vignette. If a path is not specified upon creation, the
+default location is a directory `~/.BiocFileCache` in the typical user cache
+directory as defined by `tools::R_user_dir("", which="cache")`.
+
+```{r, create}
+path <- tempfile()
+bfc <- BiocFileCache(path, ask = FALSE)
+```
+
+# Access Behind a Proxy
+
+BiocFileCache uses CRAN package `httr` functions `HEAD` and `GET` for accessing
+web resources. This can be problematic if operating behind a proxy. The easiest
+solution is to set the `httr::set_config` with the proxy information.
+
+```
+proxy <- httr::use_proxy("http://my_user:my_password@myproxy:8080")
+## or
+proxy <- httr::use_proxy(Sys.getenv('http_proxy'))
+httr::set_config(proxy)
+```
+
+
+# Group Cache Access
+
+The situation may occur where a cache is desired to be shared across multiple
+users on a system.  This presents permissions errors.  To allow access to
+multiple users create a group that the users belong to and that the cache
+belongs too. Permissions of potentially two files need to be altered depending
+on what you would like individuals to be able to accomplish with the cache. A
+read-only cache will require manual manipulatios of the
+BiocFileCache.sqlite.LOCK so that the group permissions are `g+rw`. To allow
+users to download files to the shared cache, both the
+BiocFileCache.sqlite.LOCK file and the BiocFileCache.sqlite file will need group
+permissions to `g+rw`. Please google how to create a user group for your system
+of interest. To find the location of the cache to be able to change the group
+and file permissions, you may run the following in R if you used the default location:
+`tools::R_user_dir("BiocFileCache", which="cache")` or if you created a unique
+location, something like the following: `bfc =
+BiocFileCache(cache="someUniquelocation"); bfccache(bfc)`. For quick reference
+in linux you will use `chown currentuser:newgroup` to change the group and
+`chmod` to change the file permissions: `chmod 660` or `chmod g+rw` should
+accomplish the correct permissions.
+
+
+# Lock file Troubleshooting
+
+Two issues have been commonly reported regarding the lock file.
+
+## Permissions
+
+There could be permission ERROR regarding group and public access. See the
+previous `Group Cache Access` section. 
+
+## Cannot lock file / no lock available
+
+This is an issue with filelock on particular systems. Particular partitions and
+non standard file systems may not support filelock. The solution is to use a
+different section of the system to create the cache. The easiest way to define a
+new cache location is by using environment variables.
+
+In R:
+
+`Sys.setenv(BFC_CACHE=<new cache location>)`
+
+Alternatively, you can set an environment variable globally to avoid having to
+set uniquely in each R session. Please google for specific instructions for
+setting environment variables globally for your particular OS system. 
+
+Other common filelock implemented packages that have specific environment
+variables to control location are:
+
+  * BiocFileCache: BFC_CACHE
+  * ExperimentHub: EXPERIMENT_HUB_CACHE
+  * AnnotationHub: ANNOTATION_HUB_CACHE
+  * biomaRt: BIOMART_CACHE
+
+# Default Caching Location Update
+
+As of BiocFileCache version > 1.15.1, the default caching location has
+changed. The default cache is now controlled by the function `tools::R_user_dir`
+instead of `rappdirs::user_cache_dir`.  Users who have utilized the default
+BiocFileCache location, to continue using the created cache, must move the cache and its
+files to the new default location or delete the old cache and have to redownload
+any previous files.
+
+## Option 1: Moving Files
+
+The following steps can be used to move the files to the new location:
+
+1. Determine the old location by running the following in R
+   `rappdirs::user_cache_dir(appname="BiocFileCache")`
+
+2. Determine the new location by running the following in R
+   `tools::R_user_dir("BiocFileCache", which="cache")`
+
+3. Move the files to the new location. You can do this manually or do the
+following steps in R. Remember if you have a lot of cached files, this may take
+awhile and you will need permissions on all the files in order to move them.
+
+```{r, eval=FALSE}
+       # make sure you have permissions on the cache/files
+       # use at own risk
+       
+	moveFiles<-function(package){
+	    olddir <- path.expand(rappdirs::user_cache_dir(appname=package))
+	    newdir <- tools::R_user_dir(package, which="cache")
+	    dir.create(path=newdir, recursive=TRUE)
+	    files <- list.files(olddir, full.names =TRUE)
+	    moveres <- vapply(files,
+		FUN=function(fl){
+		  filename = basename(fl)
+		  newname = file.path(newdir, filename)
+		  file.rename(fl, newname)
+		},
+		FUN.VALUE = logical(1))
+	    if(all(moveres)) unlink(olddir, recursive=TRUE)
+	}
+
+
+	package="BiocFileCache"
+	moveFiles(package)
+
+```
+
+
+## Option 2: Specify a Cache Location Explicitly
+
+Users may always specify a unique caching location by providing the `cache` argument to the BiocFileCache
+constructor; however users must always specify this location as it will not be
+recognized by default in subsequent runs.
+
+Alternatively, the default caching location may also be controlled by a
+user-wise or system-wide environment variable. Users may set the environment
+variable `BFC_CACHE` to the old location to continue using as default location.
+
+
+## Option 3: Delete the old cache
+
+Lastly, if a user does not care about the already existing default cache, the
+old location may be deleted to move forward with the new default location. This
+option should be used with caution. Once deleted, old cached resources will no
+longer be available and have to be re-downloaded.
+
+One can do this manually by navigating to the location indicated in the ERROR
+message as `Problematic cache:` and deleting the folder and all its content.
+
+
+The following can be done to delete through R code:
+
+**CAUTION** This will remove the old cache and all downloaded resources.
+
+
+```{r, eval=FALSE}
+library(BiocFileCache)
+
+
+package = "BiocFileCache"
+
+BFC_CACHE = rappdirs::user_cache_dir(appname=package)
+Sys.setenv(BFC_CACHE = BFC_CACHE)
+bfc = BiocFileCache(BFC_CACHE)
+## CAUTION: This removes the cache and all downloaded resources
+removebfc(bfc, ask=FALSE)
+
+## create new empty cache in new default location
+bfc = BiocFileCache(ask=FALSE)
+
+```
+
+# SessionInfo
+
+```{r, sessioninfo}
+sessionInfo()
+
+```
+
+
+
+[BiocFileCache]: https://bioconductor.org/packages/BiocFileCache
+[dplyr]: https://cran.r-project.org/package=dplyr

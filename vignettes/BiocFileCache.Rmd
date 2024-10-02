@@ -7,7 +7,7 @@ output:
     toc_depth: 2
 vignette: >
     %\VignetteEngine{knitr::rmarkdown}
-    %\VignetteIndexEntry{BiocFileCache: Managing File Resources Across Sessions}
+    %\VignetteIndexEntry{1. BiocFileCache Overview: Managing File Resources Across Sessions}
     %\VignetteEncoding{UTF-8}
     %\VignetteDepends{rtracklayer}
 ---
@@ -39,7 +39,7 @@ BiocManager::install("BiocFileCache", dependencies=TRUE)
 
 After the package is installed, it can be loaded into _R_ workspace by
 
-```{r, results='hide', warning=FALSE, message=FALSE}
+```{r, library, results='hide', warning=FALSE, message=FALSE}
 library(BiocFileCache)
 ```
 
@@ -51,7 +51,7 @@ with examples in this vignette. If a path is not specified upon creation, the
 default location is a directory `~/.BiocFileCache` in the typical user cache
 directory as defined by `tools::R_user_dir("", which="cache")`.
 
-```{r}
+```{r, create}
 path <- tempfile()
 bfc <- BiocFileCache(path, ask = FALSE)
 ```
@@ -72,7 +72,7 @@ Some utility functions to examine the cache are:
 `bfccache()` will show the cache path. **NOTE**: Because we are using temporary
 directories, your path location will be different than shown.
 
-```{r}
+```{r, cacheloc}
 bfccache(bfc)
 length(bfc)
 ```
@@ -82,14 +82,14 @@ tracked by the `BiocFileCache`. For more detailed information on what is store
 in the `BiocFileCache` object, there is a show method which will display the
 object, object class, cache path, and number of items currently being tracked.
 
-```{r}
+```{r, bfcshow}
 bfc
 ```
 
 `bfcinfo()` will list a table of `BiocFileCache` resource files being tracked in
 the cache. It returns a [dplyr][] object of class `tbl_sqlite`.
 
-```{r}
+```{r, bfcinfo}
 bfcinfo(bfc)
 ```
 
@@ -147,7 +147,7 @@ accessed.
 returns a path location to save data to. (optionally) you can add the file
 extension if you know the type of file that will be saved:
 
-```{r}
+```{r, bfcnew}
 savepath <- bfcnew(bfc, "NewResource", ext=".RData")
 savepath
 
@@ -179,7 +179,7 @@ the cache; only actions `copy` and `move` are available for relative paths.
 
 First let's use local files:
 
-```{r}
+```{r, bfcadd}
 fl1 <- tempfile(); file.create(fl1)
 add2 <- bfcadd(bfc, "Test_addCopy", fl1)                 # copy
 # returns filepath being tracked in cache
@@ -203,7 +203,7 @@ file.exists(fl3)    # TRUE - left asis, original location tracked
 
 Now let's add some examples with remote sources:
 
-```{r}
+```{r, bfcaddremote}
 url <- "http://httpbin.org/get"
 add5 <- bfcadd(bfc, "TestWeb", fpath=url)
 rid5 <- names(add5)
@@ -248,7 +248,7 @@ that you have added some time ago.
 `fpath` for any matching entries. The columns that are searched can be
 controlled with the argument `field`.
 
-```{r}
+```{r, bfcquery}
 bfcquery(bfc, "Web")
 
 bfcquery(bfc, "copy")
@@ -264,7 +264,7 @@ be investiaged further utilizing methods for these classes, such as the package
 used in other functions. To get a quick count of how many objects in the cache
 matched the query, use `bfccount()`.
 
-```{r}
+```{r, bfccount}
 bfccount(q1)
 ```
 
@@ -275,7 +275,7 @@ BiocFileSubCache object. Users will still be able to query, remove (from the
 subset object only), and access resources of the subset, however the resources
 cannot be updated.
 
-```{r}
+```{r, bfcsubset}
 bfcsubWeb = bfc[paste0("BFC", 5:6)]
 bfcsubWeb
 bfcinfo(bfcsubWeb)
@@ -299,7 +299,7 @@ are specified; if the element in `rnames` is not found, it will try and add to
 the cache with `bfcadd()`.
 
 
-```{r}
+```{r, bfcbracket}
 bfc[["BFC2"]]
 bfcpath(bfc, "BFC2")
 bfcpath(bfc, "BFC5")
@@ -327,7 +327,7 @@ resource has not been download yet, it is `TRUE`.
 **Note:** This function does not automatically download the remote source if it
   is out of date.  Please see `bfcdownload()`.
 
-```{r}
+```{r, bfcneedsupdate}
 bfcneedsupdate(bfc, "BFC5")
 bfcneedsupdate(bfc, "BFC6")
 bfcneedsupdate(bfc)
@@ -342,7 +342,7 @@ Just as you could access the `rpath`, the local resource path can be set with
 The file must exist in order to be replaced in the `BiocFileCache`. If the user
 wishes to rename, they must make a copy (or touch) the file first.
 
-```{r}
+```{r, bfcrename}
 fileBeingReplaced <- bfc[[rid3]]
 fileBeingReplaced
 
@@ -363,7 +363,7 @@ updated, the data will be downloaded and the user will be prompted to overwrite
 the current file specified in `rpath`. If the user does not want to be prompted
 about overwritting of files, `ask=FALSE` may be used.
 
-```{r}
+```{r, bfcupdate}
 bfcinfo(bfc, "BFC1")
 bfcupdate(bfc, "BFC1", rname="FirstEntry")
 bfcinfo(bfc, "BFC1")
@@ -371,7 +371,7 @@ bfcinfo(bfc, "BFC1")
 
 Now let's update a web resource
 
-```{r}
+```{r, bfcupdateremote}
 suppressPackageStartupMessages({
     library(dplyr)
 })
@@ -389,7 +389,7 @@ date file `rpath`
 
 The following confirms that resources need updating, and the performs the update
 
-```{r}
+```{r, bfcdownload}
 rid <- "BFC5"
 test <- !identical(bfcneedsupdate(bfc, rid), FALSE) # 'TRUE' or 'NA'
 if (test)
@@ -413,7 +413,7 @@ as an argument. Users can add multiple metadata tables as long as the names are
 unique. Tables may be appended or overwritten using additional arguments
 `append=TRUE` or `overwrite=TRUE`.
 
-```{r}
+```{r, bfcmetadata}
 names(bfcinfo(bfc))
 meta <- as.data.frame(list(rid=bfcrid(bfc)[1:3], idx=1:3))
 bfcmeta(bfc, name="resourceData") <- meta
@@ -422,14 +422,14 @@ names(bfcinfo(bfc))
 The metadata tables that exist can be listed with `bfcmetalist()` and can be
 retrieved with `bfcmeta()`.
 
-```{r}
+```{r, bfcmetalist}
 bfcmetalist(bfc)
 bfcmeta(bfc, name="resourceData")
 ```
 
 Lastly, metadata can be removed with `bfcmetaremove()`.
 
-```{r}
+```{r, bfcmetaremove}
 bfcmetaremove(bfc, name="resourceData")
 ```
 
@@ -466,7 +466,7 @@ but only if it is stored in the cache directory as given by `bfccache(bfc)`. If
 it is a path to a file somewhere else on the user system, it will only be
 removed from the `BiocFileCache` object but the file not deleted.
 
-```{r}
+```{r, bfcremove}
 # let's remind ourselves of our object
 bfc
 
@@ -488,7 +488,7 @@ This function will compare two things:
  2. If there are files in the cache directory (`bfccache(bfc)`), that are not
     being tracked by the `BiocFileCache` object
 
-```{r}
+```{r, bfcsync}
 # create a new entry that hasn't been used
 path <- bfcnew(bfc, "UseMe")
 rmMe <- names(path)
@@ -601,7 +601,7 @@ and 'fpath' and one additional column that will become metadata 'keywords'. The
 'rpath' can be `NA` as these are remote resources (`rtype='web'`) that have not
 been downloaded yet.
 
-```{r}
+```{r, mock}
 tbl <- data.frame(rtype=c("web","web"),
 		      rpath=c(NA_character_,NA_character_),
 		  fpath=c("http://httpbin.org/get",
@@ -651,309 +651,13 @@ removebfc(bfc)
 ```
 **Note** Use with caution!
 
-# Use Cases
-
-## Local cache of an internet resource
-
-One use for [BiocFileCache][] is to save local copies of remote
-resources. The benefits of this approach include reproducibility,
-faster access, and access (once cached) without need for an internet
-connection. An example is an Ensembl GTF file (also available via
-[AnnotationHub][])
-
-```{r}
-## paste to avoid long line in vignette
-url <- paste(
-    "ftp://ftp.ensembl.org/pub/release-71/gtf",
-    "homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz",
-    sep="/")
-```
-
-For a system-wide cache, simply load the [BiocFileCache][] package and
-ask for the local resource path (`rpath`) of the resource.
-
-```{r, eval=FALSE}
-library(BiocFileCache)
-bfc <- BiocFileCache()
-path <- bfcrpath(bfc, url)
-```
-
-Use the path returned by `bfcrpath()` as usual, e.g.,
-
-```{r, eval=FALSE}
-gtf <- rtracklayer::import.gff(path)
-```
-
-A more compact use, the first or any time, is
-
-```{r, eval=FALSE}
-gtf <- rtracklayer::import.gff(bfcrpath(BiocFileCache(), url))
-```
-
-Ensembl releases do not change with time, so there is no need to check
-whether the cached resource needs to be updated.
-
-## Cache of experimental computations
-
-One might use [BiocFileCache][] to cache results from experimental
-analysis. The `rname` field provides an opportunity to provide
-descriptive metadata to help manage collections of resources, without
-relying on cryptic file naming conventions.
-
-Here we create or use a local file cache in the directory in which we are
-doing our analysis.
-
-```{r, eval=FALSE}
-library(BiocFileCache)
-bfc <- BiocFileCache("~/my-experiment/results")
-```
-
-We perform our analysis...
-
-```{r, eval=FALSE}
-suppressPackageStartupMessages({
-    library(DESeq2)
-    library(airway)
-})
-data(airway)
-dds <- DESeqDataData(airway, design = ~ cell + dex)
-result <- DESeq(dds)
-```
-
-...and then save our result in a location provided by
-[BiocFileCache][].
-
-```{r, eval=FALSE}
-saveRDS(result, bfcnew(bfc, "airway / DESeq standard analysis"))
-```
-
-Retrieve the result at a later date
-
-```{r, eval=FALSE}
-result <- readRDS(bfcrpath(bfc, "airway / DESeq standard analysis"))
-```
-
-Once might imagine the following workflow:
-
-```{r eval=FALSE}
-suppressPackageStartupMessages({
-    library(BiocFileCache)
-    library(rtracklayer)
-})
-
-# load the cache
-path <- file.path(tempdir(), "tempCacheDir")
-bfc <- BiocFileCache(path)
-
-# the web resource of interest
-url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
-
-# check if url is being tracked
-res <- bfcquery(bfc, url)
-
-if (bfccount(res) == 0L) {
-
-    # if it is not in cache, add
-    ans <- bfcadd(bfc, rname="ensembl, homo sapien", fpath=url)
-
-} else {
-
-  # if it is in cache, get path to load
-  rid = res %>% filter(fpath == url) %>% collect(Inf) %>% `[[`("rid")
-  ans <- bfcrpath(bfc, rid)
-
-  # check to see if the resource needs to be updated
-  check <- bfcneedsupdate(bfc, rid)
-  # check can be NA if it cannot be determined, choose how to handle
-  if (is.na(check)) check <- TRUE
-  if (check){
-    ans < - bfcdownload(bfc, rid)
-  }
-}
-
-# ans is the path of the file to load
-ans
-
-# we know because we search for the url that the file is a .gtf.gz,
-# if we searched on other terms we can use 'bfcpath' to see the
-# original fpath to know the appropriate load/read/import method
-bfcpath(bfc, names(ans))
-
-temp = GTFFile(ans)
-info = import(temp)
-```
-
-```{r eval=TRUE}
-
-#
-# A simplier test to see if something is in the cache
-# and if not start tracking it is using `bfcrpath`
-#
-
-suppressPackageStartupMessages({
-    library(BiocFileCache)
-    library(rtracklayer)
-})
-
-# load the cache
-path <- file.path(tempdir(), "tempCacheDir")
-bfc <- BiocFileCache(path, ask=FALSE)
-
-# the web resources of interest
-url <- "ftp://ftp.ensembl.org/pub/release-71/gtf/homo_sapiens/Homo_sapiens.GRCh37.71.gtf.gz"
-
-url2 <- "ftp://ftp.ensembl.org/pub/release-71/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_5.0.71.gtf.gz"
-
-# if not in cache will download and create new entry
-pathsToLoad <- bfcrpath(bfc, c(url, url2))
-
-pathsToLoad
-
-# now load files as see fit
-info = import(GTFFile(pathsToLoad[1]))
-class(info)
-summary(info)
-```
-
-```{r eval=FALSE}
-#
-# One could also imagine the following:
-#
-
-library(BiocFileCache)
-
-# load the cache
-bfc <- BiocFileCache()
-
-#
-# Do some work!
-#
-
-# add a location in the cache
-filepath <- bfcnew(bfc, "R workspace")
-
-save(list = ls(), file=filepath)
-
-# now the R workspace is being tracked in the cache
-```
-
-## Cache to manage package data
-
-A package may desire to use BiocFileCache to manage remote data. The following
-is example code providing some best practice guidelines.
-
-1. Creating the cache
-
-Assumingly, the cache could potentially be called in a variety of places within
-code, examples, and vignette. It is desirable to have a wrapper to the
-BiocFileCache constructor. The following is a suggested example for a package
-called `MyNewPackage`:
-
-```{r, eval=FALSE}
-.get_cache <-
-    function()
-{
-    cache <- tools::R_user_dir("MyNewPackage", which="cache")
-    BiocFileCache::BiocFileCache(cache)
-}
-```
-Essentially this will create a unique cache for the package. If run
-interactively, the user will have the option to permanently create the package
-cache, else a temporary directory will be used.
-
-2. Resources in the cache
-
-Managing remote resources then involves a function that will query to see if the
-resource has been added, if it is not it will add to the cache and if it has it
-checks if the file needs to be updated.
-
-```{r, eval=FALSE}
-download_data_file <-
-    function( verbose = FALSE )
-{
-    fileURL <- "http://a_path_to/someremotefile.tsv.gz"
-
-    bfc <- .get_cache()
-    rid <- bfcquery(bfc, "geneFileV2", "rname")$rid
-    if (!length(rid)) {
-	 if( verbose )
-	     message( "Downloading GENE file" )
-	 rid <- names(bfcadd(bfc, "geneFileV2", fileURL ))
-    }
-    if (!isFALSE(bfcneedsupdate(bfc, rid)))
-	bfcdownload(bfc, rid)
-
-    bfcrpath(bfc, rids = rid)
-}
-```
-
-## Processing web resources before caching
-
-A case has been identified where it may be desired to do some
-processing of web-based resources before saving the resource in the
-cache. This can be done through specific options of the `bfcadd()` and
-`bfcdownload()` functions.
-
-1. Add the resource with `bfcadd()` using the `download=FALSE` argument.
-2. Download the resource with `bfcdownload()` using the `FUN` argument.
-
-The `FUN` argument is the name of a function to be applied before
-saving the downloaded file into the cache.  The default is
-`file.rename`, simply copying the downloaded file into the cache. A
-user-supplied function must take ONLY two arguments. When invoked, the
-arguments will be:
-
-1. `character(1)` A temporary file containing the resource as
-   retrieved from the web.
-2. `character(1)` The BiocFileCache location where the processed file
-   should be saved.
-
-The function should return a `TRUE` on success or a `character(1)`
-description for failure on error. As an example:
-
-```{r}
-url <- "http://bioconductor.org/packages/stats/bioc/BiocFileCache/BiocFileCache_stats.tab"
-
-headFile <-                         # how to process file before caching
-    function(from, to)
-{
-    dat <- readLines(from)
-    writeLines(head(dat), to)
-    TRUE
-}
-
-rid <- bfcquery(bfc, url, "fpath")$rid
-if (!length(rid))                   # not in cache, add but do not download
-    rid <- names(bfcadd(bfc, url, download = FALSE))
-
-update <- bfcneedsupdate(bfc, rid)  # TRUE if newly added or stale
-if (!isFALSE(update))               # download & process
-    bfcdownload(bfc, rid, ask = FALSE, FUN = headFile)
-
-rpath <- bfcrpath(bfc, rids=rid)    # path to processed result
-readLines(rpath)                    # read processed result
-```
-
-Note: By default bfcadd uses the webfile name as the saved local file. If the
-processing step involves saving the data in a different format, utilize the
-bfcadd argument `ext` to assign an extension to identify the type of file that
-was saved.
-For example
-```
-url = "http://httpbin.org/get"
-bfcadd("myfile", url, download=FALSE)
-# would save a file `<uniqueid>_get` in the cache
-bfcadd("myfile", url, download=FALSE, ext=".Rdata")
-# would save a file `<uniqueid>_get.Rdata` in the cache
-```
-
 # Access Behind a Proxy
 
 BiocFileCache uses CRAN package `httr` functions `HEAD` and `GET` for accessing
 web resources. This can be problematic if operating behind a proxy. The easiest
 solution is to set the `httr::set_config` with the proxy information.
 
-```
+```{r eval=FALSE}
 proxy <- httr::use_proxy("http://my_user:my_password@myproxy:8080")
 ## or
 proxy <- httr::use_proxy(Sys.getenv('http_proxy'))
@@ -982,141 +686,14 @@ in linux you will use `chown currentuser:newgroup` to change the group and
 `chmod` to change the file permissions: `chmod 660` or `chmod g+rw` should
 accomplish the correct permissions.
 
-
-# Lock file Troubleshooting
-
-Two issues have been commonly reported regarding the lock file.
-
-## Permissions
-
-There could be permission ERROR regarding group and public access. See the
-previous `Group Cache Access` section. 
-
-## Cannot lock file / no lock available
-
-This is an issue with filelock on particular systems. Particular partitions and
-non standard file systems may not support filelock. The solution is to use a
-different section of the system to create the cache. The easiest way to define a
-new cache location is by using environment variables.
-
-In R:
-
-`Sys.setenv(BFC_CACHE=<new cache location>)`
-
-Alternatively, you can set an environment variable globally to avoid having to
-set uniquely in each R session. Please google for specific instructions for
-setting environment variables globally for your particular OS system. 
-
-Other common filelock implemented packages that have specific environment
-variables to control location are:
-
-  * BiocFileCache: BFC_CACHE
-  * ExperimentHub: EXPERIMENT_HUB_CACHE
-  * AnnotationHub: ANNOTATION_HUB_CACHE
-  * biomaRt: BIOMART_CACHE
-
 # Summary
 
 It is our hope that this package allows for easier management of local and
 remote resources.
 
-
-# Default Caching Location Update
-
-As of BiocFileCache version > 1.15.1, the default caching location has
-changed. The default cache is now controlled by the function `tools::R_user_dir`
-instead of `rappdirs::user_cache_dir`.  Users who have utilized the default
-BiocFileCache location, to continue using the created cache, must move the cache and its
-files to the new default location or delete the old cache and have to redownload
-any previous files.
-
-## Option 1: Moving Files
-
-The following steps can be used to move the files to the new location:
-
-1. Determine the old location by running the following in R
-   `rappdirs::user_cache_dir(appname="BiocFileCache")`
-
-2. Determine the new location by running the following in R
-   `tools::R_user_dir("BiocFileCache", which="cache")`
-
-3. Move the files to the new location. You can do this manually or do the
-following steps in R. Remember if you have a lot of cached files, this may take
-awhile and you will need permissions on all the files in order to move them.
-
-```{r, eval=FALSE}
-       # make sure you have permissions on the cache/files
-       # use at own risk
-       
-	moveFiles<-function(package){
-	    olddir <- path.expand(rappdirs::user_cache_dir(appname=package))
-	    newdir <- tools::R_user_dir(package, which="cache")
-	    dir.create(path=newdir, recursive=TRUE)
-	    files <- list.files(olddir, full.names =TRUE)
-	    moveres <- vapply(files,
-		FUN=function(fl){
-		  filename = basename(fl)
-		  newname = file.path(newdir, filename)
-		  file.rename(fl, newname)
-		},
-		FUN.VALUE = logical(1))
-	    if(all(moveres)) unlink(olddir, recursive=TRUE)
-	}
-
-
-	package="BiocFileCache"
-	moveFiles(package)
-
-```
-
-
-## Option 2: Specify a Cache Location Explicitly
-
-Users may always specify a unique caching location by providing the `cache` argument to the BiocFileCache
-constructor; however users must always specify this location as it will not be
-recognized by default in subsequent runs.
-
-Alternatively, the default caching location may also be controlled by a
-user-wise or system-wide environment variable. Users may set the environment
-variable `BFC_CACHE` to the old location to continue using as default location.
-
-
-## Option 3: Delete the old cache
-
-Lastly, if a user does not care about the already existing default cache, the
-old location may be deleted to move forward with the new default location. This
-option should be used with caution. Once deleted, old cached resources will no
-longer be available and have to be re-downloaded.
-
-One can do this manually by navigating to the location indicated in the ERROR
-message as `Problematic cache:` and deleting the folder and all its content.
-
-
-The following can be done to delete through R code:
-
-**CAUTION** This will remove the old cache and all downloaded resources.
-
-
-```{r, eval=FALSE}
-library(BiocFileCache)
-
-
-package = "BiocFileCache"
-
-BFC_CACHE = rappdirs::user_cache_dir(appname=package)
-Sys.setenv(BFC_CACHE = BFC_CACHE)
-bfc = BiocFileCache(BFC_CACHE)
-## CAUTION: This removes the cache and all downloaded resources
-removebfc(bfc, ask=FALSE)
-
-## create new empty cache in new default location
-bfc = BiocFileCache(ask=FALSE)
-
-```
-
 # SessionInfo
 
-```{r}
+```{r, sessioninfo}
 sessionInfo()
 
 ```
