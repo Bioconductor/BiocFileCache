@@ -208,7 +208,7 @@ url <- "http://httpbin.org/get"
 add5 <- bfcadd(bfc, "TestWeb", fpath=url)
 rid5 <- names(add5)
 
-url2<- "https://en.wikipedia.org/wiki/Bioconductor"
+url2<- "https://bioconductor.org/packages/stats/bioc/BiocFileCache/BiocFileCache_2024_stats.tab"
 add6 <- bfcadd(bfc, "TestWeb", fpath=url2)
 rid6 <- names(add6)
 
@@ -253,7 +253,7 @@ bfcquery(bfc, "Web")
 
 bfcquery(bfc, "copy")
 
-q1 <- bfcquery(bfc, "wiki")
+q1 <- bfcquery(bfc, "BiocFileCache")
 q1
 class(q1)
 ```
