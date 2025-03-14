@@ -138,6 +138,7 @@ bfcrid(x)
   config = list(),
   ext = NA_character_,
   fname = c("unique", "exact"),
+  progress = httr::progress(con = stderr()),
   ...
 )
 
@@ -152,6 +153,7 @@ bfcrid(x)
   config = list(),
   ext = NA_character_,
   fname = c("unique", "exact"),
+  progress = httr::progress(con = stderr()),
   ...
 )
 
@@ -180,7 +182,8 @@ bfcrid(x)
   fpath = NULL,
   proxy = "",
   config = list(),
-  ask = TRUE
+  ask = TRUE,
+  progress = httr::progress(con = stderr())
 )
 
 bfcmeta(x, name, ...) <- value
@@ -219,7 +222,16 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
 
-\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
+\S4method{bfcdownload}{BiocFileCache}(
+  x,
+  rid,
+  proxy = "",
+  config = list(),
+  ask = TRUE,
+  FUN,
+  progress = httr::progress(con = stderr()),
+  ...
+)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -326,6 +338,12 @@ in current location but save the path in the cache. If 'rtype
 resource be downloaded locally immediately.}
 
 \item{config}{list() passed as config argument in \code{httr::GET}}
+
+\item{progress}{definition of the progress bar to use. This parameter is
+passed to the \code{httr::GET()} function and defaults to
+\code{httr::progress(con = stderr())}. Set to `progress = list()` to
+disable the progress bar.
+See help on \code{httr::progress()} for more information.}
 
 \item{rids}{character() Vector of rids.}
 

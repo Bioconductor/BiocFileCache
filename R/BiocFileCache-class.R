@@ -306,7 +306,7 @@ setGeneric("bfcadd",
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
         download=TRUE, config=list(), ext=NA_character_,
-        fname=c("unique", "exact"),...
+        fname=c("unique", "exact"), progress=httr::progress(con=stderr()), ...
     ) standardGeneric("bfcadd"),
     signature = "x"
 )
@@ -319,12 +319,12 @@ setMethod("bfcadd", "missing",
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
         download=TRUE, config=list(), ext=NA_character_,
-        fname=c("unique", "exact"), ...
+        fname=c("unique", "exact"), progress=httr::progress(con=stderr()), ...
     )
 {
     bfcadd(x=BiocFileCache(), rname=rname, fpath=fpath, rtype=rtype,
            action=action, proxy=proxy, download=download, config=config,
-           ext=ext, fname=fname,...)
+           ext=ext, fname=fname, progress=progress, ...)
 })
 
 #' @describeIn BiocFileCache Add an existing resource to the database
@@ -345,6 +345,11 @@ setMethod("bfcadd", "missing",
 #' @param proxy character(1) (Optional) proxy server.
 #' @param download logical(1) If \code{rtype=web}, should remote
 #'     resource be downloaded locally immediately.
+#' @param progress definition of the progress bar to use. This parameter is
+#'     passed to the \code{httr::GET()} function and defaults to
+#'     \code{httr::progress(con = stderr())}. Set to `progress = list()` to
+#'     disable the progress bar.
+#'     See help on \code{httr::progress()} for more information.
 #' @param config list() passed as config argument in \code{httr::GET}
 #' @param ... For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional
 #'     arguments passed to internal download functions for use with
@@ -384,7 +389,8 @@ setMethod("bfcadd", "BiocFileCache",
         rtype = c("auto", "relative", "local", "web"),
         action = c("copy", "move", "asis"),
         proxy = "", download = TRUE, config = list(), ext=NA_character_,
-        fname=c("unique", "exact"),...)
+        fname=c("unique", "exact"),
+        progress = httr::progress(con = stderr()), ...)
 {
     stopifnot(
         is.character(rname), length(rname) > 0L, !any(is.na(rname)),
@@ -418,7 +424,8 @@ setMethod("bfcadd", "BiocFileCache",
                 }
                 )
         } else if (download) {              # rtype == "web"
-            .util_download(x, rid[i], proxy, config, "bfcadd()", ...)
+            .util_download(x, rid[i], proxy, config, "bfcadd()",
+                           progress, ...)
         }
     }
 
@@ -621,7 +628,8 @@ setMethod("bfcupdate", "missing",
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rids, ..., rname=NULL, rpath=NULL, fpath=NULL,
-             proxy="", config=list(), ask=TRUE)
+             proxy="", config=list(), ask=TRUE,
+             progress = httr::progress(con = stderr()))
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -686,7 +694,8 @@ setMethod("bfcupdate", "BiocFileCache",
             }
             if (doit) {
                 .util_download_and_rename(
-                    x, rids[i], proxy, config, "bfcupdate()", fpath[i], ...
+                    x, rids[i], proxy, config, "bfcupdate()", fpath[i],
+                    progress = progress, ...
                 )
                 .sql_set_fpath(x, rids[i], fpath[i])
             }
@@ -1083,7 +1092,8 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="", config=list(), ask=TRUE, FUN, ...)
+          function(x, rid, proxy="", config=list(), ask=TRUE, FUN,
+                   progress = httr::progress(con = stderr()), ...)
 {
     stopifnot(
         !missing(rid), length(rid) > 0L,
@@ -1102,7 +1112,7 @@ setMethod("bfcdownload", "BiocFileCache",
     }
     if (doit)
         .util_download_and_rename(x, rid, proxy, config, "bfcdownload()",
-                                  FUN=FUN, ...)
+                                  FUN=FUN, progress = progress, ...)
 
     bfcrpath(x, rids=rid)
 })

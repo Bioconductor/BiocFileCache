@@ -42,7 +42,8 @@
 
 #' @importFrom utils packageVersion
 .httr_download <-
-    function(websource, localfile, proxy, config, ...)
+    function(websource, localfile, proxy, config,
+             progress = httr::progress(con = stderr()), ...)
 {
     ## retrieve file from hub to cache
     tryCatch({
@@ -61,10 +62,10 @@
         ## Download the resource in a way that supports https
         if (interactive() && (packageVersion("httr") > "1.0.0")) {
             response <- suppressWarnings({
-                GET(websource, progress(con = stderr()), config=config,
+                GET(websource, progress, config=config,
                     write_disk(localfile, overwrite=TRUE), proxy, ...)
             })
-            cat("\n") ## line break after progress bar
+            if (length(progress)) cat("\n") ## line break after progress bar
         } else {
             response <- suppressWarnings({
                 GET(websource, write_disk(localfile, overwrite=TRUE),

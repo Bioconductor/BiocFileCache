@@ -120,13 +120,15 @@
 }
 
 .util_download <-
-    function(bfc, rid, proxy, config, call, ...)
+    function(bfc, rid, proxy, config, call,
+             progress = httr::progress(con = stderr()), ...)
 {
     rpath <- .sql_get_rpath(bfc, rid)
     fpath <- .sql_get_fpath(bfc, rid)
     status <- Map(
         .httr_download, fpath, rpath,
-        MoreArgs = list(proxy = proxy, config = config, ...)
+        MoreArgs = list(proxy = proxy, config = config,
+                        progress = progress, ...)
     )
     ok <- vapply(status, isTRUE, logical(1))
     if (!all(ok)) {
@@ -147,10 +149,11 @@
 
 .util_download_and_rename <-
     function(bfc, rid, proxy, config, call, fpath = .sql_get_fpath(bfc, rid),
-             FUN, ...)
+             FUN, progress = httr::progress(con = stderr()), ...)
 {
     rpath <- .sql_get_rpath(bfc, rid)
     force(fpath)
+    force(progress)
 
     # The connection is not actually necessary - but we just use it to
     # handle thread-safe locking, specifically to avoid race conditions
@@ -160,11 +163,13 @@
 
     if (missing(FUN))
         FUN <- file.rename
-
+    
     status <- Map(function(rpath, fpath) {
+        
         temppath <- tempfile(tmpdir=bfccache(bfc))
 
-        status <- .httr_download(fpath, temppath, proxy, config, ...)
+        status <- .httr_download(fpath, temppath, proxy, config,
+                                 progress, ...)
         if (!status)
             return("download failed")
 
