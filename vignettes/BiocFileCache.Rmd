@@ -204,7 +204,7 @@ file.exists(fl3)    # TRUE - left asis, original location tracked
 Now let's add some examples with remote sources:
 
 ```{r, bfcaddremote}
-url <- "http://httpbin.org/get"
+url <- "https://httpbin.org/get"
 add5 <- bfcadd(bfc, "TestWeb", fpath=url)
 rid5 <- names(add5)
 
@@ -305,7 +305,7 @@ bfcpath(bfc, "BFC2")
 bfcpath(bfc, "BFC5")
 bfcrpath(bfc, rids="BFC5")
 bfcrpath(bfc)
-bfcrpath(bfc, c("http://httpbin.org/get","Test3_addAsis"))
+bfcrpath(bfc, c("https://httpbin.org/get","Test3_addAsis"))
 ```
 
 Managing remote resources locally involves knowing when to update the local copy
@@ -604,7 +604,7 @@ been downloaded yet.
 ```{r, mock}
 tbl <- data.frame(rtype=c("web","web"),
 		      rpath=c(NA_character_,NA_character_),
-		  fpath=c("http://httpbin.org/get",
+		  fpath=c("https://httpbin.org/get",
 			  "https://en.wikipedia.org/wiki/Bioconductor"),
 		      keywords = c("httpbin", "wiki"), stringsAsFactors=FALSE)
 tbl

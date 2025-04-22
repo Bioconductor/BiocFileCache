@@ -40,7 +40,7 @@ test_that("bfcadd and bfcnew works", {
     expect_true(!file.exists(fl))
 
     # test add web resource
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     path <- bfcadd(bfc, 'test-4', url, rtype="web")
     rid <- names(path)
     expect_identical(length(bfc), 4L)
@@ -61,13 +61,13 @@ test_that("bfcadd and bfcnew works", {
     expect_error(bfcadd(bfc, 'test-2', fl, rtype='local', action='asis'))
 
     # test no fpath given
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     path <- bfcadd(bfc, url)
     expect_identical(.sql_get_fpath(bfc,names(path)),
                      .sql_get_rname(bfc,names(path)))
 
     # test web resource not download
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     path <- bfcadd(bfc, 'test-noDownload', url, rtype="web", download=FALSE)
     rid <- names(path)
     expect_identical(length(bfc), 7L)
@@ -178,12 +178,12 @@ add1 <- bfcadd(bfc, 'test-1', fl)
 rid1 <- names(add1)
 add2 <- bfcadd(bfc, 'test-2', fl, rtype='local', action='asis')
 rid2 <- names(add2)
-url <- "http://httpbin.org/get"
+url <- "https://httpbin.org/get"
 add3 <- bfcadd(bfc, 'test-3', url, rtype="web")
 rid3 <- names(add3)
 path <- bfcnew(bfc, 'test-4')
 rid4 <- names(path)
-url <- "http://httpbin.org/get"
+url <- "https://httpbin.org/get"
 add5 <- bfcadd(bfc, 'test-5', url, rtype="web", download=FALSE)
 rid5 <- names(add5)
 
@@ -461,7 +461,7 @@ test_that("bfcneedsupdate works", {
     expect_error(bfcneedsupdate(bfc, 7))
 
     # test expires and last modified not available
-    link = "http://httpbin.org/get"
+    link = "https://httpbin.org/get"
     bfcupdate(bfc, rid3, fpath=link, ask=FALSE)
     expect_true(is.na(bfcneedsupdate(bfc, rid3)))
     expect_true(is.na(as.data.frame(bfcinfo(bfc,rid3))$last_modified_time))
@@ -550,12 +550,12 @@ test_that("exportbfc and importbfc works",{
     rid1 <- names(add1)
     add2 <- bfcadd(bfc, 'local', fl, rtype='local', action='asis')
     rid2 <- names(add2)
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     add3 <- bfcadd(bfc, 'web', url, rtype="web")
     rid3 <- names(add3)
     path <- bfcnew(bfc, 'notfound')
     rid4 <- names(path)
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     add5 <- bfcadd(bfc, 'webno', url, rtype="web", download=FALSE)
     rid5 <- names(add5)
 
@@ -602,7 +602,7 @@ test_that("bfcsync and bfcremove works", {
     rid1 <- names(add1)
     add2 <- bfcadd(bfc2, 'test-2', fl, rtype='local', action='asis')
     rid2 <- names(add2)
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     add3 <- bfcadd(bfc2, 'test-3', url, rtype="web")
     rid3 <- names(add3)
     path <- bfcnew(bfc2, 'test-4')

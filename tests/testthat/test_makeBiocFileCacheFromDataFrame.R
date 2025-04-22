@@ -6,7 +6,7 @@ test_that("makeBiocFileCacheFromDataFrame works",{
     fl <- tempfile(); file.create(fl)
     add1 <- bfcadd(bfc2, 'relative', fl)
     add2 <- bfcadd(bfc2, 'local', fl, rtype='local', action='asis')
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     add3 <- bfcadd(bfc2, 'noDown', url, rtype="web", download=FALSE)
     url  <- "https://www.wikipedia.org/"
     add4 <- bfcadd(bfc2, 'web', url, rtype="web")

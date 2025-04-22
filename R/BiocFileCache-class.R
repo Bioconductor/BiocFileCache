@@ -377,7 +377,7 @@ setMethod("bfcadd", "missing",
 #' file.exists(fl3)                                # TRUE
 #'
 #' # add a remote resource
-#' url <- "http://httpbin.org/get"
+#' url <- "https://httpbin.org/get"
 #' bfcadd(bfc0, "TestWeb", fpath=url)
 #' @aliases bfcadd
 #' @exportMethod bfcadd

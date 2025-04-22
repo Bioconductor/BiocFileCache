@@ -3,7 +3,7 @@ context("httr2")
 test_that("internal .httr_get_cache_info works", {
 
     # example neither
-    url <- "http://httpbin.org/get"
+    url <- "https://httpbin.org/get"
     info <- .httr_get_cache_info(url)
     expect_true(all(is.na(info)))
     expect_identical(length(info), 3L)

@@ -345,7 +345,7 @@ bfcadd argument `ext` to assign an extension to identify the type of file that
 was saved.
 For example
 ```
-url = "http://httpbin.org/get"
+url = "https://httpbin.org/get"
 bfcadd("myfile", url, download=FALSE)
 # would save a file `<uniqueid>_get` in the cache
 bfcadd("myfile", url, download=FALSE, ext=".Rdata")

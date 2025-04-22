@@ -623,7 +623,7 @@ file.exists(fl2)                                # FALSE
 file.exists(fl3)                                # TRUE
 
 # add a remote resource
-url <- "http://httpbin.org/get"
+url <- "https://httpbin.org/get"
 bfcadd(bfc0, "TestWeb", fpath=url)
 bfcinfo(bfc0)
 bfcpath(bfc0, rid3)
