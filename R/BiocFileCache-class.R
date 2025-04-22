@@ -97,7 +97,9 @@ BiocFileCache <-
         ans <- !ask
         if (ask && !.biocfilecache_flags$get_create_asked()) {
             ans <- .util_ask(cache, "\n  does not exist, create directory?")
-            .biocfilecache_flags$set_create_asked()
+        }
+        if (ask && .biocfilecache_flags$get_create_asked()) {
+            ans <- .biocfilecache_flags$get_ask_response()
         }
         if (ans) {
             dir.create(cache, recursive=TRUE)

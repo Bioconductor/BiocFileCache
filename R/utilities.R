@@ -29,9 +29,9 @@
     }, get_ask_response = function() {
         ask_response
     }, set_ask_response  = function(value) {
-        oresponse <- ask_response
+        #oresponse <- ask_response
         ask_response <<- value
-        invisible(oresponse)
+        #invisible(oresponse)
     })
 })
 
