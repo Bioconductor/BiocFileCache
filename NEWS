@@ -5,6 +5,13 @@ MAJOR UPDATES
 
     o Update downloading method from httr to httr2
 
+BUG FIX
+
+    o (2.99.1) Soft failure for if HEAD does not work. Will still download and
+    add to cache without caching information. Additionally fix bug so config can
+    be passed down to HEAD call from bfcneedsupdate, bfcadd, and bfcrpath.
+
+
 CHANGES IN VERSION 2.15
 ----------------------
 

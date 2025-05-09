@@ -213,9 +213,9 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfccount}{tbl_bfc}(x)
 
-\S4method{bfcneedsupdate}{missing}(x, rids)
+\S4method{bfcneedsupdate}{missing}(x, rids, ...)
 
-\S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids)
+\S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids, ..., config = list())
 
 \S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
 

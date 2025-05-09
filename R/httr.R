@@ -46,17 +46,33 @@
 }
 
 .httr_get_cache_info <-
-    function(link)
+    function(link, config)
 {
-    response = withCallingHandlers({
-        request(link) %>%
-            req_method("HEAD") %>%
-            req_perform()
+    if(missing(config))
+       config <- NULL
 
+    if((length(config)==0)){
+        config <- NULL
+    } else {
+        stopifnot(is.list(config))
+    }
+
+    req <- request(link) %>%
+        req_method("HEAD")
+
+    # Apply the config if it's not NULL
+    if (!is.null(config)) {
+        req <- req %>% req_options(!!!config)
+    }
+
+    response = tryCatch({
+        req %>% req_perform()
     }, warning = function(w) {
         invokeRestart("muffleWarning")
     }, error = function(e){
-        stop("Error while performing HEAD request")
+        message("Error while performing HEAD request.\n",
+                "   Proceeding without cache information.")
+        response()
     })
 
     tryCatch({

@@ -972,7 +972,7 @@ setMethod("bfccount", "tbl_bfc",
 
 #' @export
 setGeneric("bfcneedsupdate",
-    function(x, rids) standardGeneric("bfcneedsupdate"),
+    function(x, rids, ...) standardGeneric("bfcneedsupdate"),
     signature = "x"
 )
 
@@ -980,7 +980,7 @@ setGeneric("bfcneedsupdate",
 #' @aliases bfcneedsupdate,missing-method
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "missing",
-    function(x, rids)
+    function(x, rids, ...)
 {
     bfcneedsupdate(x=BiocFileCache(), rids=rids)
 })
@@ -1001,7 +1001,7 @@ setMethod("bfcneedsupdate", "missing",
 #' @aliases bfcneedsupdate
 #' @exportMethod bfcneedsupdate
 setMethod("bfcneedsupdate", "BiocFileCacheBase",
-    function(x, rids)
+    function(x, rids, ..., config=list())
 {
     if (missing(rids))
         rids <- .get_all_web_rids(x)
@@ -1014,7 +1014,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
         fpath <- .sql_get_fpath(x, rid)
         file_etag <-  .sql_get_etag(x, rid)
         file_expires <- .sql_get_expires(x, rid)
-        cache_info <- .httr_get_cache_info(fpath)
+        cache_info <- .httr_get_cache_info(fpath, config)
         web_time <- cache_info[["modified"]]
         web_etag <- cache_info[["etag"]]
 
