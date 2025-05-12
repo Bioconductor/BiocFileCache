@@ -305,7 +305,7 @@ setGeneric("bfcadd",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
-        download=TRUE, config=list(), ext=NA_character_,
+        download=TRUE, progress=TRUE, config=list(), ext=NA_character_,
         fname=c("unique", "exact"),...
     ) standardGeneric("bfcadd"),
     signature = "x"
@@ -318,7 +318,7 @@ setMethod("bfcadd", "missing",
     function(
         x, rname, fpath = rname, rtype=c("auto", "relative", "local", "web"),
         action=c("copy", "move", "asis"), proxy="",
-        download=TRUE, config=list(), ext=NA_character_,
+        download=TRUE, progress=TRUE, config=list(), ext=NA_character_,
         fname=c("unique", "exact"), ...
     )
 {
@@ -346,6 +346,8 @@ setMethod("bfcadd", "missing",
 #'     \code{httr2::req_proxy}
 #' @param download logical(1) If \code{rtype=web}, should remote
 #'     resource be downloaded locally immediately.
+#' @param progress TRUE/FALSE if progress bar for downloads in interactive
+#'     session should be shown
 #' @param config list() passed as argument to \code{httr2::req_options}. The
 #'     names of items shoudl be valid curl options as defined in
 #'     \code{curl::curl_options}.
@@ -386,7 +388,7 @@ setMethod("bfcadd", "BiocFileCache",
         x, rname, fpath = rname,
         rtype = c("auto", "relative", "local", "web"),
         action = c("copy", "move", "asis"),
-        proxy = "", download = TRUE, config = list(), ext=NA_character_,
+        proxy = "", download = TRUE, progress=TRUE, config = list(), ext=NA_character_,
         fname=c("unique", "exact"),...)
 {
     stopifnot(
@@ -421,7 +423,7 @@ setMethod("bfcadd", "BiocFileCache",
                 }
                 )
         } else if (download) {              # rtype == "web"
-            .util_download(x, rid[i], proxy, config, "bfcadd()", ...)
+            .util_download(x, rid[i], proxy, config, progress, "bfcadd()", ...)
         }
     }
 
@@ -624,7 +626,7 @@ setMethod("bfcupdate", "missing",
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rids, ..., rname=NULL, rpath=NULL, fpath=NULL,
-             proxy="", config=list(), ask=TRUE)
+             proxy="", config=list(), progress=TRUE, ask=TRUE)
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -689,7 +691,7 @@ setMethod("bfcupdate", "BiocFileCache",
             }
             if (doit) {
                 .util_download_and_rename(
-                    x, rids[i], proxy, config, "bfcupdate()", fpath[i], ...
+                    x, rids[i], proxy, config, progress, "bfcupdate()", fpath[i], ...
                 )
                 .sql_set_fpath(x, rids[i], fpath[i])
             }
@@ -1086,7 +1088,7 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="", config=list(), ask=TRUE, FUN, ...)
+    function(x, rid, proxy="", config=list(), progress=TRUE, ask=TRUE, FUN, ...)
 {
     stopifnot(
         !missing(rid), length(rid) > 0L,
@@ -1104,7 +1106,7 @@ setMethod("bfcdownload", "BiocFileCache",
         doit <- TRUE
     }
     if (doit)
-        .util_download_and_rename(x, rid, proxy, config, "bfcdownload()",
+        .util_download_and_rename(x, rid, proxy, config, progress, "bfcdownload()",
                                   FUN=FUN, ...)
 
     bfcrpath(x, rids=rid)
