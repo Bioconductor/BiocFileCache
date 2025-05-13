@@ -46,7 +46,7 @@
 }
 
 .httr_get_cache_info <-
-    function(link, config)
+    function(link, proxy, config)
 {
     if(missing(config))
        config <- NULL
@@ -56,9 +56,21 @@
     } else {
         stopifnot(is.list(config))
     }
-
+    
+    if (missing(proxy)){
+        proxy <- ""
+    }         
+    if (proxy == ""){
+        proxy <- NULL
+    }         
+    
     req <- request(link) %>%
         req_method("HEAD")
+    
+    # Apply the proxy if it's not NULL
+    if (!is.null(proxy)) {
+        req <- req %>% req_proxy(proxy)
+    }
 
     # Apply the config if it's not NULL
     if (!is.null(config)) {
