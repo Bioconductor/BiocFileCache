@@ -1,0 +1,26 @@
+url: https://bioconductor.github.io/BiocFileCache
+
+home:
+  strip_header: true
+  title: "BiocFileCache"
+  template:
+    bootstrap: 5
+    params:
+      bootswatch: flatly
+
+navbar:
+  structure:
+    left: [intro, articles, reference, news]
+    right: [github]
+  components:
+    intro: ~
+    articles:
+      text: "Articles"
+      href: articles/index.html
+
+vignettes:
+  - file: "BiocFileCache.Rmd"
+    home: TRUE
+    disable: TRUE
+  - file: "BiocFileCache_Troubleshooting.Rmd"
+  - file: "BiocFileCache_UseCases.Rmd"
