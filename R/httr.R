@@ -121,7 +121,7 @@
 
 #' @importFrom utils packageVersion
 .httr_download <-
-    function(websource, localfile, proxy, config, progress, ...)
+    function(websource, localfile, proxy, progress, config, ...)
 {
 
     ## retrieve file from hub to cache
@@ -140,7 +140,7 @@
         if(missing(progress)){
             progress=TRUE
         }
-        
+
         if (!all(file.exists(dirname(localfile)))) dir.create(dirname(localfile), recursive=TRUE)
 
         # set up request using httr2

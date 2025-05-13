@@ -323,7 +323,7 @@ setMethod("bfcadd", "missing",
     )
 {
     bfcadd(x=BiocFileCache(), rname=rname, fpath=fpath, rtype=rtype,
-           action=action, proxy=proxy, download=download, config=config,
+           action=action, proxy=proxy, download=download, progress=progress, config=config,
            ext=ext, fname=fname,...)
 })
 
@@ -423,7 +423,7 @@ setMethod("bfcadd", "BiocFileCache",
                 }
                 )
         } else if (download) {              # rtype == "web"
-            .util_download(x, rid[i], proxy, config, progress, "bfcadd()", ...)
+            .util_download(x, rid[i], proxy, progress, config, "bfcadd()", ...)
         }
     }
 
@@ -626,7 +626,7 @@ setMethod("bfcupdate", "missing",
 #' @exportMethod bfcupdate
 setMethod("bfcupdate", "BiocFileCache",
     function(x, rids, ..., rname=NULL, rpath=NULL, fpath=NULL,
-             proxy="", config=list(), progress=TRUE, ask=TRUE)
+             proxy="", progress=TRUE, config=list(), ask=TRUE)
 {
     stopifnot(!missing(rids), all(rids %in% bfcrid(x)))
     stopifnot(
@@ -691,7 +691,7 @@ setMethod("bfcupdate", "BiocFileCache",
             }
             if (doit) {
                 .util_download_and_rename(
-                    x, rids[i], proxy, config, progress, "bfcupdate()", fpath[i], ...
+                    x, rids[i], proxy, progress, config, "bfcupdate()", fpath[i], ...
                 )
                 .sql_set_fpath(x, rids[i], fpath[i])
             }
@@ -1057,7 +1057,7 @@ setMethod("bfcneedsupdate", "BiocFileCacheBase",
 
 #' @export
 setGeneric("bfcdownload",
-    function(x, rid, proxy="", config=list(), ask=TRUE, FUN, ...)
+    function(x, rid, proxy="", progress=TRUE, config=list(), ask=TRUE, FUN, ...)
     standardGeneric("bfcdownload"),
     signature = "x"
 )
@@ -1069,7 +1069,7 @@ setGeneric("bfcdownload",
 setMethod("bfcdownload", "missing",
     function(x, rid, proxy="", config=list(), ask=TRUE, FUN, ...)
 {
-    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, config=config, ask=ask,
+    bfcdownload(x=BiocFileCache(), rid=rid, proxy=proxy, progress=TRUE, config=config, ask=ask,
                 FUN=FUN, ...)
 })
 
@@ -1088,7 +1088,7 @@ setMethod("bfcdownload", "missing",
 #' @aliases bfcdownload
 #' @exportMethod bfcdownload
 setMethod("bfcdownload", "BiocFileCache",
-    function(x, rid, proxy="", config=list(), progress=TRUE, ask=TRUE, FUN, ...)
+    function(x, rid, proxy="", progress=TRUE, config=list(), ask=TRUE, FUN, ...)
 {
     stopifnot(
         !missing(rid), length(rid) > 0L,
@@ -1106,7 +1106,7 @@ setMethod("bfcdownload", "BiocFileCache",
         doit <- TRUE
     }
     if (doit)
-        .util_download_and_rename(x, rid, proxy, config, progress, "bfcdownload()",
+        .util_download_and_rename(x, rid, proxy, progress, config, "bfcdownload()",
                                   FUN=FUN, ...)
 
     bfcrpath(x, rids=rid)

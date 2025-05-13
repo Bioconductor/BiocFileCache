@@ -181,8 +181,8 @@ bfcrid(x)
   rpath = NULL,
   fpath = NULL,
   proxy = "",
-  config = list(),
   progress = TRUE,
+  config = list(),
   ask = TRUE
 )
 
@@ -220,14 +220,23 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids, ..., config = list())
 
-\S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
+\S4method{bfcdownload}{missing}(
+  x,
+  rid,
+  proxy = "",
+  progress = TRUE,
+  config = list(),
+  ask = TRUE,
+  FUN,
+  ...
+)
 
 \S4method{bfcdownload}{BiocFileCache}(
   x,
   rid,
   proxy = "",
-  config = list(),
   progress = TRUE,
+  config = list(),
   ask = TRUE,
   FUN,
   ...
