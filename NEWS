@@ -11,6 +11,10 @@ BUG FIX
     add to cache without caching information. Additionally fix bug so config can
     be passed down to HEAD call from bfcneedsupdate, bfcadd, and bfcrpath.
 
+NEW FEATURE
+
+    o (2.99.2) Add progress argument to bfcadd/bfcdownload to control if a
+    progress bar is displayed during an interactive session
 
 CHANGES IN VERSION 2.15
 ----------------------

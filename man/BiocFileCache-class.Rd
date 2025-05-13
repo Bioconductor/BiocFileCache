@@ -135,6 +135,7 @@ bfcrid(x)
   action = c("copy", "move", "asis"),
   proxy = "",
   download = TRUE,
+  progress = TRUE,
   config = list(),
   ext = NA_character_,
   fname = c("unique", "exact"),
@@ -149,6 +150,7 @@ bfcrid(x)
   action = c("copy", "move", "asis"),
   proxy = "",
   download = TRUE,
+  progress = TRUE,
   config = list(),
   ext = NA_character_,
   fname = c("unique", "exact"),
@@ -179,6 +181,7 @@ bfcrid(x)
   rpath = NULL,
   fpath = NULL,
   proxy = "",
+  progress = TRUE,
   config = list(),
   ask = TRUE
 )
@@ -217,9 +220,27 @@ bfcmeta(x, name, ...) <- value
 
 \S4method{bfcneedsupdate}{BiocFileCacheBase}(x, rids, ..., config = list())
 
-\S4method{bfcdownload}{missing}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
+\S4method{bfcdownload}{missing}(
+  x,
+  rid,
+  proxy = "",
+  progress = TRUE,
+  config = list(),
+  ask = TRUE,
+  FUN,
+  ...
+)
 
-\S4method{bfcdownload}{BiocFileCache}(x, rid, proxy = "", config = list(), ask = TRUE, FUN, ...)
+\S4method{bfcdownload}{BiocFileCache}(
+  x,
+  rid,
+  proxy = "",
+  progress = TRUE,
+  config = list(),
+  ask = TRUE,
+  FUN,
+  ...
+)
 
 \S4method{bfcremove}{missing}(x, rids)
 
@@ -325,6 +346,9 @@ in current location but save the path in the cache. If 'rtype
 
 \item{download}{logical(1) If \code{rtype=web}, should remote
 resource be downloaded locally immediately.}
+
+\item{progress}{TRUE/FALSE if progress bar for downloads in interactive
+session should be shown}
 
 \item{config}{list() passed as argument to \code{httr2::req_options}. The
 names of items shoudl be valid curl options as defined in

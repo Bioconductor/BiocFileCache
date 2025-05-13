@@ -121,7 +121,7 @@
 
 #' @importFrom utils packageVersion
 .httr_download <-
-    function(websource, localfile, proxy, config, ...)
+    function(websource, localfile, proxy, progress, config, ...)
 {
 
     ## retrieve file from hub to cache
@@ -137,12 +137,16 @@
             stopifnot(is.list(config))
         }
 
+        if(missing(progress)){
+            progress=TRUE
+        }
+
         if (!all(file.exists(dirname(localfile)))) dir.create(dirname(localfile), recursive=TRUE)
 
         # set up request using httr2
         req <- request(websource)
         # This enables progress bars in httr2
-        if(interactive()){
+        if((interactive() && progress)){
             req <- req %>% req_progress()
         }
         # Apply the proxy if it's not NULL
