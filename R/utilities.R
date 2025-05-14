@@ -107,12 +107,12 @@
 }
 
 .util_set_cache_info <-
-    function(bfc, rid, fpath = .sql_get_fpath(bfc, rid), config)
+    function(bfc, rid, fpath = .sql_get_fpath(bfc, rid), proxy, config)
 {
     if (length(rid) == 0L)
         return(bfc)
 
-    cache_info <- .httr_get_cache_info(fpath, config)
+    cache_info <- .httr_get_cache_info(fpath, proxy, config)
     .sql_set_last_modified(bfc, rid, cache_info[["modified"]])
     .sql_set_etag(bfc, rid, cache_info[["etag"]])
     .sql_set_expires(bfc, rid, cache_info[["expires"]])
@@ -139,7 +139,7 @@
             call. = FALSE
         )
     }
-    .util_set_cache_info(bfc, rid[ok], config=config)
+    .util_set_cache_info(bfc, rid[ok], proxy=proxy, config=config)
 
     if (!all(ok))
         stop(call, " failed; see warnings()")
@@ -192,7 +192,7 @@
             call. = FALSE
         )
 
-    .util_set_cache_info(bfc, rid[ok], fpath[ok], config=config)
+    .util_set_cache_info(bfc, rid[ok], fpath[ok], proxy=proxy, config=config)
 
     if (!all(ok))
         stop("download failed; see warnings()", call.=FALSE)
