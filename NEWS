@@ -11,7 +11,7 @@ BUG FIX
     add to cache without caching information. Additionally fix bug so config can
     be passed down to HEAD call from bfcneedsupdate, bfcadd, and bfcrpath.
 
-    o (2.99.3) Fix bug to pass proxy down to HEAD call
+    o (2.99.4) Fix bug to pass proxy down to HEAD call
 
 NEW FEATURE
 
