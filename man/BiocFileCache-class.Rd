@@ -351,7 +351,7 @@ resource be downloaded locally immediately.}
 session should be shown}
 
 \item{config}{list() passed as argument to \code{httr2::req_options}. The
-names of items shoudl be valid curl options as defined in
+names of items should be valid curl options as defined in
 \code{curl::curl_options}.}
 
 \item{rids}{character() Vector of rids.}

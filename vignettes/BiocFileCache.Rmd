@@ -657,14 +657,28 @@ BiocFileCache uses CRAN package `httr2` functions for accessing and downloading
 web resources. This can be problematic if operating behind a
 proxy. Unfortunately unlike the previously used `httr::set_config`, there is no
 option to globally set the proxy for httr2 requests. You can pass proxy
-information into the bfcadd functions.
+information into the bfcadd, bfcupdate, bfcneedsupdate, and bfcdownload
+functions.
 
 ```{r eval=FALSE}
 proxy <- "http://my_user:my_password@myproxy:8080"
 bfcadd(bfc, rname="uniquename", fpath="https://remoteresource", proxy=proxy)
 ```
+You can also set a `https_proxy` environment variable. It should be a character
+vector similar to the format above.  
 
+# Other configuration options for resource downloading
 
+As mentioned previously, There is no global option like `httr::set_config` to
+set configuration options when using httr2. A `config` argument may be passed to
+bfcadd, bfcupdate, bfcneedsupdate, and bfcdownload functions. This argument is a
+R list object that will be passed to `httr2::req_options`. The names of the
+items should be valid curl options as defined in `curl::curl_options`.
+
+```{r eval=FALSE}
+ssl_opts <- list(verbose = 1L,ssl_verifypeer = 0L, ssl_verifyhost = 0L)
+bfcadd(bfc, rname="uniquename", fpath="https://remoteresource", config=ssl_opts)
+```
 # Group Cache Access
 
 The situation may occur where a cache is desired to be shared across multiple

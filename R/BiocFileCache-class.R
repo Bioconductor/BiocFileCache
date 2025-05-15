@@ -349,7 +349,7 @@ setMethod("bfcadd", "missing",
 #' @param progress TRUE/FALSE if progress bar for downloads in interactive
 #'     session should be shown
 #' @param config list() passed as argument to \code{httr2::req_options}. The
-#'     names of items shoudl be valid curl options as defined in
+#'     names of items should be valid curl options as defined in
 #'     \code{curl::curl_options}.
 #' @param ... For 'bfcadd', 'bfcupdate' and 'bfcdownload': Additional
 #'     arguments passed to internal download functions for use with
