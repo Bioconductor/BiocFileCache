@@ -62,3 +62,27 @@ columns. Similarly, the optional columns 'rname', 'etag',
 not listed as required or optional will be kept as an additional
 metadata table in the BiocFileCache database.
 }
+\examples{
+## Create a data.frame with the required columns
+tempf <- tempfile(fileext = ".txt")
+file.create(tempf)
+df <- data.frame(
+    rtype = "local",
+    fpath = tempf,
+    rpath = tempf,
+    rname = "Example File 1",
+    etag = "etag1",
+    last_modified_time = as.character(Sys.Date()),
+    expires = as.character(Sys.Date() + 1),
+    stringsAsFactors = FALSE
+)
+## Create a BiocFileCache from the data.frame
+bfc <- makeBiocFileCacheFromDataFrame(
+    df, cache = tempfile(), actionLocal = "move",
+    metadataName = "resourceMetadata", ask = FALSE
+)
+bfc
+bfcinfo(bfc)
+removebfc(bfc, ask = FALSE)
+
+}

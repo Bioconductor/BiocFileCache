@@ -27,6 +27,30 @@
 #' @param ask logical(1) Confirm creation of BiocFileCache.
 #'
 #' @return A BiocFileCache object
+#'
+#' @examples
+#' ## Create a data.frame with the required columns
+#' tempf <- tempfile(fileext = ".txt")
+#' file.create(tempf)
+#' df <- data.frame(
+#'     rtype = "local",
+#'     fpath = tempf,
+#'     rpath = tempf,
+#'     rname = "Example File 1",
+#'     etag = "etag1",
+#'     last_modified_time = as.character(Sys.Date()),
+#'     expires = as.character(Sys.Date() + 1),
+#'     stringsAsFactors = FALSE
+#' )
+#' ## Create a BiocFileCache from the data.frame
+#' bfc <- makeBiocFileCacheFromDataFrame(
+#'     df, cache = tempfile(), actionLocal = "move",
+#'     metadataName = "resourceMetadata", ask = FALSE
+#' )
+#' bfc
+#' bfcinfo(bfc)
+#' removebfc(bfc, ask = FALSE)
+#'
 #' @export
 setGeneric("makeBiocFileCacheFromDataFrame",
     function(df, cache,
