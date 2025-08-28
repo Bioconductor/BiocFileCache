@@ -392,8 +392,12 @@ The following confirms that resources need updating, and the performs the update
 ```{r, bfcdownload}
 rid <- "BFC5"
 test <- !identical(bfcneedsupdate(bfc, rid), FALSE) # 'TRUE' or 'NA'
-if (test)
-    bfcdownload(bfc, rid, ask=FALSE)
+if (test) 
+    tryCatch({
+        bfcdownload(bfc, rid, ask=FALSE)
+    }, error = function(e) {
+        message("Error downloading resource: ", conditionMessage(e))
+    })
 ```
 
 ## Adding MetaData
