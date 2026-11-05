@@ -190,7 +190,7 @@
             stop("Download produced no file or an empty file.")
         }
         .verify_download_checksum(
-            websource, tmpfile, proxy, config
+            websource, tmpfile, proxy, config, download_url = resp_url(response)
         )
         # Only populate live location if temp file
         # if downloaded and can be renamed
@@ -221,15 +221,16 @@
 
 }
 
+
 #' @importFrom digest digest
 .verify_download_checksum <-
-    function(websource, tmpfile, proxy, config)
+    function(websource, tmpfile, proxy, config, download_url)
 {
     # Checksum sidecar retrieval currently supports HTTP(S) only
     if (!grepl("^https?://", websource, ignore.case = TRUE)) {
         return(TRUE)
     }
-    
+
     # Construct sidecar URLs, preserving query parameters
     checksum_urls <- c(
         sha256 = sub("([?#].*)?$", ".sha256\\1", websource),
@@ -248,10 +249,28 @@
         }
 
         # Allow inspection of HTTP error responses such as 404
-        req <- req %>% req_error(is_error = function(resp) FALSE)
+        req <- req %>%
+            req_options(followlocation = FALSE) %>%
+            req_error(is_error = function(resp) FALSE)
 
         response <- req_perform(req)
         status <- resp_status(response)
+
+        # Check whether the sidecar redirects to the actual data resource
+        if (status %in% c(301L, 302L, 303L, 307L, 308L)) {
+            location <- resp_header(response, "location")
+
+            if (!is.null(location) &&
+                identical(location, download_url)) {
+                next
+            }
+
+            # Follow legitimate redirects to checksum files
+            response <- req_perform(
+                req %>% req_options(followlocation = TRUE)
+            )
+            status <- resp_status(response)
+        }
 
         # No checksum available; try the next algorithm
         if (status %in% c(404L, 410L)) {
