@@ -1,13 +1,3 @@
-CHANGES IN VERSION 3.3.0
-----------------------
-
-BUG FIX
-
-    o (3.3.1) Check md5sum or sha if available. if partial download do not
-    proceed
-    
-
-
 CHANGES IN VERSION 2.99.0
 ----------------------
 

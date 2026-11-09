@@ -61,34 +61,25 @@ import(RSQLite)
 import(dbplyr)
 import(httr2)
 import(methods)
-importFrom(DBI,
-  dbExecute,
-  dbSendStatement
-)
+importFrom(DBI,dbExecute)
+importFrom(DBI,dbSendStatement)
 importFrom(curl,curl_escape)
-importFrom(digest,digest)
-importFrom(dplyr,
-  "%>%",
-  collect,
-  filter,
-  left_join,
-  mutate,
-  n,
-  select,
-  summarize,
-  tbl
-)
-importFrom(filelock,
-  lock,
-  unlock
-)
+importFrom(dplyr,"%>%")
+importFrom(dplyr,collect)
+importFrom(dplyr,filter)
+importFrom(dplyr,left_join)
+importFrom(dplyr,mutate)
+importFrom(dplyr,n)
+importFrom(dplyr,select)
+importFrom(dplyr,summarize)
+importFrom(dplyr,tbl)
+importFrom(filelock,lock)
+importFrom(filelock,unlock)
 importFrom(stats,setNames)
 importFrom(tools,R_user_dir)
-importFrom(utils,
-  capture.output,
-  packageVersion,
-  tar,
-  untar,
-  unzip,
-  zip
-)
+importFrom(utils,capture.output)
+importFrom(utils,packageVersion)
+importFrom(utils,tar)
+importFrom(utils,untar)
+importFrom(utils,unzip)
+importFrom(utils,zip)

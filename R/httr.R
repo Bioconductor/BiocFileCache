@@ -56,17 +56,17 @@
     } else {
         stopifnot(is.list(config))
     }
-
+    
     if (missing(proxy)){
         proxy <- ""
-    }
+    }         
     if (proxy == ""){
         proxy <- NULL
-    }
-
+    }         
+    
     req <- request(link) %>%
         req_method("HEAD")
-
+    
     # Apply the proxy if it's not NULL
     if (!is.null(proxy)) {
         req <- req %>% req_proxy(proxy)
@@ -135,13 +135,13 @@
 .httr_download <-
     function(websource, localfile, proxy, progress, config, ...)
 {
-    tmpfile <- NULL
+
     ## retrieve file from hub to cache
     tryCatch({
 
         if (proxy == ""){
             proxy <- NULL
-        }
+        }         
 
         if((length(config)==0)){
             config <- NULL
@@ -169,35 +169,12 @@
         if (!is.null(config)) {
             req <- req %>% req_options(!!!config)
         }
-
-        # Create temp file to write to first
-        tmpfile <- tempfile(
-            pattern = paste0(".", basename(localfile), "-"),
-            tmpdir = dirname(localfile)
-        )
-
         ## httr2 req_perform does not have an overwrite
         ## assume overwrite will occur automatically
         ## Perform the request and capture the response
-        response <- req_perform(req, path=tmpfile, ...)
+        response <- req_perform(req, path=localfile, ...)
 
         cat("\n") ## line break after progress bar
-
-        # Verify downloaded file size when Content-Length is available
-        if (!file.exists(tmpfile) ||
-            is.na(file.info(tmpfile)$size) ||
-            file.info(tmpfile)$size == 0) {
-            stop("Download produced no file or an empty file.")
-        }
-        .verify_download_checksum(
-            websource, tmpfile, proxy, config
-        )
-        # Only populate live location if temp file
-        # if downloaded and can be renamed
-        if (!file.rename(tmpfile, localfile)) {
-            stop("Could not move downloaded file to cache path: ", localfile)
-        }
-        tmpfile <- NULL
 
 #  No longer needed?
 #        if (length(status_code(response))) {
@@ -213,95 +190,6 @@
             "\n  reason: ", conditionMessage(err),
             call.=FALSE)
         FALSE
-    }, finally = {
-         if (!is.null(tmpfile) && file.exists(tmpfile)) {
-          unlink(tmpfile)
-       }
     })
 
-}
-
-#' @importFrom digest digest
-.verify_download_checksum <-
-    function(websource, tmpfile, proxy, config)
-{
-    # Checksum sidecar retrieval currently supports HTTP(S) only
-    if (!grepl("^https?://", websource, ignore.case = TRUE)) {
-        return(TRUE)
-    }
-    
-    # Construct sidecar URLs, preserving query parameters
-    checksum_urls <- c(
-        sha256 = sub("([?#].*)?$", ".sha256\\1", websource),
-        md5 = sub("([?#].*)?$", ".md5\\1", websource)
-    )
-
-    for (algo in names(checksum_urls)) {
-        req <- request(checksum_urls[[algo]])
-
-        if (!is.null(proxy)) {
-            req <- req %>% req_proxy(proxy)
-        }
-
-        if (!is.null(config)) {
-            req <- req %>% req_options(!!!config)
-        }
-
-        # Allow inspection of HTTP error responses such as 404
-        req <- req %>% req_error(is_error = function(resp) FALSE)
-
-        response <- req_perform(req)
-        status <- resp_status(response)
-
-        # No checksum available; try the next algorithm
-        if (status %in% c(404L, 410L)) {
-            next
-        }
-
-        if (status < 200L || status >= 300L) {
-            stop(
-                "Could not retrieve ", algo, " checksum: HTTP ", status
-            )
-        }
-
-        checksum_text <- resp_body_string(response)
-
-        # Extract the checksum value from the sidecar
-        checksum <- regmatches(
-            checksum_text,
-            regexpr(
-                if (algo == "sha256") {
-                    "[[:xdigit:]]{64}"
-                } else {
-                    "[[:xdigit:]]{32}"
-                },
-                checksum_text,
-                perl = TRUE
-            )
-        )
-
-        if (length(checksum) == 0L || !nzchar(checksum)) {
-            stop("Invalid ", algo, " checksum file.")
-        }
-
-        expected <- tolower(checksum)
-        actual <- digest(
-            file = tmpfile,
-            algo = algo,
-            serialize = FALSE
-        )
-
-        if (!identical(expected, tolower(actual))) {
-            stop(
-                algo, " checksum mismatch.",
-                "\n  expected: ", expected,
-                "\n  actual: ", actual
-            )
-        }
-
-        return(TRUE)
-    }
-
-    # Neither checksum sidecar was available
-    TRUE
 }

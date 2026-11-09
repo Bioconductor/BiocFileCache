@@ -559,12 +559,12 @@ cache.
 
 \item \code{bfcrid(BiocFileCacheReadOnly)}: Get the rids of the object.
 
-\item \code{x = BiocFileCache[i = character, j = missing]}: Subset a BiocFileCache object.
+\item \code{x[i}: Subset a BiocFileCache object.
 
-\item \code{x = BiocFileCacheBase[[i = character, j = missing]]}: Get a file path for select resources from
+\item \code{x[[i}: Get a file path for select resources from
 the cache.
 
-\item \code{x = BiocFileCache[[i = character, j = missing]] <- value}: Set the file path of selected resources
+\item \code{`[[`(x = BiocFileCache, i = character, j = missing) <- value}: Set the file path of selected resources
 from the cache.
 
 \item \code{bfcnew(BiocFileCache)}: Add a resource to the database
